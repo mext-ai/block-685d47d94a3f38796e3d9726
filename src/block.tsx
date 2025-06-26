@@ -8,7 +8,6 @@ const Block: React.FC<BlockProps> = () => {
   const [direction, setDirection] = useState(0); // Direction du sprite
   const [isWalking, setIsWalking] = useState(false);
   const [isAttacking, setIsAttacking] = useState(false);
-  const [attackFrame, setAttackFrame] = useState(0);
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false, space: false });
 
@@ -148,24 +147,24 @@ const Block: React.FC<BlockProps> = () => {
   // Configuration du sprite
   const spriteWidth = 32;
   const spriteHeight = 32;
-  const framesPerRow = 4; // Nombre de frames par ligne/direction
+  const walkFramesPerRow = 4; // 4 frames pour la marche
+  const attackFramesPerRow = 8; // Estimation: 8 frames pour l'attaque (à ajuster selon votre sprite)
   
   // Calcul de la position dans le sprite sheet
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
   
   if (isAttacking) {
-    // Utiliser seulement la 4ème image (index 3) de chaque ligne pour l'attaque
-    spriteX = 3 * spriteWidth; // Dernière frame de chaque ligne
+    // Utiliser seulement la dernière image de chaque ligne pour l'attaque
+    spriteX = (attackFramesPerRow - 1) * spriteWidth; // Dernière frame de chaque ligne
     spriteY = direction * spriteHeight;
     currentSpriteUrl = attackSpriteSheetUrl;
-    // Ajuster la taille du background pour le sprite d'attaque (peut être différent)
-    backgroundSizeX = spriteWidth * framesPerRow * 3; // Même taille que marche pour commencer
+    backgroundSizeX = spriteWidth * attackFramesPerRow * 3; // Taille basée sur le nombre d'images d'attaque
   } else {
     // Utiliser le sprite de marche
     spriteX = currentFrame * spriteWidth;
     spriteY = direction * spriteHeight;
     currentSpriteUrl = walkSpriteSheetUrl;
-    backgroundSizeX = spriteWidth * framesPerRow * 3;
+    backgroundSizeX = spriteWidth * walkFramesPerRow * 3; // Taille basée sur le nombre d'images de marche
   }
 
   return (
@@ -219,6 +218,9 @@ const Block: React.FC<BlockProps> = () => {
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
           Direction: {direction} - {isAttacking ? '⚔️ Attaque!' : isWalking ? '🚶 Marche' : '🧍 Repos'}
+        </p>
+        <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
+          DEBUG: Frames attaque estimées: {attackFramesPerRow}
         </p>
       </div>
 

@@ -1,16 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 interface BlockProps {
-  backgroundImage?: string;
   title?: string;
 }
 
 const Block: React.FC<BlockProps> = ({ 
-  backgroundImage = '', 
   title = 'Votre contenu ici' 
 }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-
   useEffect(() => {
     // Envoyer l'événement de completion au chargement
     window.postMessage({ 
@@ -25,14 +21,8 @@ const Block: React.FC<BlockProps> = ({
     }, '*');
   }, []);
 
-  const backgroundStyle = backgroundImage ? {
-    backgroundImage: `url(${backgroundImage})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-  } : {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  };
+  // URL de votre image PNG uploadée
+  const backgroundImageUrl = 'https://mext-content-library.s3.eu-west-3.amazonaws.com/uploads/44905eb6-acf6-406e-bdb8-0659cb46a6bc.png';
 
   return (
     <div style={{
@@ -44,7 +34,10 @@ const Block: React.FC<BlockProps> = ({
       margin: 0,
       color: 'white',
       position: 'relative',
-      ...backgroundStyle
+      backgroundImage: `url(${backgroundImageUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
     }}>
       {/* Overlay pour améliorer la lisibilité du texte */}
       <div style={{
@@ -66,28 +59,29 @@ const Block: React.FC<BlockProps> = ({
       }}>
         <h1 style={{
           fontSize: '3rem',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
           margin: 0,
           marginBottom: '1rem'
         }}>
           {title}
         </h1>
         
-        {!backgroundImage && (
-          <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            padding: '1rem',
-            borderRadius: '8px',
-            marginTop: '2rem'
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          padding: '1.5rem',
+          borderRadius: '12px',
+          marginTop: '2rem',
+          backdropFilter: 'blur(5px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <p style={{ 
+            margin: 0, 
+            fontSize: '1.3rem',
+            fontWeight: '300'
           }}>
-            <p style={{ margin: 0, fontSize: '1.2rem' }}>
-              📸 Ajoutez votre image PNG en paramètre
-            </p>
-            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', opacity: 0.8 }}>
-              Utilisez le paramètre "backgroundImage" avec l'URL de votre image
-            </p>
-          </div>
-        )}
+            ✨ Votre image PNG est maintenant en arrière-plan !
+          </p>
+        </div>
       </div>
     </div>
   );

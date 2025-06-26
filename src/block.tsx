@@ -7,6 +7,8 @@ const Block: React.FC<BlockProps> = () => {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [direction, setDirection] = useState(0); // 0: bas, 1: gauche, 2: droite, 3: haut
   const [isWalking, setIsWalking] = useState(false);
+  const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
+  const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
 
   useEffect(() => {
     // Envoyer l'événement de completion au chargement
@@ -24,47 +26,87 @@ const Block: React.FC<BlockProps> = () => {
     // Animation du sprite
     const animationInterval = setInterval(() => {
       if (isWalking) {
-        setCurrentFrame(prev => (prev + 1) % 4); // Assumant 4 frames par direction
+        setCurrentFrame(prev => (prev + 1) % 3); // 3 frames d'animation + 1 frame de repos
       }
-    }, 200); // 200ms entre chaque frame
+    }, 150);
 
-    // Gestion des touches du clavier
-    const handleKeyPress = (event: KeyboardEvent) => {
-      setIsWalking(true);
-      switch(event.key.toLowerCase()) {
-        case 'arrowup':
-        case 'z':
-          setDirection(3); // Haut
-          break;
-        case 'arrowdown':
-        case 's':
-          setDirection(0); // Bas
-          break;
-        case 'arrowleft':
-        case 'q':
-          setDirection(1); // Gauche
-          break;
-        case 'arrowright':
-        case 'd':
-          setDirection(2); // Droite
-          break;
+    return () => clearInterval(animationInterval);
+  }, [isWalking]);
+
+  // Gestion du mouvement
+  useEffect(() => {
+    const moveInterval = setInterval(() => {
+      if (keys.up || keys.down || keys.left || keys.right) {
+        setIsWalking(true);
+        setPosition(prev => {
+          let newX = prev.x;
+          let newY = prev.y;
+          const speed = 1; // Vitesse de déplacement en %
+
+          if (keys.up) {
+            newY = Math.max(5, prev.y - speed);
+            setDirection(3); // Sprite direction haut
+          }
+          if (keys.down) {
+            newY = Math.min(95, prev.y + speed);
+            setDirection(0); // Sprite direction bas
+          }
+          if (keys.left) {
+            newX = Math.max(5, prev.x - speed);
+            setDirection(1); // Sprite direction gauche
+          }
+          if (keys.right) {
+            newX = Math.min(95, prev.x + speed);
+            setDirection(2); // Sprite direction droite
+          }
+
+          return { x: newX, y: newY };
+        });
+      } else {
+        setIsWalking(false);
+        setCurrentFrame(1); // Frame de repos (milieu)
       }
+    }, 16); // ~60 FPS
+
+    return () => clearInterval(moveInterval);
+  }, [keys]);
+
+  // Gestion des touches
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      event.preventDefault();
+      const key = event.key.toLowerCase();
+      
+      setKeys(prev => ({
+        ...prev,
+        up: prev.up || key === 'arrowup' || key === 'z',
+        down: prev.down || key === 'arrowdown' || key === 's',
+        left: prev.left || key === 'arrowleft' || key === 'q',
+        right: prev.right || key === 'arrowright' || key === 'd'
+      }));
     };
 
-    const handleKeyUp = () => {
-      setIsWalking(false);
-      setCurrentFrame(0); // Frame de repos
+    const handleKeyUp = (event: KeyboardEvent) => {
+      event.preventDefault();
+      const key = event.key.toLowerCase();
+      
+      setKeys(prev => ({
+        ...prev,
+        up: prev.up && !(key === 'arrowup' || key === 'z'),
+        down: prev.down && !(key === 'arrowdown' || key === 's'),
+        left: prev.left && !(key === 'arrowleft' || key === 'q'),
+        right: prev.right && !(key === 'arrowright' || key === 'd')
+      }));
     };
 
-    window.addEventListener('keydown', handleKeyPress);
+    window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
     return () => {
-      clearInterval(animationInterval);
-      window.removeEventListener('keydown', handleKeyPress);
+      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isWalking]);
+  }, []);
 
   // URL de votre image de fond
   const backgroundImageUrl = 'https://drive.google.com/thumbnail?id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR&sz=w2000';
@@ -72,51 +114,79 @@ const Block: React.FC<BlockProps> = () => {
   // URL de votre sprite sheet
   const spriteSheetUrl = 'https://drive.google.com/thumbnail?id=1_Yp96n--W40rf5sQFA4L5MBpc0IBOYBW&sz=w1000';
 
-  // Calcul de la position du sprite (assumant une grille 4x4)
-  const spriteWidth = 32; // Largeur d'un sprite en pixels (à ajuster selon votre image)
-  const spriteHeight = 32; // Hauteur d'un sprite en pixels (à ajuster selon votre image)
+  // Configuration du sprite (ajustez selon votre sprite sheet)
+  const spriteWidth = 32;
+  const spriteHeight = 32;
+  const framesPerRow = 4; // Nombre de frames par ligne/direction
+  
+  // Calcul de la position dans le sprite sheet
   const spriteX = currentFrame * spriteWidth;
   const spriteY = direction * spriteHeight;
 
   return (
-    <div style={{
-      height: '100vh',
-      margin: 0,
-      backgroundImage: `url(${backgroundImageUrl})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      {/* Personnage sprite */}
+    <div 
+      style={{
+        height: '100vh',
+        margin: 0,
+        backgroundImage: `url(${backgroundImageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+      tabIndex={0} // Permet la capture des événements clavier
+    >
+      {/* Personnage sprite qui se déplace */}
       <div style={{
         position: 'absolute',
-        left: '50%',
-        top: '50%',
+        left: `${position.x}%`,
+        top: `${position.y}%`,
         transform: 'translate(-50%, -50%)',
-        width: `${spriteWidth * 3}px`, // Agrandir le sprite
+        width: `${spriteWidth * 3}px`,
         height: `${spriteHeight * 3}px`,
         backgroundImage: `url(${spriteSheetUrl})`,
         backgroundPosition: `-${spriteX * 3}px -${spriteY * 3}px`,
-        backgroundSize: `${spriteWidth * 4 * 3}px ${spriteHeight * 4 * 3}px`, // Assumant 4x4 grid
-        imageRendering: 'pixelated', // Pour garder l'aspect pixel art
+        backgroundSize: `${spriteWidth * framesPerRow * 3}px auto`,
+        imageRendering: 'pixelated',
+        transition: 'none', // Pas de transition CSS pour un mouvement plus réactif
+        zIndex: 10
       }} />
 
-      {/* Instructions */}
+      {/* Instructions de contrôle */}
       <div style={{
         position: 'absolute',
         top: '20px',
         left: '20px',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        color: 'white',
+        padding: '15px',
+        borderRadius: '8px',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '14px',
+        zIndex: 20
+      }}>
+        <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
+        <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD</p>
+        <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
+          Position: ({Math.round(position.x)}, {Math.round(position.y)})
+        </p>
+      </div>
+
+      {/* Indicateur de focus */}
+      <div style={{
+        position: 'absolute',
+        bottom: '20px',
+        right: '20px',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
         color: 'white',
         padding: '10px',
         borderRadius: '8px',
         fontFamily: 'Arial, sans-serif',
-        fontSize: '14px'
+        fontSize: '12px',
+        zIndex: 20
       }}>
-        <p style={{ margin: '0 0 5px 0' }}>🎮 Contrôles :</p>
-        <p style={{ margin: '0' }}>Flèches directionnelles ou ZQSD</p>
+        💡 Cliquez ici pour activer les contrôles
       </div>
     </div>
   );

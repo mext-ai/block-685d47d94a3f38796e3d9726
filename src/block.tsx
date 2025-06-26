@@ -7,8 +7,10 @@ const Block: React.FC<BlockProps> = () => {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [direction, setDirection] = useState(0); // Direction du sprite
   const [isWalking, setIsWalking] = useState(false);
+  const [isAttacking, setIsAttacking] = useState(false);
+  const [attackFrame, setAttackFrame] = useState(0);
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
-  const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
+  const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false, space: false });
 
   // Limites de la zone de jeu - Réduction encore plus importante de la zone de déplacement depuis le haut
   const topLimit = 35; // Augmenté de 30% à 35% pour encore plus réduire la zone de déplacement
@@ -29,20 +31,37 @@ const Block: React.FC<BlockProps> = () => {
       completed: true 
     }, '*');
 
-    // Animation du sprite
-    const animationInterval = setInterval(() => {
-      if (isWalking) {
+    // Animation du sprite de marche
+    const walkAnimationInterval = setInterval(() => {
+      if (isWalking && !isAttacking) {
         setCurrentFrame(prev => (prev + 1) % 3); // 3 frames d'animation + 1 frame de repos
       }
     }, 150);
 
-    return () => clearInterval(animationInterval);
-  }, [isWalking]);
+    return () => clearInterval(walkAnimationInterval);
+  }, [isWalking, isAttacking]);
+
+  // Animation d'attaque
+  useEffect(() => {
+    if (isAttacking) {
+      const attackAnimationInterval = setInterval(() => {
+        setAttackFrame(prev => {
+          if (prev >= 2) { // 3 frames d'attaque (0, 1, 2)
+            setIsAttacking(false);
+            return 0;
+          }
+          return prev + 1;
+        });
+      }, 100); // Animation d'attaque plus rapide
+
+      return () => clearInterval(attackAnimationInterval);
+    }
+  }, [isAttacking]);
 
   // Gestion du mouvement avec limites
   useEffect(() => {
     const moveInterval = setInterval(() => {
-      if (keys.up || keys.down || keys.left || keys.right) {
+      if (!isAttacking && (keys.up || keys.down || keys.left || keys.right)) {
         setIsWalking(true);
         setPosition(prev => {
           let newX = prev.x;
@@ -75,7 +94,7 @@ const Block: React.FC<BlockProps> = () => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(moveInterval);
-  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit]);
+  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit, isAttacking]);
 
   // Gestion des touches
   useEffect(() => {
@@ -83,12 +102,21 @@ const Block: React.FC<BlockProps> = () => {
       event.preventDefault();
       const key = event.key.toLowerCase();
       
+      // Gestion de l'attaque
+      if (key === ' ' && !isAttacking) {
+        setIsAttacking(true);
+        setAttackFrame(0);
+        setIsWalking(false);
+        return;
+      }
+      
       setKeys(prev => ({
         ...prev,
         up: prev.up || key === 'arrowup' || key === 'z',
         down: prev.down || key === 'arrowdown' || key === 's',
         left: prev.left || key === 'arrowleft' || key === 'q',
-        right: prev.right || key === 'arrowright' || key === 'd'
+        right: prev.right || key === 'arrowright' || key === 'd',
+        space: prev.space || key === ' '
       }));
     };
 
@@ -101,7 +129,8 @@ const Block: React.FC<BlockProps> = () => {
         up: prev.up && !(key === 'arrowup' || key === 'z'),
         down: prev.down && !(key === 'arrowdown' || key === 's'),
         left: prev.left && !(key === 'arrowleft' || key === 'q'),
-        right: prev.right && !(key === 'arrowright' || key === 'd')
+        right: prev.right && !(key === 'arrowright' || key === 'd'),
+        space: prev.space && key !== ' '
       }));
     };
 
@@ -112,13 +141,16 @@ const Block: React.FC<BlockProps> = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [isAttacking]);
 
   // URL de votre image de fond
   const backgroundImageUrl = 'https://drive.google.com/thumbnail?id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR&sz=w2000';
   
-  // URL de votre sprite sheet
-  const spriteSheetUrl = 'https://drive.google.com/thumbnail?id=1_Yp96n--W40rf5sQFA4L5MBpc0IBOYBW&sz=w1000';
+  // URL de votre sprite sheet de marche
+  const walkSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1_Yp96n--W40rf5sQFA4L5MBpc0IBOYBW&sz=w1000';
+  
+  // URL de votre sprite sheet d'attaque
+  const attackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1dAguM-5cKwpr6d7IwmL4RyHZNHtnl5To&sz=w1000';
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -126,8 +158,19 @@ const Block: React.FC<BlockProps> = () => {
   const framesPerRow = 4; // Nombre de frames par ligne/direction
   
   // Calcul de la position dans le sprite sheet
-  const spriteX = currentFrame * spriteWidth;
-  const spriteY = direction * spriteHeight;
+  let spriteX, spriteY, currentSpriteUrl;
+  
+  if (isAttacking) {
+    // Utiliser le sprite d'attaque
+    spriteX = attackFrame * spriteWidth;
+    spriteY = direction * spriteHeight;
+    currentSpriteUrl = attackSpriteSheetUrl;
+  } else {
+    // Utiliser le sprite de marche
+    spriteX = currentFrame * spriteWidth;
+    spriteY = direction * spriteHeight;
+    currentSpriteUrl = walkSpriteSheetUrl;
+  }
 
   return (
     <div 
@@ -151,7 +194,7 @@ const Block: React.FC<BlockProps> = () => {
         transform: 'translate(-50%, -50%)',
         width: `${spriteWidth * 3}px`,
         height: `${spriteHeight * 3}px`,
-        backgroundImage: `url(${spriteSheetUrl})`,
+        backgroundImage: `url(${currentSpriteUrl})`,
         backgroundPosition: `-${spriteX * 3}px -${spriteY * 3}px`,
         backgroundSize: `${spriteWidth * framesPerRow * 3}px auto`,
         imageRendering: 'pixelated',
@@ -173,9 +216,13 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 20
       }}>
         <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
-        <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD</p>
+        <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD pour se déplacer</p>
+        <p style={{ margin: '0 0 5px 0' }}>ESPACE pour attaquer</p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
           Position: ({Math.round(position.x)}, {Math.round(position.y)})
+        </p>
+        <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
+          {isAttacking ? '⚔️ Attaque!' : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
       </div>
 

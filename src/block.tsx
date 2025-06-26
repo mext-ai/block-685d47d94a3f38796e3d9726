@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 interface BlockProps {
   title?: string;
@@ -7,9 +7,6 @@ interface BlockProps {
 const Block: React.FC<BlockProps> = ({ 
   title = 'Votre contenu ici' 
 }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
   useEffect(() => {
     // Envoyer l'événement de completion au chargement
     window.postMessage({ 
@@ -24,9 +21,8 @@ const Block: React.FC<BlockProps> = ({
     }, '*');
   }, []);
 
-  // Pour l'instant, utilisons une image d'exemple qui fonctionne
-  // Vous pourrez remplacer cette URL par votre image une fois qu'elle sera accessible
-  const backgroundImageUrl = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
+  // Votre image PNG uploadée
+  const backgroundImageUrl = 'https://mext-content-library.s3.eu-west-3.amazonaws.com/uploads/44905eb6-acf6-406e-bdb8-0659cb46a6bc.png';
 
   return (
     <div style={{
@@ -83,14 +79,7 @@ const Block: React.FC<BlockProps> = ({
             fontSize: '1.3rem',
             fontWeight: '300'
           }}>
-            🖼️ Image de fond active !
-          </p>
-          <p style={{ 
-            margin: '0.5rem 0 0 0', 
-            fontSize: '1rem',
-            opacity: 0.9
-          }}>
-            Remplacez l'URL dans le code pour utiliser votre image
+            🖼️ Votre image PNG personnalisée !
           </p>
         </div>
       </div>

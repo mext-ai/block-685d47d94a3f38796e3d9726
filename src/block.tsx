@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface BlockProps {
   title?: string;
@@ -7,6 +7,9 @@ interface BlockProps {
 const Block: React.FC<BlockProps> = ({ 
   title = 'Votre contenu ici' 
 }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   useEffect(() => {
     // Envoyer l'événement de completion au chargement
     window.postMessage({ 
@@ -19,10 +22,32 @@ const Block: React.FC<BlockProps> = ({
       blockId: 'image-background-block', 
       completed: true 
     }, '*');
+
+    // Précharger l'image pour vérifier qu'elle se charge
+    const img = new Image();
+    img.onload = () => {
+      console.log('Image Google Drive chargée avec succès');
+      setImageLoaded(true);
+    };
+    img.onerror = () => {
+      console.error('Erreur de chargement de l\'image Google Drive');
+      setImageError(true);
+    };
+    // Conversion du lien Google Drive en URL d'affichage direct
+    img.src = 'https://drive.google.com/uc?export=view&id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR';
   }, []);
 
-  // Votre image PNG en format Base64 intégrée
-  const backgroundImageBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  // URL directe de votre image Google Drive
+  const backgroundImageUrl = 'https://drive.google.com/uc?export=view&id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR';
+
+  const backgroundStyle = imageLoaded ? {
+    backgroundImage: `url(${backgroundImageUrl})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+  } : {
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  };
 
   return (
     <div style={{
@@ -34,12 +59,7 @@ const Block: React.FC<BlockProps> = ({
       margin: 0,
       color: 'white',
       position: 'relative',
-      backgroundImage: `url(${backgroundImageBase64})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      // Fallback en cas de problème avec l'image
-      backgroundColor: '#2c3e50',
+      ...backgroundStyle
     }}>
       {/* Overlay pour améliorer la lisibilité du texte */}
       <div style={{
@@ -76,20 +96,32 @@ const Block: React.FC<BlockProps> = ({
           backdropFilter: 'blur(10px)',
           border: '1px solid rgba(255, 255, 255, 0.3)'
         }}>
-          <p style={{ 
-            margin: 0, 
-            fontSize: '1.3rem',
-            fontWeight: '300'
-          }}>
-            🖼️ Image Base64 intégrée
-          </p>
-          <p style={{ 
-            margin: '0.5rem 0 0 0', 
-            fontSize: '1rem',
-            opacity: 0.9
-          }}>
-            Prêt à recevoir votre image personnalisée !
-          </p>
+          {imageLoaded ? (
+            <p style={{ 
+              margin: 0, 
+              fontSize: '1.3rem',
+              fontWeight: '300'
+            }}>
+              ✨ Votre image Google Drive est chargée !
+            </p>
+          ) : imageError ? (
+            <p style={{ 
+              margin: 0, 
+              fontSize: '1.3rem',
+              fontWeight: '300',
+              color: '#ff6b6b'
+            }}>
+              ❌ Erreur de chargement de l'image
+            </p>
+          ) : (
+            <p style={{ 
+              margin: 0, 
+              fontSize: '1.3rem',
+              fontWeight: '300'
+            }}>
+              ⏳ Chargement de votre image...
+            </p>
+          )}
         </div>
       </div>
     </div>

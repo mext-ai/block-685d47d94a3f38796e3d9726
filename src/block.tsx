@@ -163,7 +163,7 @@ const Block: React.FC<BlockProps> = () => {
   const spriteHeight = 32;
   const walkFramesPerRow = 4; // 4 frames pour la marche
   const attackFramesPerRow = 8; // 8 frames pour l'attaque
-  const spriteScale = 4.5; // Agrandissement x1.5 (3 * 1.5 = 4.5)
+  const spriteScale = 3.5; // Taille ajustée à 3.5
   
   // Calcul de la position dans le sprite sheet
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
@@ -196,7 +196,7 @@ const Block: React.FC<BlockProps> = () => {
       }}
       tabIndex={0} // Permet la capture des événements clavier
     >
-      {/* Personnage sprite qui se déplace - Agrandi x1.5 */}
+      {/* Personnage sprite qui se déplace - Ajusté à 3.5 */}
       <div style={{
         position: 'absolute',
         left: `${position.x}%`,
@@ -235,7 +235,7 @@ const Block: React.FC<BlockProps> = () => {
           Direction: {direction} - {isAttacking ? `⚔️ Attaque simple!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-          Taille: x1.5 (Plus grand!)
+          Taille: 3.5 (Optimisée)
         </p>
       </div>
 

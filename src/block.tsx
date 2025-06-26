@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface BlockProps {
 }
@@ -22,6 +22,14 @@ const Block: React.FC<BlockProps> = () => {
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false, space: false });
   const [enemies, setEnemies] = useState<Enemy[]>([]);
+  
+  // Utiliser useRef pour avoir toujours la position actuelle du joueur
+  const playerPositionRef = useRef({ x: 50, y: 50 });
+
+  // Mettre à jour la référence à chaque changement de position
+  useEffect(() => {
+    playerPositionRef.current = position;
+  }, [position]);
 
   // Limites de la zone de jeu - Réduction encore plus importante de la zone de déplacement depuis le haut
   const topLimit = 35; // Augmenté de 30% à 35% pour encore plus réduire la zone de déplacement
@@ -76,7 +84,7 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(enemyAnimationInterval);
   }, []);
 
-  // Mouvement des ennemis - IA de poursuite
+  // Mouvement des ennemis - IA de poursuite en temps réel
   useEffect(() => {
     const enemyMovementInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
@@ -85,19 +93,22 @@ const Block: React.FC<BlockProps> = () => {
         let newX = enemy.x;
         let newY = enemy.y;
         let newDirection = enemy.direction;
-        const speed = 0.4; // Vitesse de poursuite
+        const speed = 0.5; // Vitesse de poursuite légèrement augmentée
         
         if (enemy.type === 'mushroom') {
+          // Utiliser la position actuelle du joueur via la ref
+          const currentPlayerPos = playerPositionRef.current;
+          
           // Calculer la distance vers le joueur
-          const deltaX = position.x - enemy.x;
-          const deltaY = position.y - enemy.y;
+          const deltaX = currentPlayerPos.x - enemy.x;
+          const deltaY = currentPlayerPos.y - enemy.y;
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
           // Seuil de distance pour éviter le tremblement quand très proche
-          const minDistance = 3;
+          const minDistance = 2;
           
           if (distance > minDistance) {
-            // Se déplacer vers le joueur
+            // Se déplacer vers le joueur en normalisant le vecteur
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
@@ -122,10 +133,10 @@ const Block: React.FC<BlockProps> = () => {
           direction: newDirection
         };
       }));
-    }, 32); // ~30 FPS pour le mouvement des ennemis
+    }, 16); // Augmenter la fréquence à ~60 FPS pour une poursuite plus fluide
 
     return () => clearInterval(enemyMovementInterval);
-  }, [position, topLimit, bottomLimit, leftLimit, rightLimit]); // Dépendance sur la position du joueur
+  }, []); // Pas de dépendances - utilise la ref pour la position du joueur
 
   // Animation d'attaque simple : image 3 → image 4 → fin
   useEffect(() => {
@@ -352,7 +363,7 @@ const Block: React.FC<BlockProps> = () => {
           Direction: {direction} - {isAttacking ? `⚔️ Attaque simple!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-          🍄 Ennemis: {enemies.filter(e => e.isAlive).length} - IA Active
+          🍄 Poursuite Active: {enemies.filter(e => e.isAlive).length}
         </p>
       </div>
 

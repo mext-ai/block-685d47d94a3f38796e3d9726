@@ -27,12 +27,18 @@ const Block: React.FC<BlockProps> = () => {
   
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
   const playerPositionRef = useRef({ x: 50, y: 50 });
+  const playerDirectionRef = useRef(0); // Référence pour la direction du joueur
   const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
 
   // Mettre à jour la référence à chaque changement de position
   useEffect(() => {
     playerPositionRef.current = position;
   }, [position]);
+
+  // Mettre à jour la référence à chaque changement de direction
+  useEffect(() => {
+    playerDirectionRef.current = direction;
+  }, [direction]);
 
   // Limites de la zone de jeu - Réduction encore plus importante de la zone de déplacement depuis le haut
   const topLimit = 35; // Augmenté de 30% à 35% pour encore plus réduire la zone de déplacement
@@ -176,20 +182,42 @@ const Block: React.FC<BlockProps> = () => {
     }
   }, [isAttacking]);
 
-  // Fonction pour vérifier si l'attaque touche un ennemi
+  // Fonction pour vérifier si l'ennemi est dans la direction d'attaque
+  const isEnemyInAttackDirection = (playerX: number, playerY: number, enemyX: number, enemyY: number, playerDirection: number) => {
+    const deltaX = enemyX - playerX;
+    const deltaY = enemyY - playerY;
+    const attackAngle = 45; // Angle d'attaque en degrés (cône de 90° total)
+    
+    switch (playerDirection) {
+      case 0: // Bas
+        return deltaY > 0 && Math.abs(deltaX) <= Math.abs(deltaY) * Math.tan(attackAngle * Math.PI / 180);
+      case 1: // Haut
+        return deltaY < 0 && Math.abs(deltaX) <= Math.abs(deltaY) * Math.tan(attackAngle * Math.PI / 180);
+      case 2: // Gauche
+        return deltaX < 0 && Math.abs(deltaY) <= Math.abs(deltaX) * Math.tan(attackAngle * Math.PI / 180);
+      case 3: // Droite
+        return deltaX > 0 && Math.abs(deltaY) <= Math.abs(deltaX) * Math.tan(attackAngle * Math.PI / 180);
+      default:
+        return false;
+    }
+  };
+
+  // Fonction pour vérifier si l'attaque touche un ennemi (CORRIGÉE avec direction)
   const checkAttackHit = () => {
     const attackRange = 8; // Portée de l'attaque
+    const currentPlayerPos = playerPositionRef.current;
+    const currentPlayerDirection = playerDirectionRef.current;
     
     setEnemies(prev => prev.map(enemy => {
       if (!enemy.isAlive) return enemy;
       
       // Calculer la distance entre le joueur et l'ennemi
-      const deltaX = position.x - enemy.x;
-      const deltaY = position.y - enemy.y;
+      const deltaX = currentPlayerPos.x - enemy.x;
+      const deltaY = currentPlayerPos.y - enemy.y;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       
-      // Si l'ennemi est dans la portée d'attaque
-      if (distance <= attackRange) {
+      // Vérifier si l'ennemi est dans la portée ET dans la direction d'attaque
+      if (distance <= attackRange && isEnemyInAttackDirection(currentPlayerPos.x, currentPlayerPos.y, enemy.x, enemy.y, currentPlayerDirection)) {
         const newHp = enemy.hp - 1; // Infliger 1 point de dégât
         
         return {
@@ -323,6 +351,17 @@ const Block: React.FC<BlockProps> = () => {
     backgroundSizeX = spriteWidth * walkFramesPerRow * spriteScale; // 4 images par ligne
   }
 
+  // Fonction pour obtenir le nom de la direction
+  const getDirectionName = (dir: number) => {
+    switch (dir) {
+      case 0: return 'Bas ↓';
+      case 1: return 'Haut ↑';
+      case 2: return 'Gauche ←';
+      case 3: return 'Droite →';
+      default: return 'Inconnu';
+    }
+  };
+
   return (
     <div 
       style={{
@@ -449,7 +488,7 @@ const Block: React.FC<BlockProps> = () => {
           Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Direction: {direction} - {isAttacking ? `⚔️ Attaque simple!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
+          Direction: {getDirectionName(direction)} - {isAttacking ? `⚔️ Attaque directionnelle!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
           🍄 Ennemis vivants: {enemies.filter(e => e.isAlive).length} | 

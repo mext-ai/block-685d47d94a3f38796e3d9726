@@ -5,7 +5,7 @@ interface BlockProps {
 
 const Block: React.FC<BlockProps> = () => {
   const [currentFrame, setCurrentFrame] = useState(0);
-  const [direction, setDirection] = useState(0); // 0: bas, 1: gauche, 2: droite, 3: haut
+  const [direction, setDirection] = useState(0); // Direction du sprite
   const [isWalking, setIsWalking] = useState(false);
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
@@ -45,19 +45,19 @@ const Block: React.FC<BlockProps> = () => {
 
           if (keys.up) {
             newY = Math.max(5, prev.y - speed);
-            setDirection(3); // Sprite direction haut
+            setDirection(1); // Ajusté : direction haut dans votre sprite
           }
           if (keys.down) {
             newY = Math.min(95, prev.y + speed);
-            setDirection(0); // Sprite direction bas
+            setDirection(0); // Direction bas (première ligne)
           }
           if (keys.left) {
             newX = Math.max(5, prev.x - speed);
-            setDirection(1); // Sprite direction gauche
+            setDirection(2); // Ajusté : direction gauche dans votre sprite
           }
           if (keys.right) {
             newX = Math.min(95, prev.x + speed);
-            setDirection(2); // Sprite direction droite
+            setDirection(3); // Ajusté : direction droite dans votre sprite
           }
 
           return { x: newX, y: newY };
@@ -169,7 +169,7 @@ const Block: React.FC<BlockProps> = () => {
         <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
         <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD</p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Position: ({Math.round(position.x)}, {Math.round(position.y)})
+          Direction sprite: {direction} | Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>
       </div>
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface BlockProps {
   title?: string;
@@ -7,6 +7,9 @@ interface BlockProps {
 const Block: React.FC<BlockProps> = ({ 
   title = 'Votre contenu ici' 
 }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   useEffect(() => {
     // Envoyer l'événement de completion au chargement
     window.postMessage({ 
@@ -19,10 +22,31 @@ const Block: React.FC<BlockProps> = ({
       blockId: 'image-background-block', 
       completed: true 
     }, '*');
+
+    // Tester le chargement de l'image
+    const img = new Image();
+    img.onload = () => {
+      console.log('Image chargée avec succès');
+      setImageLoaded(true);
+    };
+    img.onerror = () => {
+      console.error('Erreur de chargement de l\'image');
+      setImageError(true);
+    };
+    img.src = 'https://mext-content-library.s3.eu-west-3.amazonaws.com/uploads/44905eb6-acf6-406e-bdb8-0659cb46a6bc.png';
   }, []);
 
   // URL de votre image PNG uploadée
   const backgroundImageUrl = 'https://mext-content-library.s3.eu-west-3.amazonaws.com/uploads/44905eb6-acf6-406e-bdb8-0659cb46a6bc.png';
+
+  const backgroundStyle = imageLoaded ? {
+    backgroundImage: `url(${backgroundImageUrl})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+  } : {
+    background: 'linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%)',
+  };
 
   return (
     <div style={{
@@ -34,10 +58,7 @@ const Block: React.FC<BlockProps> = ({
       margin: 0,
       color: 'white',
       position: 'relative',
-      backgroundImage: `url(${backgroundImageUrl})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
+      ...backgroundStyle
     }}>
       {/* Overlay pour améliorer la lisibilité du texte */}
       <div style={{
@@ -74,13 +95,32 @@ const Block: React.FC<BlockProps> = ({
           backdropFilter: 'blur(5px)',
           border: '1px solid rgba(255, 255, 255, 0.2)'
         }}>
-          <p style={{ 
-            margin: 0, 
-            fontSize: '1.3rem',
-            fontWeight: '300'
-          }}>
-            ✨ Votre image PNG est maintenant en arrière-plan !
-          </p>
+          {imageLoaded ? (
+            <p style={{ 
+              margin: 0, 
+              fontSize: '1.3rem',
+              fontWeight: '300'
+            }}>
+              ✨ Votre image PNG est chargée !
+            </p>
+          ) : imageError ? (
+            <p style={{ 
+              margin: 0, 
+              fontSize: '1.3rem',
+              fontWeight: '300',
+              color: '#ff6b6b'
+            }}>
+              ❌ Erreur de chargement de l'image
+            </p>
+          ) : (
+            <p style={{ 
+              margin: 0, 
+              fontSize: '1.3rem',
+              fontWeight: '300'
+            }}>
+              ⏳ Chargement de l'image...
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -161,8 +161,8 @@ const Block: React.FC<BlockProps> = () => {
   let spriteX, spriteY, currentSpriteUrl;
   
   if (isAttacking) {
-    // Utiliser le sprite d'attaque
-    spriteX = attackFrame * spriteWidth;
+    // Utiliser seulement la 4ème image (index 3) de chaque ligne pour l'attaque
+    spriteX = 3 * spriteWidth; // Toujours la 4ème image (index 3)
     spriteY = direction * spriteHeight;
     currentSpriteUrl = attackSpriteSheetUrl;
   } else {

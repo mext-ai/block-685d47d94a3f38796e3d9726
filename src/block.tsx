@@ -46,9 +46,9 @@ const Block: React.FC<BlockProps> = () => {
     const initialMushroom: Enemy = {
       id: 1,
       type: 'mushroom',
-      x: -5, // Commence hors écran à gauche
-      y: 60, // Position verticale au milieu de la zone jouable
-      direction: 3, // Direction droite (vers le joueur)
+      x: 20, // Position initiale différente du joueur
+      y: 70, // Position verticale différente du joueur
+      direction: 3, // Direction droite par défaut
       currentFrame: 0,
       isAlive: true
     };
@@ -76,34 +76,56 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(enemyAnimationInterval);
   }, []);
 
-  // Mouvement des ennemis
+  // Mouvement des ennemis - IA de poursuite
   useEffect(() => {
     const enemyMovementInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAlive) return enemy;
         
         let newX = enemy.x;
-        const speed = 0.3; // Vitesse lente pour les ennemis
+        let newY = enemy.y;
+        let newDirection = enemy.direction;
+        const speed = 0.4; // Vitesse de poursuite
         
-        // Le mushroom se déplace vers la droite
         if (enemy.type === 'mushroom') {
-          newX = enemy.x + speed;
+          // Calculer la distance vers le joueur
+          const deltaX = position.x - enemy.x;
+          const deltaY = position.y - enemy.y;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
-          // Si l'ennemi sort de l'écran à droite, le repositionner à gauche
-          if (newX > 105) {
-            newX = -5;
+          // Seuil de distance pour éviter le tremblement quand très proche
+          const minDistance = 3;
+          
+          if (distance > minDistance) {
+            // Se déplacer vers le joueur
+            const moveX = (deltaX / distance) * speed;
+            const moveY = (deltaY / distance) * speed;
+            
+            newX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
+            newY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
+            
+            // Déterminer la direction du sprite basée sur le mouvement principal
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              // Mouvement horizontal dominant
+              newDirection = deltaX > 0 ? 3 : 2; // Droite ou gauche
+            } else {
+              // Mouvement vertical dominant
+              newDirection = deltaY > 0 ? 0 : 1; // Bas ou haut
+            }
           }
         }
         
         return {
           ...enemy,
-          x: newX
+          x: newX,
+          y: newY,
+          direction: newDirection
         };
       }));
     }, 32); // ~30 FPS pour le mouvement des ennemis
 
     return () => clearInterval(enemyMovementInterval);
-  }, []);
+  }, [position, topLimit, bottomLimit, leftLimit, rightLimit]); // Dépendance sur la position du joueur
 
   // Animation d'attaque simple : image 3 → image 4 → fin
   useEffect(() => {
@@ -330,7 +352,7 @@ const Block: React.FC<BlockProps> = () => {
           Direction: {direction} - {isAttacking ? `⚔️ Attaque simple!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-          🍄 Ennemis: {enemies.filter(e => e.isAlive).length}
+          🍄 Ennemis: {enemies.filter(e => e.isAlive).length} - IA Active
         </p>
       </div>
 

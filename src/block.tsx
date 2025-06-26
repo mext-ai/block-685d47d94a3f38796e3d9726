@@ -143,31 +143,6 @@ const Block: React.FC<BlockProps> = () => {
       }}
       tabIndex={0} // Permet la capture des événements clavier
     >
-      {/* Zones interdites visuelles (optionnel pour debug) */}
-      {/* Zone haute interdite - Encore augmentée à 35% pour réduire davantage la zone de jeu */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: `${topLimit}%`,
-        backgroundColor: 'rgba(255, 0, 0, 0.1)', // Rouge semi-transparent
-        zIndex: 1,
-        pointerEvents: 'none'
-      }} />
-      
-      {/* Zone basse interdite */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: `${100 - bottomLimit}%`,
-        backgroundColor: 'rgba(255, 0, 0, 0.1)', // Rouge semi-transparent
-        zIndex: 1,
-        pointerEvents: 'none'
-      }} />
-
       {/* Personnage sprite qui se déplace */}
       <div style={{
         position: 'absolute',
@@ -199,9 +174,6 @@ const Block: React.FC<BlockProps> = () => {
       }}>
         <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
         <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD</p>
-        <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Zone de jeu: {topLimit}% - {bottomLimit}% (Zone encore plus réduite)
-        </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
           Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>

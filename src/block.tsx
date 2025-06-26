@@ -3,6 +3,16 @@ import React, { useEffect, useState } from 'react';
 interface BlockProps {
 }
 
+interface Enemy {
+  id: number;
+  type: string;
+  x: number;
+  y: number;
+  direction: number;
+  currentFrame: number;
+  isAlive: boolean;
+}
+
 const Block: React.FC<BlockProps> = () => {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [direction, setDirection] = useState(0); // Direction du sprite
@@ -11,6 +21,7 @@ const Block: React.FC<BlockProps> = () => {
   const [attackFrame, setAttackFrame] = useState(0);
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false, space: false });
+  const [enemies, setEnemies] = useState<Enemy[]>([]);
 
   // Limites de la zone de jeu - Réduction encore plus importante de la zone de déplacement depuis le haut
   const topLimit = 35; // Augmenté de 30% à 35% pour encore plus réduire la zone de déplacement
@@ -31,6 +42,18 @@ const Block: React.FC<BlockProps> = () => {
       completed: true 
     }, '*');
 
+    // Créer le premier ennemi mushroom au démarrage
+    const initialMushroom: Enemy = {
+      id: 1,
+      type: 'mushroom',
+      x: -5, // Commence hors écran à gauche
+      y: 60, // Position verticale au milieu de la zone jouable
+      direction: 3, // Direction droite (vers le joueur)
+      currentFrame: 0,
+      isAlive: true
+    };
+    setEnemies([initialMushroom]);
+
     // Animation du sprite de marche
     const walkAnimationInterval = setInterval(() => {
       if (isWalking && !isAttacking) {
@@ -40,6 +63,47 @@ const Block: React.FC<BlockProps> = () => {
 
     return () => clearInterval(walkAnimationInterval);
   }, [isWalking, isAttacking]);
+
+  // Animation des ennemis
+  useEffect(() => {
+    const enemyAnimationInterval = setInterval(() => {
+      setEnemies(prev => prev.map(enemy => ({
+        ...enemy,
+        currentFrame: (enemy.currentFrame + 1) % 3 // Animation continue pour les ennemis
+      })));
+    }, 200); // Animation un peu plus lente pour les ennemis
+
+    return () => clearInterval(enemyAnimationInterval);
+  }, []);
+
+  // Mouvement des ennemis
+  useEffect(() => {
+    const enemyMovementInterval = setInterval(() => {
+      setEnemies(prev => prev.map(enemy => {
+        if (!enemy.isAlive) return enemy;
+        
+        let newX = enemy.x;
+        const speed = 0.3; // Vitesse lente pour les ennemis
+        
+        // Le mushroom se déplace vers la droite
+        if (enemy.type === 'mushroom') {
+          newX = enemy.x + speed;
+          
+          // Si l'ennemi sort de l'écran à droite, le repositionner à gauche
+          if (newX > 105) {
+            newX = -5;
+          }
+        }
+        
+        return {
+          ...enemy,
+          x: newX
+        };
+      }));
+    }, 32); // ~30 FPS pour le mouvement des ennemis
+
+    return () => clearInterval(enemyMovementInterval);
+  }, []);
 
   // Animation d'attaque simple : image 3 → image 4 → fin
   useEffect(() => {
@@ -157,6 +221,9 @@ const Block: React.FC<BlockProps> = () => {
   
   // URL de votre sprite sheet d'attaque
   const attackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1dAguM-5cKwpr6d7IwmL4RyHZNHtnl5To&sz=w1000';
+  
+  // URL du sprite sheet du mushroom
+  const mushroomSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1j2LelD-leMi_3y44PFuLCJOl_cmRRysA&sz=w1000';
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -212,6 +279,34 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 10
       }} />
 
+      {/* Ennemis */}
+      {enemies.map(enemy => {
+        if (!enemy.isAlive) return null;
+        
+        const enemySpriteX = enemy.currentFrame * spriteWidth;
+        const enemySpriteY = enemy.direction * spriteHeight;
+        
+        return (
+          <div
+            key={enemy.id}
+            style={{
+              position: 'absolute',
+              left: `${enemy.x}%`,
+              top: `${enemy.y}%`,
+              transform: 'translate(-50%, -50%)',
+              width: `${spriteWidth * 3}px`, // Mushroom un peu plus petit
+              height: `${spriteHeight * 3}px`,
+              backgroundImage: `url(${mushroomSpriteSheetUrl})`,
+              backgroundPosition: `-${enemySpriteX * 3}px -${enemySpriteY * 3}px`,
+              backgroundSize: `${spriteWidth * walkFramesPerRow * 3}px auto`,
+              imageRendering: 'pixelated',
+              transition: 'none',
+              zIndex: 9
+            }}
+          />
+        );
+      })}
+
       {/* Instructions de contrôle */}
       <div style={{
         position: 'absolute',
@@ -235,7 +330,7 @@ const Block: React.FC<BlockProps> = () => {
           Direction: {direction} - {isAttacking ? `⚔️ Attaque simple!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-          Taille: 3.5 (Optimisée)
+          🍄 Ennemis: {enemies.filter(e => e.isAlive).length}
         </p>
       </div>
 

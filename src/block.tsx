@@ -25,6 +25,7 @@ const Block: React.FC<BlockProps> = () => {
   
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
   const playerPositionRef = useRef({ x: 50, y: 50 });
+  const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
 
   // Mettre à jour la référence à chaque changement de position
   useEffect(() => {
@@ -37,6 +38,7 @@ const Block: React.FC<BlockProps> = () => {
   const leftLimit = 5; // 5% des côtés pour éviter de sortir
   const rightLimit = 95; // 95% des côtés
 
+  // Initialisation unique au chargement du composant
   useEffect(() => {
     // Envoyer l'événement de completion au chargement
     window.postMessage({ 
@@ -50,19 +52,24 @@ const Block: React.FC<BlockProps> = () => {
       completed: true 
     }, '*');
 
-    // Créer le premier ennemi mushroom au démarrage
-    const initialMushroom: Enemy = {
-      id: 1,
-      type: 'mushroom',
-      x: 20, // Position initiale différente du joueur
-      y: 70, // Position verticale différente du joueur
-      direction: 3, // Direction droite par défaut
-      currentFrame: 0,
-      isAlive: true
-    };
-    setEnemies([initialMushroom]);
+    // Créer le premier ennemi mushroom au démarrage - UNE SEULE FOIS
+    if (!enemiesInitialized.current) {
+      const initialMushroom: Enemy = {
+        id: 1,
+        type: 'mushroom',
+        x: 20, // Position initiale différente du joueur
+        y: 70, // Position verticale différente du joueur
+        direction: 3, // Direction droite par défaut
+        currentFrame: 0,
+        isAlive: true
+      };
+      setEnemies([initialMushroom]);
+      enemiesInitialized.current = true;
+    }
+  }, []); // AUCUNE dépendance - exécution unique
 
-    // Animation du sprite de marche
+  // Animation du sprite de marche du joueur
+  useEffect(() => {
     const walkAnimationInterval = setInterval(() => {
       if (isWalking && !isAttacking) {
         setCurrentFrame(prev => (prev + 1) % 3); // 3 frames d'animation + 1 frame de repos
@@ -363,7 +370,7 @@ const Block: React.FC<BlockProps> = () => {
           Direction: {direction} - {isAttacking ? `⚔️ Attaque simple!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-          🍄 Poursuite Active: {enemies.filter(e => e.isAlive).length}
+          🍄 Poursuite Persistante: {enemies.filter(e => e.isAlive).length}
         </p>
       </div>
 

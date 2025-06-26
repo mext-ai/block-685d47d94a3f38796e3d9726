@@ -41,23 +41,26 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(walkAnimationInterval);
   }, [isWalking, isAttacking]);
 
-  // Animation d'attaque - Alterne entre image 3 et 4 (index 2 et 3)
+  // Animation d'attaque avec alternance entre les images 3 et 4
   useEffect(() => {
     if (isAttacking) {
+      let frameCount = 0;
       const attackAnimationInterval = setInterval(() => {
-        setAttackFrame(prev => prev === 0 ? 1 : 0); // Alterne entre 0 et 1
-      }, 150); // Vitesse d'animation d'attaque
+        setAttackFrame(prev => {
+          const newFrame = prev === 2 ? 3 : 2; // Alterne entre l'image 3 (index 2) et l'image 4 (index 3)
+          frameCount++;
+          
+          if (frameCount >= 6) { // 6 changements = 3 cycles complets d'animation
+            setIsAttacking(false);
+            setAttackFrame(0);
+            return 0;
+          }
+          
+          return newFrame;
+        });
+      }, 100); // Animation rapide
 
-      // Timer pour arrêter l'attaque après un certain temps
-      const attackTimer = setTimeout(() => {
-        setIsAttacking(false);
-        setAttackFrame(0);
-      }, 600); // Durée totale de l'attaque (600ms)
-
-      return () => {
-        clearInterval(attackAnimationInterval);
-        clearTimeout(attackTimer);
-      };
+      return () => clearInterval(attackAnimationInterval);
     }
   }, [isAttacking]);
 
@@ -108,7 +111,7 @@ const Block: React.FC<BlockProps> = () => {
       // Gestion de l'attaque
       if (key === ' ' && !isAttacking) {
         setIsAttacking(true);
-        setAttackFrame(0);
+        setAttackFrame(2); // Commencer avec l'image 3 (index 2)
         setIsWalking(false);
         return;
       }
@@ -165,17 +168,17 @@ const Block: React.FC<BlockProps> = () => {
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
   
   if (isAttacking) {
-    // Utiliser l'image 3 ou 4 (index 2 ou 3) selon attackFrame pour créer l'animation
-    spriteX = (2 + attackFrame) * spriteWidth; // Alterne entre index 2 (image 3) et index 3 (image 4)
+    // Utiliser les images 3 et 4 (index 2 et 3) pour l'animation d'attaque
+    spriteX = attackFrame * spriteWidth;
     spriteY = direction * spriteHeight;
     currentSpriteUrl = attackSpriteSheetUrl;
-    backgroundSizeX = spriteWidth * attackFramesPerRow * 3; // 8 frames par ligne
+    backgroundSizeX = spriteWidth * attackFramesPerRow * 3; // 8 images par ligne
   } else {
     // Utiliser le sprite de marche
     spriteX = currentFrame * spriteWidth;
     spriteY = direction * spriteHeight;
     currentSpriteUrl = walkSpriteSheetUrl;
-    backgroundSizeX = spriteWidth * walkFramesPerRow * 3; // 4 frames par ligne
+    backgroundSizeX = spriteWidth * walkFramesPerRow * 3; // 4 images par ligne
   }
 
   return (
@@ -228,7 +231,7 @@ const Block: React.FC<BlockProps> = () => {
           Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Direction: {direction} - {isAttacking ? `⚔️ Attaque! (Frame ${2 + attackFrame + 1})` : isWalking ? '🚶 Marche' : '🧍 Repos'}
+          Direction: {direction} - {isAttacking ? `⚔️ Attaque! (Frame ${attackFrame + 1})` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
       </div>
 

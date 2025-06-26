@@ -10,8 +10,8 @@ const Block: React.FC<BlockProps> = () => {
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
 
-  // Limites de la zone de jeu - Réduction significative de la zone de déplacement depuis le haut
-  const topLimit = 30; // Augmenté de 15% à 30% pour réduire la zone de déplacement ~2x
+  // Limites de la zone de jeu - Réduction encore plus importante de la zone de déplacement depuis le haut
+  const topLimit = 35; // Augmenté de 30% à 35% pour encore plus réduire la zone de déplacement
   const bottomLimit = 90; // 10% du bas bloqué (100% - 10% = 90%)
   const leftLimit = 5; // 5% des côtés pour éviter de sortir
   const rightLimit = 95; // 95% des côtés
@@ -50,7 +50,7 @@ const Block: React.FC<BlockProps> = () => {
           const speed = 1; // Vitesse de déplacement en %
 
           if (keys.up) {
-            newY = Math.max(topLimit, prev.y - speed); // Limite haute à 30%
+            newY = Math.max(topLimit, prev.y - speed); // Limite haute à 35%
             setDirection(1); // Direction haut dans votre sprite
           }
           if (keys.down) {
@@ -144,7 +144,7 @@ const Block: React.FC<BlockProps> = () => {
       tabIndex={0} // Permet la capture des événements clavier
     >
       {/* Zones interdites visuelles (optionnel pour debug) */}
-      {/* Zone haute interdite - Augmentée à 30% pour réduire la zone de jeu */}
+      {/* Zone haute interdite - Encore augmentée à 35% pour réduire davantage la zone de jeu */}
       <div style={{
         position: 'absolute',
         top: 0,
@@ -200,7 +200,7 @@ const Block: React.FC<BlockProps> = () => {
         <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
         <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD</p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Zone de jeu: {topLimit}% - {bottomLimit}% (Zone réduite depuis le haut)
+          Zone de jeu: {topLimit}% - {bottomLimit}% (Zone encore plus réduite)
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
           Position: ({Math.round(position.x)}, {Math.round(position.y)})

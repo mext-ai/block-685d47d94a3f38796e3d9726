@@ -10,8 +10,8 @@ const Block: React.FC<BlockProps> = () => {
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
 
-  // Limites de la zone de jeu - Augmentation de la zone haute
-  const topLimit = 20; // Réduit de 30% à 20% pour plus d'espace en haut
+  // Limites de la zone de jeu - Réduction de la zone interdite en haut
+  const topLimit = 15; // Réduit de 20% à 15% pour ENCORE plus d'espace en haut
   const bottomLimit = 90; // 10% du bas bloqué (100% - 10% = 90%)
   const leftLimit = 5; // 5% des côtés pour éviter de sortir
   const rightLimit = 95; // 95% des côtés
@@ -50,7 +50,7 @@ const Block: React.FC<BlockProps> = () => {
           const speed = 1; // Vitesse de déplacement en %
 
           if (keys.up) {
-            newY = Math.max(topLimit, prev.y - speed); // Limite haute à 20%
+            newY = Math.max(topLimit, prev.y - speed); // Limite haute à 15%
             setDirection(1); // Direction haut dans votre sprite
           }
           if (keys.down) {
@@ -144,7 +144,7 @@ const Block: React.FC<BlockProps> = () => {
       tabIndex={0} // Permet la capture des événements clavier
     >
       {/* Zones interdites visuelles (optionnel pour debug) */}
-      {/* Zone haute interdite - Réduite à 20% */}
+      {/* Zone haute interdite - Encore réduite à 15% */}
       <div style={{
         position: 'absolute',
         top: 0,
@@ -200,7 +200,7 @@ const Block: React.FC<BlockProps> = () => {
         <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
         <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD</p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Zone de jeu: {topLimit}% - {bottomLimit}% (Plus d'espace en haut !)
+          Zone de jeu: {topLimit}% - {bottomLimit}% (Maximum d'espace en haut !)
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
           Position: ({Math.round(position.x)}, {Math.round(position.y)})

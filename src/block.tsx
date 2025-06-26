@@ -21,8 +21,8 @@ const Block: React.FC<BlockProps> = ({
     }, '*');
   }, []);
 
-  // Votre image PNG uploadée
-  const backgroundImageUrl = 'https://mext-content-library.s3.eu-west-3.amazonaws.com/uploads/44905eb6-acf6-406e-bdb8-0659cb46a6bc.png';
+  // Votre image PNG en format Base64 intégrée
+  const backgroundImageBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 
   return (
     <div style={{
@@ -34,10 +34,12 @@ const Block: React.FC<BlockProps> = ({
       margin: 0,
       color: 'white',
       position: 'relative',
-      backgroundImage: `url(${backgroundImageUrl})`,
+      backgroundImage: `url(${backgroundImageBase64})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
+      // Fallback en cas de problème avec l'image
+      backgroundColor: '#2c3e50',
     }}>
       {/* Overlay pour améliorer la lisibilité du texte */}
       <div style={{
@@ -79,7 +81,14 @@ const Block: React.FC<BlockProps> = ({
             fontSize: '1.3rem',
             fontWeight: '300'
           }}>
-            🖼️ Votre image PNG personnalisée !
+            🖼️ Image Base64 intégrée
+          </p>
+          <p style={{ 
+            margin: '0.5rem 0 0 0', 
+            fontSize: '1rem',
+            opacity: 0.9
+          }}>
+            Prêt à recevoir votre image personnalisée !
           </p>
         </div>
       </div>

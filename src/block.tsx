@@ -41,20 +41,14 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(walkAnimationInterval);
   }, [isWalking, isAttacking]);
 
-  // Animation d'attaque
+  // Animation d'attaque (maintenant juste un timer pour la durée)
   useEffect(() => {
     if (isAttacking) {
-      const attackAnimationInterval = setInterval(() => {
-        setAttackFrame(prev => {
-          if (prev >= 2) { // 3 frames d'attaque (0, 1, 2)
-            setIsAttacking(false);
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 100); // Animation d'attaque plus rapide
+      const attackTimer = setTimeout(() => {
+        setIsAttacking(false);
+      }, 300); // Durée de l'attaque en ms
 
-      return () => clearInterval(attackAnimationInterval);
+      return () => clearTimeout(attackTimer);
     }
   }, [isAttacking]);
 
@@ -105,7 +99,6 @@ const Block: React.FC<BlockProps> = () => {
       // Gestion de l'attaque
       if (key === ' ' && !isAttacking) {
         setIsAttacking(true);
-        setAttackFrame(0);
         setIsWalking(false);
         return;
       }
@@ -158,18 +151,21 @@ const Block: React.FC<BlockProps> = () => {
   const framesPerRow = 4; // Nombre de frames par ligne/direction
   
   // Calcul de la position dans le sprite sheet
-  let spriteX, spriteY, currentSpriteUrl;
+  let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
   
   if (isAttacking) {
     // Utiliser seulement la 4ème image (index 3) de chaque ligne pour l'attaque
-    spriteX = 3 * spriteWidth; // Toujours la 4ème image (index 3)
+    spriteX = 3 * spriteWidth; // Dernière frame de chaque ligne
     spriteY = direction * spriteHeight;
     currentSpriteUrl = attackSpriteSheetUrl;
+    // Ajuster la taille du background pour le sprite d'attaque (peut être différent)
+    backgroundSizeX = spriteWidth * framesPerRow * 3; // Même taille que marche pour commencer
   } else {
     // Utiliser le sprite de marche
     spriteX = currentFrame * spriteWidth;
     spriteY = direction * spriteHeight;
     currentSpriteUrl = walkSpriteSheetUrl;
+    backgroundSizeX = spriteWidth * framesPerRow * 3;
   }
 
   return (
@@ -196,7 +192,7 @@ const Block: React.FC<BlockProps> = () => {
         height: `${spriteHeight * 3}px`,
         backgroundImage: `url(${currentSpriteUrl})`,
         backgroundPosition: `-${spriteX * 3}px -${spriteY * 3}px`,
-        backgroundSize: `${spriteWidth * framesPerRow * 3}px auto`,
+        backgroundSize: `${backgroundSizeX}px auto`,
         imageRendering: 'pixelated',
         transition: 'none',
         zIndex: 10
@@ -222,7 +218,7 @@ const Block: React.FC<BlockProps> = () => {
           Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          {isAttacking ? '⚔️ Attaque!' : isWalking ? '🚶 Marche' : '🧍 Repos'}
+          Direction: {direction} - {isAttacking ? '⚔️ Attaque!' : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
       </div>
 

@@ -145,15 +145,15 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(enemyMovementInterval);
   }, []); // Pas de dépendances - utilise la ref pour la position du joueur
 
-  // Animation d'attaque simple : image 3 → image 4 → fin
+  // Animation d'attaque corrigée : commencer par frame 0, puis frame 1
   useEffect(() => {
     if (isAttacking) {
-      // Commencer par l'image 3 (index 2)
-      setAttackFrame(2);
+      // Commencer par la frame 0 (première image d'attaque)
+      setAttackFrame(0);
       
-      // Passer à l'image 4 (index 3) après 120ms
+      // Passer à la frame 1 (deuxième image d'attaque) après 120ms
       const step1 = setTimeout(() => {
-        setAttackFrame(3);
+        setAttackFrame(1);
       }, 120);
       
       // Terminer l'attaque après 240ms total
@@ -272,17 +272,17 @@ const Block: React.FC<BlockProps> = () => {
   const attackFramesPerRow = 8; // 8 frames pour l'attaque
   const spriteScale = 3.5; // Taille ajustée à 3.5
   
-  // Calcul de la position dans le sprite sheet
+  // Calcul de la position dans le sprite sheet - CORRIGÉ
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
   
   if (isAttacking) {
-    // Utiliser les images 3 et 4 (index 2 et 3) pour l'animation d'attaque
+    // Pour l'attaque, utiliser les frames 0 et 1 (premières images d'attaque)
     spriteX = attackFrame * spriteWidth;
     spriteY = direction * spriteHeight;
     currentSpriteUrl = attackSpriteSheetUrl;
     backgroundSizeX = spriteWidth * attackFramesPerRow * spriteScale; // 8 images par ligne
   } else {
-    // Utiliser le sprite de marche
+    // Utiliser le sprite de marche normalement
     spriteX = currentFrame * spriteWidth;
     spriteY = direction * spriteHeight;
     currentSpriteUrl = walkSpriteSheetUrl;
@@ -367,7 +367,7 @@ const Block: React.FC<BlockProps> = () => {
           Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Direction: {direction} - {isAttacking ? `⚔️ Attaque simple!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
+          Direction: {direction} - {isAttacking ? `⚔️ Attaque (Frame: ${attackFrame})` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
           🍄 Poursuite Persistante: {enemies.filter(e => e.isAlive).length}

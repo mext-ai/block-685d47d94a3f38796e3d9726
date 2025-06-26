@@ -41,26 +41,23 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(walkAnimationInterval);
   }, [isWalking, isAttacking]);
 
-  // Animation d'attaque avec alternance entre les images 3 et 4
+  // Animation d'attaque courte et simple
   useEffect(() => {
     if (isAttacking) {
-      let frameCount = 0;
       const attackAnimationInterval = setInterval(() => {
-        setAttackFrame(prev => {
-          const newFrame = prev === 2 ? 3 : 2; // Alterne entre l'image 3 (index 2) et l'image 4 (index 3)
-          frameCount++;
-          
-          if (frameCount >= 6) { // 6 changements = 3 cycles complets d'animation
-            setIsAttacking(false);
-            setAttackFrame(0);
-            return 0;
-          }
-          
-          return newFrame;
-        });
-      }, 100); // Animation rapide
+        setAttackFrame(prev => prev === 2 ? 3 : 2); // Alterne entre image 3 (index 2) et image 4 (index 3)
+      }, 80); // Animation rapide
 
-      return () => clearInterval(attackAnimationInterval);
+      // Timer court pour arrêter l'attaque rapidement
+      const attackTimer = setTimeout(() => {
+        setIsAttacking(false);
+        setAttackFrame(0);
+      }, 320); // Durée totale courte : 320ms (4 alternances)
+
+      return () => {
+        clearInterval(attackAnimationInterval);
+        clearTimeout(attackTimer);
+      };
     }
   }, [isAttacking]);
 
@@ -231,7 +228,7 @@ const Block: React.FC<BlockProps> = () => {
           Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Direction: {direction} - {isAttacking ? `⚔️ Attaque! (Frame ${attackFrame + 1})` : isWalking ? '🚶 Marche' : '🧍 Repos'}
+          Direction: {direction} - {isAttacking ? `⚔️ Attaque rapide!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
       </div>
 

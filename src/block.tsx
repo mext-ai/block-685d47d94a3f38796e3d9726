@@ -10,6 +10,12 @@ const Block: React.FC<BlockProps> = () => {
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
 
+  // Limites de la zone de jeu
+  const topLimit = 30; // 30% du haut bloqué
+  const bottomLimit = 90; // 10% du bas bloqué (100% - 10% = 90%)
+  const leftLimit = 5; // 5% des côtés pour éviter de sortir
+  const rightLimit = 95; // 95% des côtés
+
   useEffect(() => {
     // Envoyer l'événement de completion au chargement
     window.postMessage({ 
@@ -33,7 +39,7 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(animationInterval);
   }, [isWalking]);
 
-  // Gestion du mouvement
+  // Gestion du mouvement avec limites
   useEffect(() => {
     const moveInterval = setInterval(() => {
       if (keys.up || keys.down || keys.left || keys.right) {
@@ -44,20 +50,20 @@ const Block: React.FC<BlockProps> = () => {
           const speed = 1; // Vitesse de déplacement en %
 
           if (keys.up) {
-            newY = Math.max(5, prev.y - speed);
-            setDirection(1); // Ajusté : direction haut dans votre sprite
+            newY = Math.max(topLimit, prev.y - speed); // Limite haute à 30%
+            setDirection(1); // Direction haut dans votre sprite
           }
           if (keys.down) {
-            newY = Math.min(95, prev.y + speed);
+            newY = Math.min(bottomLimit, prev.y + speed); // Limite basse à 90%
             setDirection(0); // Direction bas (première ligne)
           }
           if (keys.left) {
-            newX = Math.max(5, prev.x - speed);
-            setDirection(2); // Ajusté : direction gauche dans votre sprite
+            newX = Math.max(leftLimit, prev.x - speed); // Limite gauche à 5%
+            setDirection(2); // Direction gauche dans votre sprite
           }
           if (keys.right) {
-            newX = Math.min(95, prev.x + speed);
-            setDirection(3); // Ajusté : direction droite dans votre sprite
+            newX = Math.min(rightLimit, prev.x + speed); // Limite droite à 95%
+            setDirection(3); // Direction droite dans votre sprite
           }
 
           return { x: newX, y: newY };
@@ -69,7 +75,7 @@ const Block: React.FC<BlockProps> = () => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(moveInterval);
-  }, [keys]);
+  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit]);
 
   // Gestion des touches
   useEffect(() => {
@@ -114,7 +120,7 @@ const Block: React.FC<BlockProps> = () => {
   // URL de votre sprite sheet
   const spriteSheetUrl = 'https://drive.google.com/thumbnail?id=1_Yp96n--W40rf5sQFA4L5MBpc0IBOYBW&sz=w1000';
 
-  // Configuration du sprite (ajustez selon votre sprite sheet)
+  // Configuration du sprite
   const spriteWidth = 32;
   const spriteHeight = 32;
   const framesPerRow = 4; // Nombre de frames par ligne/direction
@@ -137,6 +143,31 @@ const Block: React.FC<BlockProps> = () => {
       }}
       tabIndex={0} // Permet la capture des événements clavier
     >
+      {/* Zones interdites visuelles (optionnel pour debug) */}
+      {/* Zone haute interdite */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: `${topLimit}%`,
+        backgroundColor: 'rgba(255, 0, 0, 0.1)', // Rouge semi-transparent
+        zIndex: 1,
+        pointerEvents: 'none'
+      }} />
+      
+      {/* Zone basse interdite */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: `${100 - bottomLimit}%`,
+        backgroundColor: 'rgba(255, 0, 0, 0.1)', // Rouge semi-transparent
+        zIndex: 1,
+        pointerEvents: 'none'
+      }} />
+
       {/* Personnage sprite qui se déplace */}
       <div style={{
         position: 'absolute',
@@ -149,7 +180,7 @@ const Block: React.FC<BlockProps> = () => {
         backgroundPosition: `-${spriteX * 3}px -${spriteY * 3}px`,
         backgroundSize: `${spriteWidth * framesPerRow * 3}px auto`,
         imageRendering: 'pixelated',
-        transition: 'none', // Pas de transition CSS pour un mouvement plus réactif
+        transition: 'none',
         zIndex: 10
       }} />
 
@@ -169,7 +200,10 @@ const Block: React.FC<BlockProps> = () => {
         <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
         <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD</p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Direction sprite: {direction} | Position: ({Math.round(position.x)}, {Math.round(position.y)})
+          Zone de jeu: {topLimit}% - {bottomLimit}%
+        </p>
+        <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
+          Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>
       </div>
 

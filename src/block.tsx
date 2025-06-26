@@ -163,6 +163,7 @@ const Block: React.FC<BlockProps> = () => {
   const spriteHeight = 32;
   const walkFramesPerRow = 4; // 4 frames pour la marche
   const attackFramesPerRow = 8; // 8 frames pour l'attaque
+  const spriteScale = 4.5; // Agrandissement x1.5 (3 * 1.5 = 4.5)
   
   // Calcul de la position dans le sprite sheet
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
@@ -172,13 +173,13 @@ const Block: React.FC<BlockProps> = () => {
     spriteX = attackFrame * spriteWidth;
     spriteY = direction * spriteHeight;
     currentSpriteUrl = attackSpriteSheetUrl;
-    backgroundSizeX = spriteWidth * attackFramesPerRow * 3; // 8 images par ligne
+    backgroundSizeX = spriteWidth * attackFramesPerRow * spriteScale; // 8 images par ligne
   } else {
     // Utiliser le sprite de marche
     spriteX = currentFrame * spriteWidth;
     spriteY = direction * spriteHeight;
     currentSpriteUrl = walkSpriteSheetUrl;
-    backgroundSizeX = spriteWidth * walkFramesPerRow * 3; // 4 images par ligne
+    backgroundSizeX = spriteWidth * walkFramesPerRow * spriteScale; // 4 images par ligne
   }
 
   return (
@@ -195,16 +196,16 @@ const Block: React.FC<BlockProps> = () => {
       }}
       tabIndex={0} // Permet la capture des événements clavier
     >
-      {/* Personnage sprite qui se déplace */}
+      {/* Personnage sprite qui se déplace - Agrandi x1.5 */}
       <div style={{
         position: 'absolute',
         left: `${position.x}%`,
         top: `${position.y}%`,
         transform: 'translate(-50%, -50%)',
-        width: `${spriteWidth * 3}px`,
-        height: `${spriteHeight * 3}px`,
+        width: `${spriteWidth * spriteScale}px`,
+        height: `${spriteHeight * spriteScale}px`,
         backgroundImage: `url(${currentSpriteUrl})`,
-        backgroundPosition: `-${spriteX * 3}px -${spriteY * 3}px`,
+        backgroundPosition: `-${spriteX * spriteScale}px -${spriteY * spriteScale}px`,
         backgroundSize: `${backgroundSizeX}px auto`,
         imageRendering: 'pixelated',
         transition: 'none',
@@ -232,6 +233,9 @@ const Block: React.FC<BlockProps> = () => {
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
           Direction: {direction} - {isAttacking ? `⚔️ Attaque simple!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
+        </p>
+        <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
+          Taille: x1.5 (Plus grand!)
         </p>
       </div>
 

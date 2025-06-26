@@ -23,22 +23,22 @@ const Block: React.FC<BlockProps> = ({
       completed: true 
     }, '*');
 
-    // Précharger l'image pour vérifier qu'elle se charge
+    // Précharger l'image avec le service proxy
     const img = new Image();
     img.onload = () => {
-      console.log('Image Google Drive chargée avec succès');
+      console.log('Image chargée avec succès via proxy');
       setImageLoaded(true);
     };
     img.onerror = () => {
-      console.error('Erreur de chargement de l\'image Google Drive');
+      console.error('Erreur de chargement via proxy');
       setImageError(true);
     };
-    // Conversion du lien Google Drive en URL d'affichage direct
-    img.src = 'https://drive.google.com/uc?export=view&id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR';
+    // Utilisation d'un service proxy pour contourner les restrictions Google Drive
+    img.src = 'https://drive.google.com/thumbnail?id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR&sz=w2000';
   }, []);
 
-  // URL directe de votre image Google Drive
-  const backgroundImageUrl = 'https://drive.google.com/uc?export=view&id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR';
+  // URL proxy pour votre image Google Drive
+  const backgroundImageUrl = 'https://drive.google.com/thumbnail?id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR&sz=w2000';
 
   const backgroundStyle = imageLoaded ? {
     backgroundImage: `url(${backgroundImageUrl})`,
@@ -46,7 +46,7 @@ const Block: React.FC<BlockProps> = ({
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
   } : {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%)',
   };
 
   return (
@@ -102,24 +102,33 @@ const Block: React.FC<BlockProps> = ({
               fontSize: '1.3rem',
               fontWeight: '300'
             }}>
-              ✨ Votre image Google Drive est chargée !
+              ✨ Votre image est maintenant affichée !
             </p>
           ) : imageError ? (
-            <p style={{ 
-              margin: 0, 
-              fontSize: '1.3rem',
-              fontWeight: '300',
-              color: '#ff6b6b'
-            }}>
-              ❌ Erreur de chargement de l'image
-            </p>
+            <div>
+              <p style={{ 
+                margin: 0, 
+                fontSize: '1.3rem',
+                fontWeight: '300',
+                color: '#ff6b6b'
+              }}>
+                ❌ Problème avec Google Drive
+              </p>
+              <p style={{ 
+                margin: '0.5rem 0 0 0', 
+                fontSize: '1rem',
+                opacity: 0.9
+              }}>
+                Essayez d'héberger votre image sur Imgur ou GitHub
+              </p>
+            </div>
           ) : (
             <p style={{ 
               margin: 0, 
               fontSize: '1.3rem',
               fontWeight: '300'
             }}>
-              ⏳ Chargement de votre image...
+              ⏳ Chargement via service proxy...
             </p>
           )}
         </div>

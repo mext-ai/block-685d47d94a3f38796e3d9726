@@ -743,6 +743,10 @@ const Block: React.FC<BlockProps> = () => {
   const level2ButtonUrl = 'https://drive.google.com/thumbnail?id=1gGMkrpQ7t10YxG16q0PNx7yyV7QEekyG&sz=w500'; // Niveau 2 grisé
   const level3ButtonUrl = 'https://drive.google.com/thumbnail?id=18oZ0B_hXP89joEFxUb0lDMu7K1oif2s3&sz=w500'; // Niveau 3 grisé
 
+  // URLs pour les nouvelles images de contrôles - AJOUT DES NOUVELLES IMAGES
+  const spaceKeyImageUrl = 'https://drive.google.com/thumbnail?id=1dWJOlKIPoA2l_pn5msc8VtImFRwGADf0&sz=w500'; // Image touche espace
+  const arrowKeysImageUrl = 'https://drive.google.com/thumbnail?id=1cijWsirQs9sAyTNFtXXubQ_DN6Vqjraj&sz=w500'; // Image flèches directionnelles
+
   // Configuration du sprite
   const spriteWidth = 32;
   const spriteHeight = 32;
@@ -1057,6 +1061,73 @@ const Block: React.FC<BlockProps> = () => {
         })}
       </div>
 
+      {/* NOUVEAU : Contrôles en haut à gauche avec vos images */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '15px',
+        zIndex: 20
+      }}>
+        {/* Image des flèches avec texte MOVE */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '5px'
+        }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            backgroundImage: `url(${arrowKeysImageUrl})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.5))'
+          }} />
+          <div style={{
+            color: 'white',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            fontFamily: 'Arial, sans-serif',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+            textAlign: 'center'
+          }}>
+            MOVE
+          </div>
+        </div>
+
+        {/* Image de la touche espace avec texte ATTACK */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '5px'
+        }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            backgroundImage: `url(${spaceKeyImageUrl})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.5))'
+          }} />
+          <div style={{
+            color: 'white',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            fontFamily: 'Arial, sans-serif',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+            textAlign: 'center'
+          }}>
+            ATTACK
+          </div>
+        </div>
+      </div>
+
       {/* Ennemis avec barres de HP et animations - MODIFIÉE POUR UTILISER L'ÉCHELLE RESPONSIVE x1.5 */}
       {enemies.map(enemy => {
         // Ne pas afficher les ennemis qui ne sont pas encore apparus ou qui sont morts
@@ -1176,46 +1247,6 @@ const Block: React.FC<BlockProps> = () => {
         </div>
       )}
 
-      {/* Instructions de contrôle - MODIFIÉES POUR AFFICHER LES INFOS DE RESPONSIVITÉ x1.5 */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        left: '20px',
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        color: 'white',
-        padding: '15px',
-        borderRadius: '8px',
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '14px',
-        zIndex: 20
-      }}>
-        <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
-        <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD pour se déplacer</p>
-        <p style={{ margin: '0 0 5px 0' }}>ESPACE pour attaquer</p>
-        <p style={{ margin: '0 0 5px 0' }}>ECHAP pour retourner aux niveaux</p>
-        <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Niveau {currentLevel} - Position: ({Math.round(position.x)}, {Math.round(position.y)})
-        </p>
-        <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Direction: {getDirectionName(direction)} - {isAttacking ? `⚔️ Attaque 180° !` : isWalking ? '🚶 Marche' : '🧍 Repos'}
-        </p>
-        <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-          🍄 Apparus: {enemies.filter(e => e.hasSpawned).length}/10 | 
-          💚 Vivants: {enemies.filter(e => e.isAlive && !e.isDying && e.hasSpawned).length} | 
-          💀 En train de mourir: {enemies.filter(e => e.isDying).length} |
-          ⚔️ En attaque: {enemies.filter(e => e.isAttacking).length}
-        </p>
-        <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-          📱 Responsive: {windowSize.width}x{windowSize.height} | 
-          🎭 Échelle x1.5: Joueur={spriteScale.toFixed(1)}x, Ennemis={enemySpriteScale.toFixed(1)}x
-        </p>
-        {currentLevel === 1 && gameStartTime > 0 && (
-          <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-            ⏱️ Temps écoulé: {Math.floor((Date.now() - gameStartTime) / 1000)}s
-          </p>
-        )}
-      </div>
-
       {/* Game Over */}
       {playerHp <= 0 && (
         <div style={{
@@ -1256,21 +1287,7 @@ const Block: React.FC<BlockProps> = () => {
         </div>
       )}
 
-      {/* Indicateur de focus */}
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        right: '20px',
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        color: 'white',
-        padding: '10px',
-        borderRadius: '8px',
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '12px',
-        zIndex: 20
-      }}>
-        💡 Cliquez ici pour activer les contrôles
-      </div>
+      {/* SUPPRIMÉ : Ancien panneau d'instructions avec background et toutes les infos de debug */}
     </div>
   );
 };

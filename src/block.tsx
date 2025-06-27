@@ -45,10 +45,10 @@ const Block: React.FC<BlockProps> = () => {
   const [lastDamageTime, setLastDamageTime] = useState(0); // Pour éviter les dégâts répétés
   const [gameStartTime, setGameStartTime] = useState(0); // Nouveau : temps de début du jeu
   
-  // États pour la responsivité - MODIFIÉ POUR DOUBLER LA TAILLE
+  // États pour la responsivité - MODIFIÉ POUR x1.5
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
-  const [spriteScale, setSpriteScale] = useState(7); // Doublé de 3.5 à 7
-  const [enemySpriteScale, setEnemySpriteScale] = useState(6); // Doublé de 3 à 6
+  const [spriteScale, setSpriteScale] = useState(5.25); // 1.5x de 3.5 = 5.25
+  const [enemySpriteScale, setEnemySpriteScale] = useState(4.5); // 1.5x de 3 = 4.5
   
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
   const playerPositionRef = useRef({ x: 50, y: 50 });
@@ -74,12 +74,12 @@ const Block: React.FC<BlockProps> = () => {
   
   // ============================================================
 
-  // MODIFIÉ : Système de calcul responsif pour les tailles de sprites - DOUBLÉ x2
+  // MODIFIÉ : Système de calcul responsif pour les tailles de sprites - x1.5
   const calculateResponsiveScale = () => {
     const baseWidth = 1920; // Largeur de référence
     const baseHeight = 1080; // Hauteur de référence
-    const minScale = 3; // Taille minimale doublée (était 1.5)
-    const maxScale = 12; // Taille maximale doublée (était 6)
+    const minScale = 2.25; // Taille minimale x1.5 (1.5 x 1.5 = 2.25)
+    const maxScale = 9; // Taille maximale x1.5 (6 x 1.5 = 9)
     
     // Calculer le facteur d'échelle basé sur la taille de l'écran
     const widthRatio = windowSize.width / baseWidth;
@@ -88,9 +88,9 @@ const Block: React.FC<BlockProps> = () => {
     // Utiliser le ratio le plus petit pour éviter que les sprites sortent de l'écran
     const scaleRatio = Math.min(widthRatio, heightRatio);
     
-    // Calculer les nouvelles échelles - DOUBLÉES
-    const newPlayerScale = Math.max(minScale, Math.min(maxScale, 7 * scaleRatio)); // 7 au lieu de 3.5
-    const newEnemyScale = Math.max(minScale * 0.8, Math.min(maxScale * 0.8, 6 * scaleRatio)); // 6 au lieu de 3
+    // Calculer les nouvelles échelles - x1.5
+    const newPlayerScale = Math.max(minScale, Math.min(maxScale, 5.25 * scaleRatio)); // 5.25 = 3.5 x 1.5
+    const newEnemyScale = Math.max(minScale * 0.8, Math.min(maxScale * 0.8, 4.5 * scaleRatio)); // 4.5 = 3 x 1.5
     
     setSpriteScale(newPlayerScale);
     setEnemySpriteScale(newEnemyScale);
@@ -750,9 +750,9 @@ const Block: React.FC<BlockProps> = () => {
   const attackFramesPerRow = 8;
   const deathFramesPerRow = 9;
   
-  // Configuration des cœurs - MODIFIÉE POUR ÊTRE RESPONSIVE ET DOUBLÉE
+  // Configuration des cœurs - MODIFIÉE POUR ÊTRE RESPONSIVE ET x1.5
   const heartSize = 32;
-  const heartScale = Math.max(2, Math.min(5, 3 * (windowSize.width / 1920))); // Doublé : min 2, max 5, base 3
+  const heartScale = Math.max(1.5, Math.min(3.75, 2.25 * (windowSize.width / 1920))); // x1.5 : min 1.5, max 3.75, base 2.25
   
   // Calcul de la position dans le sprite sheet
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
@@ -1013,7 +1013,7 @@ const Block: React.FC<BlockProps> = () => {
       }}
       tabIndex={0}
     >
-      {/* Personnage sprite qui se déplace - MODIFIÉ POUR UTILISER L'ÉCHELLE RESPONSIVE DOUBLÉE */}
+      {/* Personnage sprite qui se déplace - MODIFIÉ POUR UTILISER L'ÉCHELLE RESPONSIVE x1.5 */}
       <div style={{
         position: 'absolute',
         left: `${position.x}%`,
@@ -1029,7 +1029,7 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 10
       }} />
 
-      {/* Système de cœurs - MODIFIÉ POUR ÊTRE RESPONSIVE ET DOUBLÉ */}
+      {/* Système de cœurs - MODIFIÉ POUR ÊTRE RESPONSIVE ET x1.5 */}
       <div style={{
         position: 'absolute',
         top: '20px',
@@ -1057,7 +1057,7 @@ const Block: React.FC<BlockProps> = () => {
         })}
       </div>
 
-      {/* Ennemis avec barres de HP et animations - MODIFIÉE POUR UTILISER L'ÉCHELLE RESPONSIVE DOUBLÉE */}
+      {/* Ennemis avec barres de HP et animations - MODIFIÉE POUR UTILISER L'ÉCHELLE RESPONSIVE x1.5 */}
       {enemies.map(enemy => {
         // Ne pas afficher les ennemis qui ne sont pas encore apparus ou qui sont morts
         if (!enemy.hasSpawned || (!enemy.isAlive && !enemy.isDying)) return null;
@@ -1110,8 +1110,8 @@ const Block: React.FC<BlockProps> = () => {
                     left: `${enemy.x}%`,
                     top: `${enemy.y - 8}%`,
                     transform: 'translateX(-50%)',
-                    width: `${60 * (enemySpriteScale / 3)}px`, // Ajuster la largeur de la barre de HP selon l'échelle doublée
-                    height: `${8 * (enemySpriteScale / 3)}px`, // Ajuster la hauteur de la barre de HP selon l'échelle doublée
+                    width: `${60 * (enemySpriteScale / 3)}px`, // Ajuster la largeur de la barre de HP selon l'échelle x1.5
+                    height: `${8 * (enemySpriteScale / 3)}px`, // Ajuster la hauteur de la barre de HP selon l'échelle x1.5
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     border: '1px solid #333',
                     borderRadius: '3px',
@@ -1137,7 +1137,7 @@ const Block: React.FC<BlockProps> = () => {
                     top: `${enemy.y - 12}%`,
                     transform: 'translateX(-50%)',
                     color: 'white',
-                    fontSize: `${12 * (enemySpriteScale / 3)}px`, // Ajuster la taille du texte selon l'échelle doublée
+                    fontSize: `${12 * (enemySpriteScale / 3)}px`, // Ajuster la taille du texte selon l'échelle x1.5
                     fontWeight: 'bold',
                     textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
                     zIndex: 12,
@@ -1176,7 +1176,7 @@ const Block: React.FC<BlockProps> = () => {
         </div>
       )}
 
-      {/* Instructions de contrôle - MODIFIÉES POUR AFFICHER LES INFOS DE RESPONSIVITÉ DOUBLÉE */}
+      {/* Instructions de contrôle - MODIFIÉES POUR AFFICHER LES INFOS DE RESPONSIVITÉ x1.5 */}
       <div style={{
         position: 'absolute',
         top: '20px',
@@ -1207,7 +1207,7 @@ const Block: React.FC<BlockProps> = () => {
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
           📱 Responsive: {windowSize.width}x{windowSize.height} | 
-          🎭 Échelle x2: Joueur={spriteScale.toFixed(1)}x, Ennemis={enemySpriteScale.toFixed(1)}x
+          🎭 Échelle x1.5: Joueur={spriteScale.toFixed(1)}x, Ennemis={enemySpriteScale.toFixed(1)}x
         </p>
         {currentLevel === 1 && gameStartTime > 0 && (
           <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>

@@ -15,6 +15,9 @@ interface Enemy {
   maxHp: number;
   isDying: boolean;
   deathFrame: number;
+  isAttacking: boolean;
+  attackFrame: number;
+  lastAttackTime: number;
 }
 
 const Block: React.FC<BlockProps> = () => {
@@ -26,6 +29,9 @@ const Block: React.FC<BlockProps> = () => {
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false, space: false });
   const [enemies, setEnemies] = useState<Enemy[]>([]);
+  const [playerHp, setPlayerHp] = useState(5); // HP du joueur
+  const [maxPlayerHp] = useState(5);
+  const [lastDamageTime, setLastDamageTime] = useState(0); // Pour éviter les dégâts répétés
   
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
   const playerPositionRef = useRef({ x: 50, y: 50 });
@@ -75,7 +81,10 @@ const Block: React.FC<BlockProps> = () => {
         hp: 3, // 3 points de vie
         maxHp: 3,
         isDying: false,
-        deathFrame: 0
+        deathFrame: 0,
+        isAttacking: false,
+        attackFrame: 0,
+        lastAttackTime: 0
       };
       setEnemies([initialMushroom]);
       enemiesInitialized.current = true;
@@ -97,7 +106,7 @@ const Block: React.FC<BlockProps> = () => {
   useEffect(() => {
     const enemyAnimationInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
-        if (enemy.isDying || !enemy.isAlive) return enemy;
+        if (enemy.isDying || !enemy.isAlive || enemy.isAttacking) return enemy;
         
         return {
           ...enemy,
@@ -107,6 +116,39 @@ const Block: React.FC<BlockProps> = () => {
     }, 200); // Animation un peu plus lente pour les ennemis
 
     return () => clearInterval(enemyAnimationInterval);
+  }, []);
+
+  // Animation d'attaque des ennemis
+  useEffect(() => {
+    const enemyAttackAnimationInterval = setInterval(() => {
+      setEnemies(prev => prev.map(enemy => {
+        if (!enemy.isAttacking) return enemy;
+        
+        const nextFrame = enemy.attackFrame + 1;
+        
+        if (nextFrame >= 8) {
+          // Animation d'attaque terminée
+          return {
+            ...enemy,
+            isAttacking: false,
+            attackFrame: 0,
+            lastAttackTime: Date.now()
+          };
+        }
+        
+        // Vérifier les dégâts au joueur à la frame 4 (milieu de l'attaque)
+        if (nextFrame === 4) {
+          checkEnemyAttackHit(enemy);
+        }
+        
+        return {
+          ...enemy,
+          attackFrame: nextFrame
+        };
+      }));
+    }, 100); // Animation d'attaque rapide
+
+    return () => clearInterval(enemyAttackAnimationInterval);
   }, []);
 
   // Animation de mort des ennemis - CORRIGÉE pour utiliser les frames 2,3,4,5
@@ -141,19 +183,48 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(cleanupInterval);
   }, []);
 
-  // Mouvement des ennemis - IA de poursuite en temps réel avec distance d'arrêt augmentée
+  // Fonction de collision entre deux entités
+  const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 4) => {
+    const deltaX = pos1.x - pos2.x;
+    const deltaY = pos1.y - pos2.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    return distance < minDistance;
+  };
+
+  // Fonction pour vérifier les dégâts de l'ennemi au joueur
+  const checkEnemyAttackHit = (enemy: Enemy) => {
+    const currentPlayerPos = playerPositionRef.current;
+    const currentTime = Date.now();
+    
+    // Éviter les dégâts répétés (cooldown de 1 seconde)
+    if (currentTime - lastDamageTime < 1000) return;
+    
+    // Calculer la distance
+    const deltaX = currentPlayerPos.x - enemy.x;
+    const deltaY = currentPlayerPos.y - enemy.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // Vérifier si le joueur est dans la portée d'attaque de l'ennemi
+    const attackRange = 6;
+    if (distance <= attackRange) {
+      setPlayerHp(prev => Math.max(0, prev - 1)); // Infliger 1 dégât
+      setLastDamageTime(currentTime);
+    }
+  };
+
+  // Mouvement des ennemis avec collision et IA d'attaque
   useEffect(() => {
     const enemyMovementInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
-        if (!enemy.isAlive || enemy.isDying) return enemy;
+        if (!enemy.isAlive || enemy.isDying || enemy.isAttacking) return enemy;
         
         let newX = enemy.x;
         let newY = enemy.y;
         let newDirection = enemy.direction;
-        const speed = 0.5; // Vitesse de poursuite légèrement augmentée
+        let shouldAttack = false;
+        const speed = 0.5;
         
         if (enemy.type === 'mushroom') {
-          // Utiliser la position actuelle du joueur via la ref
           const currentPlayerPos = playerPositionRef.current;
           
           // Calculer la distance vers le joueur
@@ -161,26 +232,52 @@ const Block: React.FC<BlockProps> = () => {
           const deltaY = currentPlayerPos.y - enemy.y;
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
-          // Seuil de distance augmenté pour s'arrêter plus loin du joueur
-          const minDistance = 6; // Augmenté de 2 à 6 pour plus de distance
+          // Distance d'attaque et de collision
+          const attackDistance = 8;
+          const collisionDistance = 4;
+          const currentTime = Date.now();
           
-          if (distance > minDistance) {
-            // Se déplacer vers le joueur en normalisant le vecteur
+          // Vérifier si on doit attaquer (cooldown de 2 secondes)
+          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 2000) {
+            shouldAttack = true;
+            // Orienter vers le joueur pour l'attaque
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2; // Droite ou gauche
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1; // Bas ou haut
+            }
+          } else if (distance > collisionDistance && !shouldAttack) {
+            // Se déplacer vers le joueur seulement si pas de collision
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
-            newX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
-            newY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
+            const potentialX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
+            const potentialY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
             
-            // Déterminer la direction du sprite basée sur le mouvement principal
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-              // Mouvement horizontal dominant
-              newDirection = deltaX > 0 ? 3 : 2; // Droite ou gauche
-            } else {
-              // Mouvement vertical dominant
-              newDirection = deltaY > 0 ? 0 : 1; // Bas ou haut
+            // Vérifier la collision avec la nouvelle position
+            if (!checkCollision({x: potentialX, y: potentialY}, currentPlayerPos, collisionDistance)) {
+              newX = potentialX;
+              newY = potentialY;
+              
+              // Déterminer la direction du sprite
+              if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                newDirection = deltaX > 0 ? 3 : 2;
+              } else {
+                newDirection = deltaY > 0 ? 0 : 1;
+              }
             }
           }
+        }
+        
+        if (shouldAttack) {
+          return {
+            ...enemy,
+            x: newX,
+            y: newY,
+            direction: newDirection,
+            isAttacking: true,
+            attackFrame: 0
+          };
         }
         
         return {
@@ -190,10 +287,10 @@ const Block: React.FC<BlockProps> = () => {
           direction: newDirection
         };
       }));
-    }, 16); // Augmenter la fréquence à ~60 FPS pour une poursuite plus fluide
+    }, 16);
 
     return () => clearInterval(enemyMovementInterval);
-  }, []); // Pas de dépendances - utilise la ref pour la position du joueur
+  }, []);
 
   // Animation d'attaque simple : image 3 → image 4 → fin
   useEffect(() => {
@@ -397,6 +494,9 @@ const Block: React.FC<BlockProps> = () => {
   
   // URL du sprite sheet de mort du mushroom (4 lignes de 9 images)
   const mushroomDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1Xf5RQQHzgCU2m39l3iCJ1wwBge-XCtZD&sz=w1000';
+  
+  // URL du sprite sheet d'attaque du mushroom (4 lignes de 8 images)
+  const mushroomAttackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=15xo5LfJBU2kBCGx9bPdQO9sV7U8yvOx2&sz=w1000';
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -464,25 +564,75 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 10
       }} />
 
-      {/* Ennemis avec barres de HP et animation de mort */}
+      {/* Barre de HP du joueur */}
+      <div style={{
+        position: 'absolute',
+        top: '80px',
+        right: '20px',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: '10px',
+        borderRadius: '8px',
+        zIndex: 20
+      }}>
+        <p style={{ 
+          margin: '0 0 5px 0', 
+          color: 'white', 
+          fontSize: '12px', 
+          fontWeight: 'bold' 
+        }}>
+          ❤️ HP Joueur
+        </p>
+        <div style={{
+          width: '100px',
+          height: '12px',
+          backgroundColor: 'rgba(255, 255, 255, 0.3)',
+          border: '1px solid #666',
+          borderRadius: '6px'
+        }}>
+          <div style={{
+            width: `${(playerHp / maxPlayerHp) * 100}%`,
+            height: '100%',
+            backgroundColor: playerHp > maxPlayerHp * 0.6 ? '#4CAF50' : 
+                           playerHp > maxPlayerHp * 0.3 ? '#FF9800' : '#F44336',
+            borderRadius: '5px',
+            transition: 'width 0.3s ease, background-color 0.3s ease'
+          }} />
+        </div>
+        <p style={{ 
+          margin: '2px 0 0 0', 
+          color: 'white', 
+          fontSize: '10px',
+          textAlign: 'center'
+        }}>
+          {playerHp}/{maxPlayerHp}
+        </p>
+      </div>
+
+      {/* Ennemis avec barres de HP et animations */}
       {enemies.map(enemy => {
         if (!enemy.isAlive && !enemy.isDying) return null;
         
         let enemySpriteX, enemySpriteY, enemySpriteUrl, enemyBackgroundSizeX;
         
         if (enemy.isDying) {
-          // Animation de mort - utiliser les images 2,3,4,5 (deathFrame 0,1,2,3 = images 2,3,4,5)
-          const deathImageIndex = enemy.deathFrame + 2; // Commencer à l'image 2
+          // Animation de mort - utiliser les images 2,3,4,5
+          const deathImageIndex = enemy.deathFrame + 2;
           enemySpriteX = deathImageIndex * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomDeathSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * 3; // 9 images par ligne
+          enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * 3;
+        } else if (enemy.isAttacking) {
+          // Animation d'attaque
+          enemySpriteX = enemy.attackFrame * spriteWidth;
+          enemySpriteY = enemy.direction * spriteHeight;
+          enemySpriteUrl = mushroomAttackSpriteSheetUrl;
+          enemyBackgroundSizeX = spriteWidth * attackFramesPerRow * 3; // 8 images par ligne
         } else {
           // Animation normale
           enemySpriteX = enemy.currentFrame * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * walkFramesPerRow * 3; // 4 images par ligne
+          enemyBackgroundSizeX = spriteWidth * walkFramesPerRow * 3;
         }
         
         return (
@@ -494,7 +644,7 @@ const Block: React.FC<BlockProps> = () => {
                 left: `${enemy.x}%`,
                 top: `${enemy.y}%`,
                 transform: 'translate(-50%, -50%)',
-                width: `${spriteWidth * 3}px`, // Mushroom un peu plus petit
+                width: `${spriteWidth * 3}px`,
                 height: `${spriteHeight * 3}px`,
                 backgroundImage: `url(${enemySpriteUrl})`,
                 backgroundPosition: `-${enemySpriteX * 3}px -${enemySpriteY * 3}px`,
@@ -502,7 +652,9 @@ const Block: React.FC<BlockProps> = () => {
                 imageRendering: 'pixelated',
                 transition: 'none',
                 zIndex: 9,
-                opacity: enemy.isDying ? 0.8 : 1 // Légère transparence pendant la mort
+                opacity: enemy.isDying ? 0.8 : 1,
+                // Effet visuel pour l'attaque
+                filter: enemy.isAttacking ? 'brightness(1.2) drop-shadow(0 0 5px red)' : 'none'
               }}
             />
             
@@ -513,7 +665,7 @@ const Block: React.FC<BlockProps> = () => {
                   style={{
                     position: 'absolute',
                     left: `${enemy.x}%`,
-                    top: `${enemy.y - 8}%`, // Placée au-dessus de l'ennemi
+                    top: `${enemy.y - 8}%`,
                     transform: 'translateX(-50%)',
                     width: '60px',
                     height: '8px',
@@ -523,7 +675,6 @@ const Block: React.FC<BlockProps> = () => {
                     zIndex: 11
                   }}
                 >
-                  {/* Barre de HP colorée */}
                   <div
                     style={{
                       width: `${(enemy.hp / enemy.maxHp) * 100}%`,
@@ -536,7 +687,7 @@ const Block: React.FC<BlockProps> = () => {
                   />
                 </div>
                 
-                {/* Texte HP */}
+                {/* Texte HP et état */}
                 <div
                   style={{
                     position: 'absolute',
@@ -551,7 +702,7 @@ const Block: React.FC<BlockProps> = () => {
                     textAlign: 'center'
                   }}
                 >
-                  {enemy.hp}/{enemy.maxHp}
+                  {enemy.isAttacking ? '⚔️ ATTAQUE' : `${enemy.hp}/${enemy.maxHp}`}
                 </div>
               </>
             )}
@@ -584,9 +735,33 @@ const Block: React.FC<BlockProps> = () => {
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
           🍄 Ennemis vivants: {enemies.filter(e => e.isAlive && !e.isDying).length} | 
           💀 En train de mourir: {enemies.filter(e => e.isDying).length} |
-          ⚡ Portée: 8 | 🌟 Arc: 180°
+          ⚔️ En attaque: {enemies.filter(e => e.isAttacking).length}
         </p>
       </div>
+
+      {/* Game Over */}
+      {playerHp <= 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          color: 'red',
+          padding: '30px',
+          borderRadius: '15px',
+          textAlign: 'center',
+          fontSize: '24px',
+          fontWeight: 'bold',
+          zIndex: 100
+        }}>
+          💀 GAME OVER 💀
+          <br />
+          <span style={{ fontSize: '16px', color: 'white' }}>
+            Le champignon vous a vaincu !
+          </span>
+        </div>
+      )}
 
       {/* Indicateur de focus */}
       <div style={{

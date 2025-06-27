@@ -247,7 +247,7 @@ const Block: React.FC<BlockProps> = () => {
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
           // Distance d'attaque et de collision AJUSTÉES
-          const attackDistance = 6; // Réduit de 8 à 6 pour se rapprocher avant d'attaquer
+          const attackDistance = 4; // Réduit de 8 à 6 pour se rapprocher avant d'attaquer
           const collisionDistance = 3; // Réduit de 4 à 3 pour moins d'espace visuel
           const currentTime = Date.now();
           

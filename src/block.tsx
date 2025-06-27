@@ -23,6 +23,7 @@ interface Enemy {
 const Block: React.FC<BlockProps> = () => {
   // État pour gérer le menu d'accueil
   const [gameState, setGameState] = useState<'menu' | 'playing'>('menu');
+  const [isPlayButtonHovered, setIsPlayButtonHovered] = useState(false);
   
   const [currentFrame, setCurrentFrame] = useState(0);
   const [direction, setDirection] = useState(0); // Direction du sprite
@@ -571,8 +572,11 @@ const Block: React.FC<BlockProps> = () => {
   const mushroomAttackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=15xo5LfJBU2kBCGx9bPdQO9sV7U8yvOx2&sz=w1000';
   const heartSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
   
-  // URL de votre nouvelle image de menu d'accueil (mise à jour)
+  // URL de votre image de menu d'accueil
   const menuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1RzUqegcgPQH2S-Rd5dVIgxRG59NHVjSi&sz=w2000';
+  
+  // URL de votre bouton Play (convertie depuis votre lien Google Drive)
+  const playButtonUrl = 'https://drive.google.com/thumbnail?id=1WRFrWkm2g4JzyjTtZGx2tPIEiHFX1zoP&sz=w500';
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -616,31 +620,22 @@ const Block: React.FC<BlockProps> = () => {
     }
   };
 
-  // Fonction pour détecter les clics sur le bouton Play (zone élargie pour le nouveau menu)
-  const handleMenuClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    const xPercent = (x / rect.width) * 100;
-    const yPercent = (y / rect.height) * 100;
-    
-    // Zone élargie pour le bouton Play (adaptée à votre nouvelle image de menu)
-    // Vous pourrez ajuster ces valeurs quand vous ajouterez les boutons spécifiques
-    const playButtonArea = {
-      left: 15,   // Zone plus large pour faciliter le clic
-      right: 85,  // Zone plus large pour faciliter le clic
-      top: 50,    // Zone plus haute pour couvrir plus d'espace
-      bottom: 90  // Zone plus basse pour couvrir plus d'espace
-    };
-    
-    // Vérifier si le clic est dans la zone du bouton
-    if (xPercent >= playButtonArea.left && xPercent <= playButtonArea.right &&
-        yPercent >= playButtonArea.top && yPercent <= playButtonArea.bottom) {
-      startGame();
-    }
+  // Fonction pour détecter les clics sur le bouton Play avec zone précise
+  const handlePlayButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation(); // Empêcher la propagation au div parent
+    startGame();
   };
 
-  // Rendu du menu d'accueil avec votre nouvelle image
+  // Fonction pour gérer le hover du bouton Play
+  const handlePlayButtonMouseEnter = () => {
+    setIsPlayButtonHovered(true);
+  };
+
+  const handlePlayButtonMouseLeave = () => {
+    setIsPlayButtonHovered(false);
+  };
+
+  // Rendu du menu d'accueil avec votre bouton Play
   if (gameState === 'menu') {
     return (
       <div 
@@ -649,17 +644,39 @@ const Block: React.FC<BlockProps> = () => {
           width: '100vw',
           margin: 0,
           backgroundImage: `url(${menuBackgroundUrl})`,
-          backgroundSize: 'contain', // Maintient les proportions de votre image
+          backgroundSize: 'contain',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
           position: 'relative',
           overflow: 'hidden',
-          cursor: 'pointer',
-          backgroundColor: '#1a1a1a' // Fond sombre pour les espaces vides autour de l'image
+          backgroundColor: '#1a1a1a' // Fond sombre pour les espaces vides
         }}
-        onClick={handleMenuClick}
       >
-        {/* Instructions pour le joueur */}
+        {/* Bouton Play avec image personnalisée */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '70%', // Ajustez cette position selon votre design
+            transform: 'translate(-50%, -50%)',
+            width: '200px', // Ajustez la taille selon votre bouton
+            height: '80px', // Ajustez la taille selon votre bouton
+            backgroundImage: `url(${playButtonUrl})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            cursor: 'pointer',
+            zIndex: 10,
+            transition: 'all 0.2s ease',
+            transform: `translate(-50%, -50%) scale(${isPlayButtonHovered ? 1.1 : 1})`,
+            filter: isPlayButtonHovered ? 'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.5))' : 'brightness(1)',
+          }}
+          onClick={handlePlayButtonClick}
+          onMouseEnter={handlePlayButtonMouseEnter}
+          onMouseLeave={handlePlayButtonMouseLeave}
+        />
+
+        {/* Instructions temporaires */}
         <div
           style={{
             position: 'absolute',
@@ -667,25 +684,20 @@ const Block: React.FC<BlockProps> = () => {
             top: '15%',
             transform: 'translateX(-50%)',
             color: 'white',
-            fontSize: '18px',
+            fontSize: '16px',
             fontWeight: 'bold',
-            textShadow: '3px 3px 6px rgba(0,0,0,0.9)',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
             textAlign: 'center',
             zIndex: 10,
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            padding: '15px 25px',
-            borderRadius: '10px',
-            border: '2px solid #444'
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            padding: '10px 20px',
+            borderRadius: '8px',
           }}
         >
-          🎮 Cliquez n'importe où pour commencer à jouer ! 🎮
-          <br />
-          <span style={{ fontSize: '14px', opacity: 0.8 }}>
-            (En attendant vos boutons de menu personnalisés)
-          </span>
+          🎮 Cliquez sur le bouton Play pour commencer ! 🎮
         </div>
 
-        {/* Zone de debug pour voir où on clique (temporaire) */}
+        {/* Zone de debug (temporaire) */}
         <div
           style={{
             position: 'absolute',
@@ -693,16 +705,18 @@ const Block: React.FC<BlockProps> = () => {
             left: '20px',
             color: 'white',
             fontSize: '12px',
-            backgroundColor: 'rgba(0,0,0,0.8)',
+            backgroundColor: 'rgba(0,0,0,0.7)',
             padding: '10px',
             borderRadius: '5px',
             zIndex: 10,
             fontFamily: 'monospace'
           }}
         >
-          💡 Menu avec votre image d'arrière-plan
+          ✅ Bouton Play personnalisé intégré
           <br />
-          Prêt pour l'ajout de vos boutons personnalisés
+          ✅ Effets hover et animations
+          <br />
+          ✅ Zone de clic précise
         </div>
       </div>
     );

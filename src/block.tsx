@@ -602,51 +602,32 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 10
       }} />
 
-      {/* Système de cœurs - NOUVEAU */}
+      {/* Système de cœurs SIMPLIFIÉ - SEULEMENT LES CŒURS */}
       <div style={{
         position: 'absolute',
-        top: '80px',
+        top: '20px',
         right: '20px',
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: '12px',
-        borderRadius: '8px',
+        display: 'flex',
+        gap: '6px',
         zIndex: 20
       }}>
-        <p style={{ 
-          margin: '0 0 8px 0', 
-          color: 'white', 
-          fontSize: '12px', 
-          fontWeight: 'bold',
-          textAlign: 'center'
-        }}>
-          ❤️ Vie : {playerHp}/10
-        </p>
-        
-        {/* Affichage des 5 cœurs */}
-        <div style={{
-          display: 'flex',
-          gap: '6px',
-          justifyContent: 'center',
-          flexWrap: 'wrap'
-        }}>
-          {[0, 1, 2, 3, 4].map(heartIndex => {
-            const heartState = getHeartState(heartIndex, playerHp);
-            
-            return (
-              <div
-                key={heartIndex}
-                style={{
-                  width: `${heartSize * heartScale}px`,
-                  height: `${heartSize * heartScale}px`,
-                  backgroundImage: `url(${heartSpriteSheetUrl})`,
-                  backgroundPosition: `-${heartState * heartSize * heartScale}px 0px`,
-                  backgroundSize: `${heartSize * 3 * heartScale}px ${heartSize * heartScale}px`,
-                  imageRendering: 'pixelated'
-                }}
-              />
-            );
-          })}
-        </div>
+        {[0, 1, 2, 3, 4].map(heartIndex => {
+          const heartState = getHeartState(heartIndex, playerHp);
+          
+          return (
+            <div
+              key={heartIndex}
+              style={{
+                width: `${heartSize * heartScale}px`,
+                height: `${heartSize * heartScale}px`,
+                backgroundImage: `url(${heartSpriteSheetUrl})`,
+                backgroundPosition: `-${heartState * heartSize * heartScale}px 0px`,
+                backgroundSize: `${heartSize * 3 * heartScale}px ${heartSize * heartScale}px`,
+                imageRendering: 'pixelated'
+              }}
+            />
+          );
+        })}
       </div>
 
       {/* Ennemis avec barres de HP et animations */}

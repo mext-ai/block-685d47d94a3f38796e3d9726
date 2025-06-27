@@ -635,7 +635,7 @@ const Block: React.FC<BlockProps> = () => {
     setIsPlayButtonHovered(false);
   };
 
-  // Rendu du menu d'accueil avec votre nouveau bouton Play - AMÉLIORÉ
+  // Rendu du menu d'accueil avec votre nouveau bouton Play - BOUTON AGRANDI x2 ET RELEVÉ
   if (gameState === 'menu') {
     return (
       <div 
@@ -652,15 +652,15 @@ const Block: React.FC<BlockProps> = () => {
           backgroundColor: '#1a1a1a' // Fond sombre pour les espaces vides
         }}
       >
-        {/* Bouton Play avec nouvelle image sans background - OPTIMISÉ */}
+        {/* Bouton Play avec nouvelle image sans background - AGRANDI x2 ET RELEVÉ */}
         <div
           style={{
             position: 'absolute',
             left: '50%',
-            top: '70%',
-            transform: `translate(-50%, -50%) scale(${isPlayButtonHovered ? 1.1 : 1})`,
-            width: '180px', // Ajusté pour la nouvelle image
-            height: '90px', // Ajusté pour la nouvelle image
+            top: '60%', // Relevé de 70% à 60%
+            transform: `translate(-50%, -50%) scale(${isPlayButtonHovered ? 2.2 : 2})`, // Taille x2 (était 1.1 et 1)
+            width: '180px', // Taille de base conservée
+            height: '90px', // Taille de base conservée
             backgroundImage: `url(${playButtonUrl})`,
             backgroundSize: 'contain',
             backgroundPosition: 'center',

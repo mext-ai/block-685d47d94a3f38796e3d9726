@@ -988,7 +988,7 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 10
       }} />
 
-      {/* Système de cœurs */}
+      {/* Système de cœurs - CORRIGÉ AVEC LE CODE MANQUANT */}
       <div style={{
         position: 'absolute',
         top: '20px',
@@ -1000,6 +1000,20 @@ const Block: React.FC<BlockProps> = () => {
         {[0, 1, 2, 3, 4].map(heartIndex => {
           const heartState = getHeartState(heartIndex, playerHp);
           
+          return (
+            <div
+              key={heartIndex}
+              style={{
+                width: `${heartSize * heartScale}px`,
+                height: `${heartSize * heartScale}px`,
+                backgroundImage: `url(${heartSpriteSheetUrl})`,
+                backgroundPosition: `-${heartState * heartSize * heartScale}px 0px`,
+                backgroundSize: `${heartSize * 3 * heartScale}px ${heartSize * heartScale}px`,
+                imageRendering: 'pixelated',
+                transition: 'all 0.3s ease'
+              }}
+            />
+          );
         })}
       </div>
 

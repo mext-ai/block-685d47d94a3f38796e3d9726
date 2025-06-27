@@ -758,29 +758,6 @@ const Block: React.FC<BlockProps> = () => {
             zIndex: 5
           }}
         >
-          {/* 📝 COMMENTAIRE INFORMATIF */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '-50px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              backgroundColor: 'rgba(0,0,0,0.8)',
-              color: 'white',
-              padding: '10px 15px',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontFamily: 'Arial, sans-serif',
-              textAlign: 'center',
-              zIndex: 15
-            }}
-          >
-            🔧 Background: {MENU_BACKGROUND_WIDTH}px | 
-            Positions: L1({LEVEL1_BUTTON_POSITION}%) L2({LEVEL2_BUTTON_POSITION}%) L3({LEVEL3_BUTTON_POSITION}%)
-            <br />
-            💡 Modifiez les constantes en haut du fichier pour ajuster !
-          </div>
-
           {/* Bouton Niveau 1 - UTILISE VOS PARAMÈTRES */}
           <div
             style={{

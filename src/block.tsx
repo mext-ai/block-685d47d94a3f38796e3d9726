@@ -109,7 +109,7 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(enemyAnimationInterval);
   }, []);
 
-  // Animation de mort des ennemis
+  // Animation de mort des ennemis - CORRIGÉE pour utiliser les frames 2,3,4,5
   useEffect(() => {
     const deathAnimationInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
@@ -117,8 +117,8 @@ const Block: React.FC<BlockProps> = () => {
         
         const nextFrame = enemy.deathFrame + 1;
         
-        if (nextFrame >= 8) {
-          // Animation terminée, supprimer l'ennemi
+        if (nextFrame >= 4) {
+          // Animation terminée après 4 frames (2,3,4,5), supprimer l'ennemi
           return { ...enemy, isAlive: false, isDying: false };
         }
         
@@ -127,7 +127,7 @@ const Block: React.FC<BlockProps> = () => {
           deathFrame: nextFrame
         };
       }));
-    }, 100); // Animation de mort plus rapide (100ms par frame)
+    }, 150); // Animation de mort à 150ms par frame
 
     return () => clearInterval(deathAnimationInterval);
   }, []);
@@ -376,7 +376,7 @@ const Block: React.FC<BlockProps> = () => {
   // URL du sprite sheet du mushroom
   const mushroomSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1j2LelD-leMi_3y44PFuLCJOl_cmRRysA&sz=w1000';
   
-  // URL du sprite sheet de mort du mushroom (4 lignes de 8 images)
+  // URL du sprite sheet de mort du mushroom (4 lignes de 9 images)
   const mushroomDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1Xf5RQQHzgCU2m39l3iCJ1wwBge-XCtZD&sz=w1000';
 
   // Configuration du sprite
@@ -384,7 +384,7 @@ const Block: React.FC<BlockProps> = () => {
   const spriteHeight = 32;
   const walkFramesPerRow = 4; // 4 frames pour la marche
   const attackFramesPerRow = 8; // 8 frames pour l'attaque
-  const deathFramesPerRow = 8; // 8 frames pour l'animation de mort
+  const deathFramesPerRow = 9; // 9 frames pour l'animation de mort
   const spriteScale = 3.5; // Taille ajustée à 3.5
   
   // Calcul de la position dans le sprite sheet
@@ -452,11 +452,12 @@ const Block: React.FC<BlockProps> = () => {
         let enemySpriteX, enemySpriteY, enemySpriteUrl, enemyBackgroundSizeX;
         
         if (enemy.isDying) {
-          // Animation de mort - utiliser la direction du champignon pour choisir la ligne
-          enemySpriteX = enemy.deathFrame * spriteWidth;
-          enemySpriteY = enemy.direction * spriteHeight; // CORRECTION : utiliser la direction du champignon
+          // Animation de mort - utiliser les images 2,3,4,5 (deathFrame 0,1,2,3 = images 2,3,4,5)
+          const deathImageIndex = enemy.deathFrame + 2; // Commencer à l'image 2
+          enemySpriteX = deathImageIndex * spriteWidth;
+          enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomDeathSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * 3; // 8 images par ligne
+          enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * 3; // 9 images par ligne
         } else {
           // Animation normale
           enemySpriteX = enemy.currentFrame * spriteWidth;

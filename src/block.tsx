@@ -222,27 +222,46 @@ const Block: React.FC<BlockProps> = () => {
     }
   }, [isAttacking]);
 
-  // Fonction pour vérifier si l'ennemi est dans la direction d'attaque
+  // Fonction pour vérifier si l'ennemi est dans l'arc d'attaque de 180° (AMÉLIORÉE)
   const isEnemyInAttackDirection = (playerX: number, playerY: number, enemyX: number, enemyY: number, playerDirection: number) => {
     const deltaX = enemyX - playerX;
     const deltaY = enemyY - playerY;
-    const attackAngle = 45; // Angle d'attaque en degrés (cône de 90° total)
     
+    // Calculer l'angle vers l'ennemi en radians
+    const angleToEnemy = Math.atan2(deltaY, deltaX);
+    
+    // Définir l'angle de base selon la direction du personnage
+    let baseAngle;
     switch (playerDirection) {
       case 0: // Bas
-        return deltaY > 0 && Math.abs(deltaX) <= Math.abs(deltaY) * Math.tan(attackAngle * Math.PI / 180);
+        baseAngle = Math.PI / 2; // 90°
+        break;
       case 1: // Haut
-        return deltaY < 0 && Math.abs(deltaX) <= Math.abs(deltaY) * Math.tan(attackAngle * Math.PI / 180);
+        baseAngle = -Math.PI / 2; // -90°
+        break;
       case 2: // Gauche
-        return deltaX < 0 && Math.abs(deltaY) <= Math.abs(deltaX) * Math.tan(attackAngle * Math.PI / 180);
+        baseAngle = Math.PI; // 180°
+        break;
       case 3: // Droite
-        return deltaX > 0 && Math.abs(deltaY) <= Math.abs(deltaX) * Math.tan(attackAngle * Math.PI / 180);
+        baseAngle = 0; // 0°
+        break;
       default:
         return false;
     }
+    
+    // Calculer la différence d'angle
+    let angleDiff = angleToEnemy - baseAngle;
+    
+    // Normaliser l'angle entre -π et π
+    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+    
+    // Vérifier si l'ennemi est dans l'arc de 180° (±90°)
+    const halfArcAngle = Math.PI / 2; // 90° de chaque côté = 180° total
+    return Math.abs(angleDiff) <= halfArcAngle;
   };
 
-  // Fonction pour vérifier si l'attaque touche un ennemi (CORRIGÉE avec direction)
+  // Fonction pour vérifier si l'attaque touche un ennemi (AVEC ARC DE 180°)
   const checkAttackHit = () => {
     const attackRange = 8; // Portée de l'attaque
     const currentPlayerPos = playerPositionRef.current;
@@ -256,7 +275,7 @@ const Block: React.FC<BlockProps> = () => {
       const deltaY = currentPlayerPos.y - enemy.y;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       
-      // Vérifier si l'ennemi est dans la portée ET dans la direction d'attaque
+      // Vérifier si l'ennemi est dans la portée ET dans l'arc d'attaque de 180°
       if (distance <= attackRange && isEnemyInAttackDirection(currentPlayerPos.x, currentPlayerPos.y, enemy.x, enemy.y, currentPlayerDirection)) {
         const newHp = enemy.hp - 1; // Infliger 1 point de dégât
         
@@ -560,12 +579,12 @@ const Block: React.FC<BlockProps> = () => {
           Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Direction: {getDirectionName(direction)} - {isAttacking ? `⚔️ Attaque directionnelle!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
+          Direction: {getDirectionName(direction)} - {isAttacking ? `⚔️ Attaque 180° !` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
           🍄 Ennemis vivants: {enemies.filter(e => e.isAlive && !e.isDying).length} | 
           💀 En train de mourir: {enemies.filter(e => e.isDying).length} |
-          ⚡ Portée: 8 | 🛡️ Distance d'arrêt: 6
+          ⚡ Portée: 8 | 🌟 Arc: 180°
         </p>
       </div>
 

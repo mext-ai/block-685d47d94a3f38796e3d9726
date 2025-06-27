@@ -396,7 +396,7 @@ const Block: React.FC<BlockProps> = () => {
     }));
   };
 
-  // Gestion du mouvement avec limites
+  // Gestion du mouvement avec limites et collision avec les ennemis
   useEffect(() => {
     const moveInterval = setInterval(() => {
       if (!isAttacking && (keys.up || keys.down || keys.left || keys.right)) {
@@ -423,6 +423,22 @@ const Block: React.FC<BlockProps> = () => {
             setDirection(3); // Direction droite dans votre sprite
           }
 
+          // Vérifier les collisions avec les ennemis
+          const potentialPos = { x: newX, y: newY };
+          const collisionDistance = 4;
+          let hasCollision = false;
+          
+          enemies.forEach(enemy => {
+            if (enemy.isAlive && !enemy.isDying && checkCollision(potentialPos, { x: enemy.x, y: enemy.y }, collisionDistance)) {
+              hasCollision = true;
+            }
+          });
+          
+          // Si collision, ne pas bouger
+          if (hasCollision) {
+            return prev;
+          }
+
           return { x: newX, y: newY };
         });
       } else {
@@ -432,7 +448,7 @@ const Block: React.FC<BlockProps> = () => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(moveInterval);
-  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit, isAttacking]);
+  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit, isAttacking, enemies]);
 
   // Gestion des touches
   useEffect(() => {
@@ -637,7 +653,7 @@ const Block: React.FC<BlockProps> = () => {
         
         return (
           <div key={enemy.id}>
-            {/* Sprite de l'ennemi */}
+            {/* Sprite de l'ennemi - SANS SURBRILLANCE */}
             <div
               style={{
                 position: 'absolute',
@@ -652,9 +668,8 @@ const Block: React.FC<BlockProps> = () => {
                 imageRendering: 'pixelated',
                 transition: 'none',
                 zIndex: 9,
-                opacity: enemy.isDying ? 0.8 : 1,
-                // Effet visuel pour l'attaque
-                filter: enemy.isAttacking ? 'brightness(1.2) drop-shadow(0 0 5px red)' : 'none'
+                opacity: enemy.isDying ? 0.8 : 1
+                // SUPPRIMÉ : filter: enemy.isAttacking ? 'brightness(1.2) drop-shadow(0 0 5px red)' : 'none'
               }}
             />
             

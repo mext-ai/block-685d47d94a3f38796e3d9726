@@ -707,7 +707,7 @@ const Block: React.FC<BlockProps> = () => {
     );
   }
 
-  // Rendu du menu de sélection de niveau - MENU ÉLARGI ET BOUTONS AGRANDIS x2
+  // Rendu du menu de sélection de niveau - MODIFIÉ SELON VOS DEMANDES
   if (gameState === 'levelSelect') {
     return (
       <div 
@@ -724,14 +724,14 @@ const Block: React.FC<BlockProps> = () => {
           backgroundColor: '#1a1a1a'
         }}
       >
-        {/* Rectangle background du menu des niveaux - ÉLARGI */}
+        {/* Rectangle background du menu des niveaux - ENCORE PLUS ÉLARGI */}
         <div
           style={{
             position: 'absolute',
             left: '50%',
             top: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '800px', // Élargi de 600px à 800px
+            width: '900px', // Élargi de 800px à 900px
             height: '360px',
             backgroundImage: `url(${levelMenuBackgroundUrl})`,
             backgroundSize: 'contain',
@@ -740,13 +740,13 @@ const Block: React.FC<BlockProps> = () => {
             zIndex: 5
           }}
         >
-          {/* Bouton Niveau 1 - AGRANDI x2 */}
+          {/* Bouton Niveau 1 - RAPPROCHÉ */}
           <div
             style={{
               position: 'absolute',
-              left: '20%',
+              left: '30%', // Rapproché de 20% à 30%
               top: '50%',
-              transform: `translate(-50%, -50%) scale(${isLevel1ButtonHovered ? 2.2 : 2})`, // x2 au lieu de 1
+              transform: `translate(-50%, -50%) scale(${isLevel1ButtonHovered ? 2.2 : 2})`,
               width: '100px',
               height: '50px',
               backgroundImage: `url(${level1ButtonUrl})`,
@@ -765,27 +765,21 @@ const Block: React.FC<BlockProps> = () => {
             onMouseLeave={handleLevel1ButtonMouseLeave}
           />
 
-          {/* Bouton Niveau 2 - AGRANDI x2 ET GRISÉ SI VERROUILLÉ */}
+          {/* Bouton Niveau 2 - RAPPROCHÉ ET STYLES SUPPRIMÉS */}
           <div
             style={{
               position: 'absolute',
-              left: '50%',
+              left: '50%', // Position centrale inchangée
               top: '50%',
-              transform: `translate(-50%, -50%) scale(${isLevel2ButtonHovered && isLevelUnlocked(2) ? 2.2 : 2})`,
+              transform: `translate(-50%, -50%) scale(${isLevel2ButtonHovered ? 2.2 : 2})`,
               width: '100px',
               height: '50px',
               backgroundImage: `url(${level2ButtonUrl})`,
               backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              cursor: isLevelUnlocked(2) ? 'pointer' : 'not-allowed',
+              cursor: isLevelUnlocked(2) ? 'pointer' : 'default',
               transition: 'all 0.2s ease',
-              filter: isLevelUnlocked(2) ? 
-                (isLevel2ButtonHovered ? 
-                  'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
-                  'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))') :
-                'brightness(0.5) grayscale(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
-              opacity: isLevelUnlocked(2) ? 1 : 0.6,
               zIndex: 10
             }}
             onClick={handleLevel2ButtonClick}
@@ -793,50 +787,27 @@ const Block: React.FC<BlockProps> = () => {
             onMouseLeave={handleLevel2ButtonMouseLeave}
           />
 
-          {/* Bouton Niveau 3 - AGRANDI x2 ET GRISÉ SI VERROUILLÉ */}
+          {/* Bouton Niveau 3 - RAPPROCHÉ ET STYLES SUPPRIMÉS */}
           <div
             style={{
               position: 'absolute',
-              left: '80%',
+              left: '70%', // Rapproché de 80% à 70%
               top: '50%',
-              transform: `translate(-50%, -50%) scale(${isLevel3ButtonHovered && isLevelUnlocked(3) ? 2.2 : 2})`,
+              transform: `translate(-50%, -50%) scale(${isLevel3ButtonHovered ? 2.2 : 2})`,
               width: '100px',
               height: '50px',
               backgroundImage: `url(${level3ButtonUrl})`,
               backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              cursor: isLevelUnlocked(3) ? 'pointer' : 'not-allowed',
+              cursor: isLevelUnlocked(3) ? 'pointer' : 'default',
               transition: 'all 0.2s ease',
-              filter: isLevelUnlocked(3) ? 
-                (isLevel3ButtonHovered ? 
-                  'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
-                  'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))') :
-                'brightness(0.5) grayscale(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
-              opacity: isLevelUnlocked(3) ? 1 : 0.6,
               zIndex: 10
             }}
             onClick={handleLevel3ButtonClick}
             onMouseEnter={handleLevel3ButtonMouseEnter}
             onMouseLeave={handleLevel3ButtonMouseLeave}
           />
-
-          {/* Indicateur de progression */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-              textAlign: 'center'
-            }}
-          >
-            Niveaux terminés: {completedLevels.length}/3
-          </div>
 
           {/* Bouton Retour */}
           <div

@@ -575,8 +575,8 @@ const Block: React.FC<BlockProps> = () => {
   // URL de votre image de menu d'accueil
   const menuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1RzUqegcgPQH2S-Rd5dVIgxRG59NHVjSi&sz=w2000';
   
-  // URL de votre bouton Play (convertie depuis votre lien Google Drive)
-  const playButtonUrl = 'https://drive.google.com/thumbnail?id=1WRFrWkm2g4JzyjTtZGx2tPIEiHFX1zoP&sz=w500';
+  // URL de votre nouveau bouton Play sans background (MISE À JOUR)
+  const playButtonUrl = 'https://drive.google.com/thumbnail?id=1kOu9XlhpCc1p7GPqdZuDosBc7OyH3t9k&sz=w500';
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -635,7 +635,7 @@ const Block: React.FC<BlockProps> = () => {
     setIsPlayButtonHovered(false);
   };
 
-  // Rendu du menu d'accueil avec votre bouton Play - CORRIGÉ
+  // Rendu du menu d'accueil avec votre nouveau bouton Play - AMÉLIORÉ
   if (gameState === 'menu') {
     return (
       <div 
@@ -652,24 +652,27 @@ const Block: React.FC<BlockProps> = () => {
           backgroundColor: '#1a1a1a' // Fond sombre pour les espaces vides
         }}
       >
-        {/* Bouton Play avec image personnalisée - ZONE CLIQUABLE RÉDUITE */}
+        {/* Bouton Play avec nouvelle image sans background - OPTIMISÉ */}
         <div
           style={{
             position: 'absolute',
             left: '50%',
             top: '70%',
             transform: `translate(-50%, -50%) scale(${isPlayButtonHovered ? 1.1 : 1})`,
-            width: '160px', // RÉDUIT de 200px à 160px
-            height: '80px', // Hauteur maintenue parfaite
+            width: '180px', // Ajusté pour la nouvelle image
+            height: '90px', // Ajusté pour la nouvelle image
             backgroundImage: `url(${playButtonUrl})`,
             backgroundSize: 'contain',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
-            backgroundColor: 'transparent', // AJOUTÉ : Fond transparent pour éviter le blanc
             cursor: 'pointer',
             zIndex: 10,
             transition: 'all 0.2s ease',
-            filter: isPlayButtonHovered ? 'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.5))' : 'brightness(1)',
+            filter: isPlayButtonHovered ? 
+              'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6)) saturate(1.2)' : 
+              'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+            // Effet supplémentaire pour le hover
+            opacity: isPlayButtonHovered ? 1 : 0.95,
           }}
           onClick={handlePlayButtonClick}
           onMouseEnter={handlePlayButtonMouseEnter}

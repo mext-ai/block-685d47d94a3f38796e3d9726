@@ -21,6 +21,9 @@ interface Enemy {
 }
 
 const Block: React.FC<BlockProps> = () => {
+  // État pour gérer le menu d'accueil
+  const [gameState, setGameState] = useState<'menu' | 'playing'>('menu');
+  
   const [currentFrame, setCurrentFrame] = useState(0);
   const [direction, setDirection] = useState(0); // Direction du sprite
   const [isWalking, setIsWalking] = useState(false);
@@ -38,6 +41,28 @@ const Block: React.FC<BlockProps> = () => {
   const playerDirectionRef = useRef(0); // Référence pour la direction du joueur
   const enemiesRef = useRef<Enemy[]>([]); // Référence pour les ennemis
   const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
+
+  // Fonction pour démarrer le jeu
+  const startGame = () => {
+    setGameState('playing');
+    // Réinitialiser le jeu
+    setPlayerHp(10);
+    setPosition({ x: 50, y: 50 });
+    setEnemies([]);
+    enemiesInitialized.current = false;
+    setLastDamageTime(0);
+  };
+
+  // Fonction pour retourner au menu
+  const returnToMenu = () => {
+    setGameState('menu');
+    // Réinitialiser le jeu
+    setPlayerHp(10);
+    setPosition({ x: 50, y: 50 });
+    setEnemies([]);
+    enemiesInitialized.current = false;
+    setLastDamageTime(0);
+  };
 
   // Mettre à jour la référence à chaque changement de position
   useEffect(() => {
@@ -73,9 +98,11 @@ const Block: React.FC<BlockProps> = () => {
       blockId: 'image-background-block', 
       completed: true 
     }, '*');
+  }, []);
 
-    // Créer le premier ennemi mushroom au démarrage - UNE SEULE FOIS
-    if (!enemiesInitialized.current) {
+  // Initialisation des ennemis quand le jeu commence
+  useEffect(() => {
+    if (gameState === 'playing' && !enemiesInitialized.current) {
       const initialMushroom: Enemy = {
         id: 1,
         type: 'mushroom',
@@ -95,10 +122,12 @@ const Block: React.FC<BlockProps> = () => {
       setEnemies([initialMushroom]);
       enemiesInitialized.current = true;
     }
-  }, []); // AUCUNE dépendance - exécution unique
+  }, [gameState]);
 
   // Animation du sprite de marche du joueur
   useEffect(() => {
+    if (gameState !== 'playing') return;
+    
     const walkAnimationInterval = setInterval(() => {
       if (isWalking && !isAttacking) {
         setCurrentFrame(prev => (prev + 1) % 3); // 3 frames d'animation + 1 frame de repos
@@ -106,10 +135,12 @@ const Block: React.FC<BlockProps> = () => {
     }, 150);
 
     return () => clearInterval(walkAnimationInterval);
-  }, [isWalking, isAttacking]);
+  }, [isWalking, isAttacking, gameState]);
 
   // Animation des ennemis (marche normale)
   useEffect(() => {
+    if (gameState !== 'playing') return;
+    
     const enemyAnimationInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
         if (enemy.isDying || !enemy.isAlive || enemy.isAttacking) return enemy;
@@ -122,10 +153,12 @@ const Block: React.FC<BlockProps> = () => {
     }, 200); // Animation un peu plus lente pour les ennemis
 
     return () => clearInterval(enemyAnimationInterval);
-  }, []);
+  }, [gameState]);
 
   // Animation d'attaque des ennemis
   useEffect(() => {
+    if (gameState !== 'playing') return;
+    
     const enemyAttackAnimationInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAttacking) return enemy;
@@ -155,10 +188,12 @@ const Block: React.FC<BlockProps> = () => {
     }, 100); // Animation d'attaque rapide
 
     return () => clearInterval(enemyAttackAnimationInterval);
-  }, []);
+  }, [gameState]);
 
   // Animation de mort des ennemis - CORRIGÉE pour utiliser les frames 2,3,4,5
   useEffect(() => {
+    if (gameState !== 'playing') return;
+    
     const deathAnimationInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isDying) return enemy;
@@ -178,16 +213,18 @@ const Block: React.FC<BlockProps> = () => {
     }, 150); // Animation de mort à 150ms par frame
 
     return () => clearInterval(deathAnimationInterval);
-  }, []);
+  }, [gameState]);
 
   // Nettoyer les ennemis morts après l'animation
   useEffect(() => {
+    if (gameState !== 'playing') return;
+    
     const cleanupInterval = setInterval(() => {
       setEnemies(prev => prev.filter(enemy => enemy.isAlive));
     }, 1000); // Nettoyer toutes les secondes
 
     return () => clearInterval(cleanupInterval);
-  }, []);
+  }, [gameState]);
 
   // Fonction de collision entre deux entités - DISTANCE RÉDUITE
   const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 3) => {
@@ -228,6 +265,8 @@ const Block: React.FC<BlockProps> = () => {
 
   // Mouvement des ennemis avec collision et IA d'attaque - DISTANCES AJUSTÉES
   useEffect(() => {
+    if (gameState !== 'playing') return;
+    
     const enemyMovementInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAlive || enemy.isDying || enemy.isAttacking) return enemy;
@@ -304,10 +343,12 @@ const Block: React.FC<BlockProps> = () => {
     }, 16);
 
     return () => clearInterval(enemyMovementInterval);
-  }, []);
+  }, [gameState]);
 
   // Animation d'attaque simple : image 3 → image 4 → fin
   useEffect(() => {
+    if (gameState !== 'playing') return;
+    
     if (isAttacking) {
       // Commencer par l'image 3 (index 2)
       setAttackFrame(2);
@@ -331,7 +372,7 @@ const Block: React.FC<BlockProps> = () => {
         clearTimeout(step2);
       };
     }
-  }, [isAttacking]);
+  }, [isAttacking, gameState]);
 
   // Fonction pour vérifier si l'ennemi est dans l'arc d'attaque de 180° (AMÉLIORÉE)
   const isEnemyInAttackDirection = (playerX: number, playerY: number, enemyX: number, enemyY: number, playerDirection: number) => {
@@ -412,6 +453,8 @@ const Block: React.FC<BlockProps> = () => {
 
   // Gestion du mouvement avec limites et collision avec les ennemis - COLLISION RÉDUITE
   useEffect(() => {
+    if (gameState !== 'playing') return;
+    
     const moveInterval = setInterval(() => {
       if (!isAttacking && (keys.up || keys.down || keys.left || keys.right)) {
         setIsWalking(true);
@@ -463,10 +506,12 @@ const Block: React.FC<BlockProps> = () => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(moveInterval);
-  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit, isAttacking]);
+  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit, isAttacking, gameState]);
 
   // Gestion des touches
   useEffect(() => {
+    if (gameState !== 'playing') return;
+    
     const handleKeyDown = (event: KeyboardEvent) => {
       event.preventDefault();
       const key = event.key.toLowerCase();
@@ -475,6 +520,12 @@ const Block: React.FC<BlockProps> = () => {
       if (key === ' ' && !isAttacking) {
         setIsAttacking(true);
         setIsWalking(false);
+        return;
+      }
+      
+      // Gestion du retour au menu avec Escape
+      if (key === 'escape') {
+        returnToMenu();
         return;
       }
       
@@ -509,28 +560,19 @@ const Block: React.FC<BlockProps> = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isAttacking]);
+  }, [isAttacking, gameState]);
 
-  // URL de votre image de fond
+  // URLs des images
   const backgroundImageUrl = 'https://drive.google.com/thumbnail?id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR&sz=w2000';
-  
-  // URL de votre sprite sheet de marche
   const walkSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1_Yp96n--W40rf5sQFA4L5MBpc0IBOYBW&sz=w1000';
-  
-  // URL de votre sprite sheet d'attaque
   const attackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1dAguM-5cKwpr6d7IwmL4RyHZNHtnl5To&sz=w1000';
-  
-  // URL du sprite sheet du mushroom
   const mushroomSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1j2LelD-leMi_3y44PFuLCJOl_cmRRysA&sz=w1000';
-  
-  // URL du sprite sheet de mort du mushroom (4 lignes de 9 images)
   const mushroomDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1Xf5RQQHzgCU2m39l3iCJ1wwBge-XCtZD&sz=w1000';
-  
-  // URL du sprite sheet d'attaque du mushroom (4 lignes de 8 images)
   const mushroomAttackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=15xo5LfJBU2kBCGx9bPdQO9sV7U8yvOx2&sz=w1000';
-
-  // URL du sprite sheet de cœurs (NOUVEAU)
   const heartSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
+  
+  // URL de votre image de menu d'accueil (convertie depuis votre lien Google Drive)
+  const menuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1zsd2HHi3x2Ej8y5hjy8KN6XgVLDcYeq0&sz=w2000';
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -540,25 +582,27 @@ const Block: React.FC<BlockProps> = () => {
   const deathFramesPerRow = 9; // 9 frames pour l'animation de mort
   const spriteScale = 3.5; // Taille ajustée à 3.5
   
-  // Configuration des cœurs (NOUVEAU)
+  // Configuration des cœurs
   const heartSize = 32; // Taille d'un cœur dans le sprite sheet
   const heartScale = 1.5; // Échelle d'affichage des cœurs
   
-  // Calcul de la position dans le sprite sheet
+  // Calcul de la position dans le sprite sheet (seulement si en jeu)
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
   
-  if (isAttacking) {
-    // Utiliser les images 3 et 4 (index 2 et 3) pour l'animation d'attaque
-    spriteX = attackFrame * spriteWidth;
-    spriteY = direction * spriteHeight;
-    currentSpriteUrl = attackSpriteSheetUrl;
-    backgroundSizeX = spriteWidth * attackFramesPerRow * spriteScale; // 8 images par ligne
-  } else {
-    // Utiliser le sprite de marche
-    spriteX = currentFrame * spriteWidth;
-    spriteY = direction * spriteHeight;
-    currentSpriteUrl = walkSpriteSheetUrl;
-    backgroundSizeX = spriteWidth * walkFramesPerRow * spriteScale; // 4 images par ligne
+  if (gameState === 'playing') {
+    if (isAttacking) {
+      // Utiliser les images 3 et 4 (index 2 et 3) pour l'animation d'attaque
+      spriteX = attackFrame * spriteWidth;
+      spriteY = direction * spriteHeight;
+      currentSpriteUrl = attackSpriteSheetUrl;
+      backgroundSizeX = spriteWidth * attackFramesPerRow * spriteScale; // 8 images par ligne
+    } else {
+      // Utiliser le sprite de marche
+      spriteX = currentFrame * spriteWidth;
+      spriteY = direction * spriteHeight;
+      currentSpriteUrl = walkSpriteSheetUrl;
+      backgroundSizeX = spriteWidth * walkFramesPerRow * spriteScale; // 4 images par ligne
+    }
   }
 
   // Fonction pour obtenir le nom de la direction
@@ -572,6 +616,99 @@ const Block: React.FC<BlockProps> = () => {
     }
   };
 
+  // Fonction pour détecter les clics sur le bouton Play
+  const handleMenuClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const xPercent = (x / rect.width) * 100;
+    const yPercent = (y / rect.height) * 100;
+    
+    // Zone approximative du bouton Play (vous pouvez ajuster ces valeurs)
+    // Généralement, les boutons Play sont situés au centre-bas ou centre de l'écran
+    const playButtonArea = {
+      left: 25,   // 25% de la largeur
+      right: 75,  // 75% de la largeur
+      top: 60,    // 60% de la hauteur
+      bottom: 85  // 85% de la hauteur
+    };
+    
+    // Vérifier si le clic est dans la zone du bouton
+    if (xPercent >= playButtonArea.left && xPercent <= playButtonArea.right &&
+        yPercent >= playButtonArea.top && yPercent <= playButtonArea.bottom) {
+      startGame();
+    }
+  };
+
+  // Rendu du menu d'accueil
+  if (gameState === 'menu') {
+    return (
+      <div 
+        style={{
+          height: '100vh',
+          width: '100vw',
+          margin: 0,
+          backgroundImage: `url(${menuBackgroundUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          position: 'relative',
+          overflow: 'hidden',
+          cursor: 'pointer'
+        }}
+        onClick={handleMenuClick}
+      >
+        {/* Zone de détection du bouton Play (invisible, pour debug) */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '25%',
+            top: '60%',
+            width: '50%',
+            height: '25%',
+            backgroundColor: 'rgba(255, 0, 0, 0.2)', // Rouge transparent pour visualiser la zone
+            border: '2px dashed rgba(255, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+            zIndex: 10
+          }}
+        >
+          ZONE CLIQUABLE DÉTECTÉE
+          <br />
+          Cliquez ici pour jouer !
+        </div>
+        
+        {/* Instructions */}
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          color: 'white',
+          padding: '15px 30px',
+          borderRadius: '10px',
+          textAlign: 'center',
+          fontSize: '16px',
+          fontWeight: 'bold',
+          zIndex: 20
+        }}>
+          🎮 Cliquez sur la zone rouge pour commencer le jeu !
+          <br />
+          <span style={{ fontSize: '12px', opacity: 0.8 }}>
+            (La zone rouge est juste pour la démonstration - elle sera invisible une fois le bouton détecté)
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Rendu du jeu (code existant)
   return (
     <div 
       style={{
@@ -746,6 +883,7 @@ const Block: React.FC<BlockProps> = () => {
         <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
         <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD pour se déplacer</p>
         <p style={{ margin: '0 0 5px 0' }}>ESPACE pour attaquer</p>
+        <p style={{ margin: '0 0 5px 0' }}>ECHAP pour retourner au menu</p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
           Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>
@@ -780,6 +918,22 @@ const Block: React.FC<BlockProps> = () => {
           <span style={{ fontSize: '16px', color: 'white' }}>
             Le champignon vous a vaincu !
           </span>
+          <br />
+          <button
+            onClick={returnToMenu}
+            style={{
+              marginTop: '20px',
+              padding: '10px 20px',
+              fontSize: '16px',
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Retour au menu
+          </button>
         </div>
       )}
 

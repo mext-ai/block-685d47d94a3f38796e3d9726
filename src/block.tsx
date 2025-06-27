@@ -571,8 +571,8 @@ const Block: React.FC<BlockProps> = () => {
   const mushroomAttackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=15xo5LfJBU2kBCGx9bPdQO9sV7U8yvOx2&sz=w1000';
   const heartSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
   
-  // URL de votre image de menu d'accueil (convertie depuis votre lien Google Drive)
-  const menuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1zsd2HHi3x2Ej8y5hjy8KN6XgVLDcYeq0&sz=w2000';
+  // URL de votre nouvelle image de menu d'accueil (convertie depuis votre lien Google Drive)
+  const menuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1RzUqegcgPQH2S-Rd5dVIgxRG59NHVjSi&sz=w2000';
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -616,7 +616,7 @@ const Block: React.FC<BlockProps> = () => {
     }
   };
 
-  // Fonction pour détecter les clics sur le bouton Play
+  // Fonction pour détecter les clics sur le menu - ZONE ÉLARGIE POUR LE NOUVEAU MENU
   const handleMenuClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -624,61 +624,84 @@ const Block: React.FC<BlockProps> = () => {
     const xPercent = (x / rect.width) * 100;
     const yPercent = (y / rect.height) * 100;
     
-    // Zone approximative du bouton Play (vous pouvez ajuster ces valeurs)
-    // Généralement, les boutons Play sont situés au centre-bas ou centre de l'écran
-    const playButtonArea = {
-      left: 25,   // 25% de la largeur
-      right: 75,  // 75% de la largeur
-      top: 60,    // 60% de la hauteur
-      bottom: 85  // 85% de la hauteur
+    // Zone élargie pour détecter les clics sur le menu - vous pourrez ajuster selon vos boutons
+    const menuClickArea = {
+      left: 10,   // 10% de la largeur
+      right: 90,  // 90% de la largeur  
+      top: 30,    // 30% de la hauteur
+      bottom: 90  // 90% de la hauteur
     };
     
-    // Vérifier si le clic est dans la zone du bouton
-    if (xPercent >= playButtonArea.left && xPercent <= playButtonArea.right &&
-        yPercent >= playButtonArea.top && yPercent <= playButtonArea.bottom) {
+    // Vérifier si le clic est dans la zone interactive du menu
+    if (xPercent >= menuClickArea.left && xPercent <= menuClickArea.right &&
+        yPercent >= menuClickArea.top && yPercent <= menuClickArea.bottom) {
       startGame();
     }
   };
 
-  // Rendu du menu d'accueil
+  // Rendu du menu d'accueil avec votre nouvelle image
   if (gameState === 'menu') {
     return (
-  <div 
-    style={{
-      height: '100vh',
-      width: '100vw',
-      margin: 0,
-      backgroundImage: `url(${menuBackgroundUrl})`,
-      backgroundSize: 'contain', // CHANGÉ de 'cover' à 'contain'
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      position: 'relative',
-      overflow: 'hidden',
-      cursor: 'pointer',
-      backgroundColor: '#000' // Ajouter un fond noir pour les espaces vides
-    }}
+      <div 
+        style={{
+          height: '100vh',
+          width: '100vw',
+          margin: 0,
+          backgroundImage: `url(${menuBackgroundUrl})`,
+          backgroundSize: 'cover', // Utiliser 'cover' pour remplir tout l'écran
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          position: 'relative',
+          overflow: 'hidden',
+          cursor: 'pointer',
+        }}
         onClick={handleMenuClick}
       >
-        {/* Zone de détection du bouton Play (invisible, pour debug) */}
+        {/* Instructions pour le joueur */}
         <div
           style={{
             position: 'absolute',
-            left: '20%',
-            top: '60%',
-            width: '15%',
-            height: '9%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
             color: 'white',
+            padding: '15px 25px',
+            borderRadius: '10px',
+            textAlign: 'center',
             fontSize: '16px',
             fontWeight: 'bold',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+            fontFamily: 'Arial, sans-serif',
+            zIndex: 10,
+            border: '2px solid #fff',
+            boxShadow: '0 0 20px rgba(0,0,0,0.5)'
+          }}
+        >
+          🎮 Cliquez n'importe où pour commencer le jeu ! 🎮
+          <br />
+          <span style={{ fontSize: '14px', opacity: 0.9 }}>
+            Utilisez ZQSD ou les flèches pour vous déplacer, ESPACE pour attaquer
+          </span>
+        </div>
+
+        {/* Zone de debug pour afficher les coordonnées de clic (optionnel, à supprimer en production) */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '20px',
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            color: 'white',
+            padding: '10px',
+            borderRadius: '5px',
+            fontSize: '12px',
+            fontFamily: 'monospace',
             zIndex: 10
           }}
         >
-        
-
+          Menu avec votre image background
+          <br />
+          Cliquez pour jouer
         </div>
       </div>
     );

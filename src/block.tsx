@@ -211,7 +211,7 @@ const Block: React.FC<BlockProps> = () => {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     
     // Vérifier si le joueur est dans la portée d'attaque de l'ennemi - AUGMENTÉE
-    const attackRange = 3; // Augmenté de 6 à 8 pour correspondre à la distance d'arrêt
+    const attackRange = 6; // Augmenté de 6 à 8 pour correspondre à la distance d'arrêt
     if (distance <= attackRange) {
       setPlayerHp(prev => Math.max(0, prev - 1)); // Infliger 1 dégât
       setLastDamageTime(currentTime);

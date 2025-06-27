@@ -48,6 +48,24 @@ const Block: React.FC<BlockProps> = () => {
   const enemiesRef = useRef<Enemy[]>([]); // Référence pour les ennemis
   const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
 
+  // ====== PARAMÈTRES MODIFIABLES POUR LE MENU DES NIVEAUX ======
+  // Vous pouvez modifier ces valeurs selon vos préférences :
+  
+  // Largeur du background du menu des niveaux (plus grand = plus large)
+  const MENU_BACKGROUND_WIDTH = 1200; // Actuellement 900px - augmentez pour élargir
+  
+  // Positions horizontales des boutons (en pourcentage, 0% = gauche, 100% = droite)
+  const LEVEL1_BUTTON_POSITION = 25; // Position du bouton niveau 1 (actuellement 30%)
+  const LEVEL2_BUTTON_POSITION = 50; // Position du bouton niveau 2 (actuellement 50%)
+  const LEVEL3_BUTTON_POSITION = 75; // Position du bouton niveau 3 (actuellement 70%)
+  
+  // Pour rapprocher tous les boutons vers le centre, utilisez des valeurs comme :
+  // const LEVEL1_BUTTON_POSITION = 35; // Plus proche du centre
+  // const LEVEL2_BUTTON_POSITION = 50; // Reste au centre
+  // const LEVEL3_BUTTON_POSITION = 65; // Plus proche du centre
+  
+  // ============================================================
+
   // Fonction pour aller au menu de sélection de niveau
   const goToLevelSelect = () => {
     setGameState('levelSelect');
@@ -707,7 +725,7 @@ const Block: React.FC<BlockProps> = () => {
     );
   }
 
-  // Rendu du menu de sélection de niveau - MODIFIÉ SELON VOS DEMANDES
+  // Rendu du menu de sélection de niveau - MODIFIÉ AVEC VOS PARAMÈTRES
   if (gameState === 'levelSelect') {
     return (
       <div 
@@ -724,14 +742,14 @@ const Block: React.FC<BlockProps> = () => {
           backgroundColor: '#1a1a1a'
         }}
       >
-        {/* Rectangle background du menu des niveaux - ENCORE PLUS ÉLARGI */}
+        {/* Rectangle background du menu des niveaux - UTILISE VOS PARAMÈTRES */}
         <div
           style={{
             position: 'absolute',
             left: '50%',
             top: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '900px', // Élargi de 800px à 900px
+            width: `${MENU_BACKGROUND_WIDTH}px`, // 🔧 Modifiez MENU_BACKGROUND_WIDTH en haut du fichier
             height: '360px',
             backgroundImage: `url(${levelMenuBackgroundUrl})`,
             backgroundSize: 'contain',
@@ -740,11 +758,34 @@ const Block: React.FC<BlockProps> = () => {
             zIndex: 5
           }}
         >
-          {/* Bouton Niveau 1 - RAPPROCHÉ */}
+          {/* 📝 COMMENTAIRE INFORMATIF */}
           <div
             style={{
               position: 'absolute',
-              left: '30%', // Rapproché de 20% à 30%
+              top: '-50px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              color: 'white',
+              padding: '10px 15px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontFamily: 'Arial, sans-serif',
+              textAlign: 'center',
+              zIndex: 15
+            }}
+          >
+            🔧 Background: {MENU_BACKGROUND_WIDTH}px | 
+            Positions: L1({LEVEL1_BUTTON_POSITION}%) L2({LEVEL2_BUTTON_POSITION}%) L3({LEVEL3_BUTTON_POSITION}%)
+            <br />
+            💡 Modifiez les constantes en haut du fichier pour ajuster !
+          </div>
+
+          {/* Bouton Niveau 1 - UTILISE VOS PARAMÈTRES */}
+          <div
+            style={{
+              position: 'absolute',
+              left: `${LEVEL1_BUTTON_POSITION}%`, // 🔧 Modifiez LEVEL1_BUTTON_POSITION en haut du fichier
               top: '50%',
               transform: `translate(-50%, -50%) scale(${isLevel1ButtonHovered ? 2.2 : 2})`,
               width: '100px',
@@ -765,11 +806,11 @@ const Block: React.FC<BlockProps> = () => {
             onMouseLeave={handleLevel1ButtonMouseLeave}
           />
 
-          {/* Bouton Niveau 2 - RAPPROCHÉ ET STYLES SUPPRIMÉS */}
+          {/* Bouton Niveau 2 - UTILISE VOS PARAMÈTRES */}
           <div
             style={{
               position: 'absolute',
-              left: '50%', // Position centrale inchangée
+              left: `${LEVEL2_BUTTON_POSITION}%`, // 🔧 Modifiez LEVEL2_BUTTON_POSITION en haut du fichier
               top: '50%',
               transform: `translate(-50%, -50%) scale(${isLevel2ButtonHovered ? 2.2 : 2})`,
               width: '100px',
@@ -787,11 +828,11 @@ const Block: React.FC<BlockProps> = () => {
             onMouseLeave={handleLevel2ButtonMouseLeave}
           />
 
-          {/* Bouton Niveau 3 - RAPPROCHÉ ET STYLES SUPPRIMÉS */}
+          {/* Bouton Niveau 3 - UTILISE VOS PARAMÈTRES */}
           <div
             style={{
               position: 'absolute',
-              left: '70%', // Rapproché de 80% à 70%
+              left: `${LEVEL3_BUTTON_POSITION}%`, // 🔧 Modifiez LEVEL3_BUTTON_POSITION en haut du fichier
               top: '50%',
               transform: `translate(-50%, -50%) scale(${isLevel3ButtonHovered ? 2.2 : 2})`,
               width: '100px',

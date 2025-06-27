@@ -988,7 +988,7 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 10
       }} />
 
-      {/* Système de cœurs - CORRIGÉ AVEC LE CODE MANQUANT */}
+      {/* Système de cœurs - CORRIGÉ SANS TRANSITION */}
       <div style={{
         position: 'absolute',
         top: '20px',
@@ -1009,8 +1009,8 @@ const Block: React.FC<BlockProps> = () => {
                 backgroundImage: `url(${heartSpriteSheetUrl})`,
                 backgroundPosition: `-${heartState * heartSize * heartScale}px 0px`,
                 backgroundSize: `${heartSize * 3 * heartScale}px ${heartSize * heartScale}px`,
-                imageRendering: 'pixelated',
-                transition: 'all 0.3s ease'
+                imageRendering: 'pixelated'
+                // TRANSITION SUPPRIMÉE pour éviter l'effet de glissement
               }}
             />
           );

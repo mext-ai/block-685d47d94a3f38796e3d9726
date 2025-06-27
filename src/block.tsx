@@ -29,8 +29,8 @@ const Block: React.FC<BlockProps> = () => {
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false, space: false });
   const [enemies, setEnemies] = useState<Enemy[]>([]);
-  const [playerHp, setPlayerHp] = useState(5); // HP du joueur
-  const [maxPlayerHp] = useState(5);
+  const [playerHp, setPlayerHp] = useState(10); // HP du joueur - CHANGÉ de 5 à 10
+  const [maxPlayerHp] = useState(10); // HP max - CHANGÉ de 5 à 10
   const [lastDamageTime, setLastDamageTime] = useState(0); // Pour éviter les dégâts répétés
   
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
@@ -216,6 +216,14 @@ const Block: React.FC<BlockProps> = () => {
       setPlayerHp(prev => Math.max(0, prev - 1)); // Infliger 1 dégât
       setLastDamageTime(currentTime);
     }
+  };
+
+  // Fonction pour calculer l'état d'un cœur (NOUVELLE FONCTION)
+  const getHeartState = (heartIndex: number, currentHp: number) => {
+    const hpForThisHeart = currentHp - (heartIndex * 2);
+    if (hpForThisHeart >= 2) return 0; // Cœur plein (index 0)
+    if (hpForThisHeart === 1) return 1; // Cœur à moitié (index 1)
+    return 2; // Cœur vide (index 2)
   };
 
   // Mouvement des ennemis avec collision et IA d'attaque - DISTANCES AJUSTÉES
@@ -521,6 +529,9 @@ const Block: React.FC<BlockProps> = () => {
   // URL du sprite sheet d'attaque du mushroom (4 lignes de 8 images)
   const mushroomAttackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=15xo5LfJBU2kBCGx9bPdQO9sV7U8yvOx2&sz=w1000';
 
+  // URL du sprite sheet de cœurs (NOUVEAU)
+  const heartSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
+
   // Configuration du sprite
   const spriteWidth = 32;
   const spriteHeight = 32;
@@ -528,6 +539,10 @@ const Block: React.FC<BlockProps> = () => {
   const attackFramesPerRow = 8; // 8 frames pour l'attaque
   const deathFramesPerRow = 9; // 9 frames pour l'animation de mort
   const spriteScale = 3.5; // Taille ajustée à 3.5
+  
+  // Configuration des cœurs (NOUVEAU)
+  const heartSize = 32; // Taille d'un cœur dans le sprite sheet
+  const heartScale = 1.5; // Échelle d'affichage des cœurs
   
   // Calcul de la position dans le sprite sheet
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
@@ -587,48 +602,51 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 10
       }} />
 
-      {/* Barre de HP du joueur */}
+      {/* Système de cœurs - NOUVEAU */}
       <div style={{
         position: 'absolute',
         top: '80px',
         right: '20px',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: '10px',
+        padding: '12px',
         borderRadius: '8px',
         zIndex: 20
       }}>
         <p style={{ 
-          margin: '0 0 5px 0', 
+          margin: '0 0 8px 0', 
           color: 'white', 
           fontSize: '12px', 
-          fontWeight: 'bold' 
-        }}>
-          ❤️ HP Joueur
-        </p>
-        <div style={{
-          width: '100px',
-          height: '12px',
-          backgroundColor: 'rgba(255, 255, 255, 0.3)',
-          border: '1px solid #666',
-          borderRadius: '6px'
-        }}>
-          <div style={{
-            width: `${(playerHp / maxPlayerHp) * 100}%`,
-            height: '100%',
-            backgroundColor: playerHp > maxPlayerHp * 0.6 ? '#4CAF50' : 
-                           playerHp > maxPlayerHp * 0.3 ? '#FF9800' : '#F44336',
-            borderRadius: '5px',
-            transition: 'width 0.3s ease, background-color 0.3s ease'
-          }} />
-        </div>
-        <p style={{ 
-          margin: '2px 0 0 0', 
-          color: 'white', 
-          fontSize: '10px',
+          fontWeight: 'bold',
           textAlign: 'center'
         }}>
-          {playerHp}/{maxPlayerHp}
+          ❤️ Vie : {playerHp}/10
         </p>
+        
+        {/* Affichage des 5 cœurs */}
+        <div style={{
+          display: 'flex',
+          gap: '6px',
+          justifyContent: 'center',
+          flexWrap: 'wrap'
+        }}>
+          {[0, 1, 2, 3, 4].map(heartIndex => {
+            const heartState = getHeartState(heartIndex, playerHp);
+            
+            return (
+              <div
+                key={heartIndex}
+                style={{
+                  width: `${heartSize * heartScale}px`,
+                  height: `${heartSize * heartScale}px`,
+                  backgroundImage: `url(${heartSpriteSheetUrl})`,
+                  backgroundPosition: `-${heartState * heartSize * heartScale}px 0px`,
+                  backgroundSize: `${heartSize * 3 * heartScale}px ${heartSize * heartScale}px`,
+                  imageRendering: 'pixelated'
+                }}
+              />
+            );
+          })}
+        </div>
       </div>
 
       {/* Ennemis avec barres de HP et animations */}

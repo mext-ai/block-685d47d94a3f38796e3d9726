@@ -595,9 +595,9 @@ const Block: React.FC<BlockProps> = () => {
   const menuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1RzUqegcgPQH2S-Rd5dVIgxRG59NHVjSi&sz=w2000';
   const playButtonUrl = 'https://drive.google.com/thumbnail?id=1kOu9XlhpCc1p7GPqdZuDosBc7OyH3t9k&sz=w500';
   
-  // Nouvelles URLs pour le menu des niveaux
+  // URLs pour le menu des niveaux - MISE À JOUR
   const levelMenuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1WcBQAkpbUXuhwcTAzu-G2xKwU6pkotyc&sz=w1000';
-  const level1ButtonUrl = 'https://drive.google.com/thumbnail?id=1WcBQAkpbUXuhwcTAzu-G2xKwU6pkotyc&sz=w500'; // Remplacez par l'URL correcte du bouton niveau 1
+  const level1ButtonUrl = 'https://drive.google.com/thumbnail?id=1W_Wi6_CQ3zo-5nI31qRIkm9ZsCPpNu3p&sz=w500'; // NOUVELLE URL du bouton niveau 1
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -714,7 +714,7 @@ const Block: React.FC<BlockProps> = () => {
     );
   }
 
-  // Rendu du menu de sélection de niveau
+  // Rendu du menu de sélection de niveau - HAUTEUR RÉDUITE DE 10% ET NOUVEAU BOUTON
   if (gameState === 'levelSelect') {
     return (
       <div 
@@ -731,7 +731,7 @@ const Block: React.FC<BlockProps> = () => {
           backgroundColor: '#1a1a1a'
         }}
       >
-        {/* Rectangle background du menu des niveaux */}
+        {/* Rectangle background du menu des niveaux - HAUTEUR RÉDUITE DE 10% */}
         <div
           style={{
             position: 'absolute',
@@ -739,7 +739,7 @@ const Block: React.FC<BlockProps> = () => {
             top: '50%',
             transform: 'translate(-50%, -50%)',
             width: '600px',
-            height: '400px',
+            height: '360px', // Réduit de 400px à 360px (10% de réduction)
             backgroundImage: `url(${levelMenuBackgroundUrl})`,
             backgroundSize: 'contain',
             backgroundPosition: 'center',
@@ -747,40 +747,30 @@ const Block: React.FC<BlockProps> = () => {
             zIndex: 5
           }}
         >
-          {/* Bouton Niveau 1 - placé au centre gauche du rectangle */}
+          {/* Bouton Niveau 1 - NOUVELLE IMAGE ET DÉCALAGE VERS LA DROITE */}
           <div
             style={{
               position: 'absolute',
-              left: '25%', // Centre gauche du rectangle
+              left: '35%', // Décalé vers la droite de 25% à 35%
               top: '50%',
               transform: `translate(-50%, -50%) scale(${isLevel1ButtonHovered ? 1.1 : 1})`,
-              width: '120px',
-              height: '60px',
-              backgroundColor: '#4CAF50',
-              border: '3px solid #2E7D32',
-              borderRadius: '15px',
+              width: '100px', // Taille adaptée à votre image
+              height: '50px', // Taille adaptée à votre image
+              backgroundImage: `url(${level1ButtonUrl})`,
+              backgroundSize: 'contain',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
               cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              fontFamily: 'Arial, sans-serif',
               transition: 'all 0.2s ease',
               filter: isLevel1ButtonHovered ? 
-                'brightness(1.2) drop-shadow(0 0 10px rgba(76,175,80,0.6))' : 
+                'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
                 'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
-              boxShadow: isLevel1ButtonHovered ? 
-                '0 0 20px rgba(76,175,80,0.5)' : 
-                '0 4px 8px rgba(0,0,0,0.2)'
+              zIndex: 10
             }}
             onClick={handleLevel1ButtonClick}
             onMouseEnter={handleLevel1ButtonMouseEnter}
             onMouseLeave={handleLevel1ButtonMouseLeave}
-          >
-            NIVEAU 1
-          </div>
+          />
 
           {/* Bouton Retour */}
           <div

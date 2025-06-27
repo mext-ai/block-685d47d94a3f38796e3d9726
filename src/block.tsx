@@ -236,7 +236,7 @@ const Block: React.FC<BlockProps> = () => {
         let newY = enemy.y;
         let newDirection = enemy.direction;
         let shouldAttack = false;
-        const speed = 0.5;
+        const speed = 0.25;
         
         if (enemy.type === 'mushroom') {
           const currentPlayerPos = playerPositionRef.current;
@@ -418,7 +418,7 @@ const Block: React.FC<BlockProps> = () => {
         setPosition(prev => {
           let newX = prev.x;
           let newY = prev.y;
-          const speed = 1; // Vitesse de déplacement en %
+          const speed = 0.5; // Vitesse de déplacement en %
 
           if (keys.up) {
             newY = Math.max(topLimit, prev.y - speed); // Limite haute à 35%

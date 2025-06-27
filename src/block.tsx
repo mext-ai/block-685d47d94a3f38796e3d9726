@@ -36,6 +36,7 @@ const Block: React.FC<BlockProps> = () => {
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
   const playerPositionRef = useRef({ x: 50, y: 50 });
   const playerDirectionRef = useRef(0); // Référence pour la direction du joueur
+  const enemiesRef = useRef<Enemy[]>([]); // Référence pour les ennemis
   const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
 
   // Mettre à jour la référence à chaque changement de position
@@ -47,6 +48,11 @@ const Block: React.FC<BlockProps> = () => {
   useEffect(() => {
     playerDirectionRef.current = direction;
   }, [direction]);
+
+  // Mettre à jour la référence des ennemis
+  useEffect(() => {
+    enemiesRef.current = enemies;
+  }, [enemies]);
 
   // Limites de la zone de jeu - Réduction encore plus importante de la zone de déplacement depuis le haut
   const topLimit = 35; // Augmenté de 30% à 35% pour encore plus réduire la zone de déplacement
@@ -396,7 +402,7 @@ const Block: React.FC<BlockProps> = () => {
     }));
   };
 
-  // Gestion du mouvement avec limites et collision avec les ennemis
+  // Gestion du mouvement avec limites et collision avec les ennemis (CORRIGÉE)
   useEffect(() => {
     const moveInterval = setInterval(() => {
       if (!isAttacking && (keys.up || keys.down || keys.left || keys.right)) {
@@ -423,12 +429,13 @@ const Block: React.FC<BlockProps> = () => {
             setDirection(3); // Direction droite dans votre sprite
           }
 
-          // Vérifier les collisions avec les ennemis
+          // Vérifier les collisions avec les ennemis en utilisant la référence
           const potentialPos = { x: newX, y: newY };
           const collisionDistance = 4;
           let hasCollision = false;
           
-          enemies.forEach(enemy => {
+          // Utiliser enemiesRef.current au lieu de enemies
+          enemiesRef.current.forEach(enemy => {
             if (enemy.isAlive && !enemy.isDying && checkCollision(potentialPos, { x: enemy.x, y: enemy.y }, collisionDistance)) {
               hasCollision = true;
             }
@@ -448,7 +455,7 @@ const Block: React.FC<BlockProps> = () => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(moveInterval);
-  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit, isAttacking, enemies]);
+  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit, isAttacking]); // SUPPRIMÉ enemies des dépendances
 
   // Gestion des touches
   useEffect(() => {
@@ -669,7 +676,6 @@ const Block: React.FC<BlockProps> = () => {
                 transition: 'none',
                 zIndex: 9,
                 opacity: enemy.isDying ? 0.8 : 1
-                // SUPPRIMÉ : filter: enemy.isAttacking ? 'brightness(1.2) drop-shadow(0 0 5px red)' : 'none'
               }}
             />
             

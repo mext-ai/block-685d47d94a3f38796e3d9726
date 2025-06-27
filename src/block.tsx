@@ -189,15 +189,15 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(cleanupInterval);
   }, []);
 
-  // Fonction de collision entre deux entités
-  const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 4) => {
+  // Fonction de collision entre deux entités - DISTANCE RÉDUITE
+  const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 3) => {
     const deltaX = pos1.x - pos2.x;
     const deltaY = pos1.y - pos2.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     return distance < minDistance;
   };
 
-  // Fonction pour vérifier les dégâts de l'ennemi au joueur
+  // Fonction pour vérifier les dégâts de l'ennemi au joueur - PORTÉE AJUSTÉE
   const checkEnemyAttackHit = (enemy: Enemy) => {
     const currentPlayerPos = playerPositionRef.current;
     const currentTime = Date.now();
@@ -210,15 +210,15 @@ const Block: React.FC<BlockProps> = () => {
     const deltaY = currentPlayerPos.y - enemy.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     
-    // Vérifier si le joueur est dans la portée d'attaque de l'ennemi
-    const attackRange = 6;
+    // Vérifier si le joueur est dans la portée d'attaque de l'ennemi - AUGMENTÉE
+    const attackRange = 8; // Augmenté de 6 à 8 pour correspondre à la distance d'arrêt
     if (distance <= attackRange) {
       setPlayerHp(prev => Math.max(0, prev - 1)); // Infliger 1 dégât
       setLastDamageTime(currentTime);
     }
   };
 
-  // Mouvement des ennemis avec collision et IA d'attaque
+  // Mouvement des ennemis avec collision et IA d'attaque - DISTANCES AJUSTÉES
   useEffect(() => {
     const enemyMovementInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
@@ -238,9 +238,9 @@ const Block: React.FC<BlockProps> = () => {
           const deltaY = currentPlayerPos.y - enemy.y;
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
-          // Distance d'attaque et de collision
-          const attackDistance = 8;
-          const collisionDistance = 4;
+          // Distance d'attaque et de collision AJUSTÉES
+          const attackDistance = 6; // Réduit de 8 à 6 pour se rapprocher avant d'attaquer
+          const collisionDistance = 3; // Réduit de 4 à 3 pour moins d'espace visuel
           const currentTime = Date.now();
           
           // Vérifier si on doit attaquer (cooldown de 2 secondes)
@@ -402,7 +402,7 @@ const Block: React.FC<BlockProps> = () => {
     }));
   };
 
-  // Gestion du mouvement avec limites et collision avec les ennemis (CORRIGÉE)
+  // Gestion du mouvement avec limites et collision avec les ennemis - COLLISION RÉDUITE
   useEffect(() => {
     const moveInterval = setInterval(() => {
       if (!isAttacking && (keys.up || keys.down || keys.left || keys.right)) {
@@ -429,9 +429,9 @@ const Block: React.FC<BlockProps> = () => {
             setDirection(3); // Direction droite dans votre sprite
           }
 
-          // Vérifier les collisions avec les ennemis en utilisant la référence
+          // Vérifier les collisions avec les ennemis en utilisant la référence - DISTANCE RÉDUITE
           const potentialPos = { x: newX, y: newY };
-          const collisionDistance = 4;
+          const collisionDistance = 3; // Réduit de 4 à 3
           let hasCollision = false;
           
           // Utiliser enemiesRef.current au lieu de enemies
@@ -455,7 +455,7 @@ const Block: React.FC<BlockProps> = () => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(moveInterval);
-  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit, isAttacking]); // SUPPRIMÉ enemies des dépendances
+  }, [keys, topLimit, bottomLimit, leftLimit, rightLimit, isAttacking]);
 
   // Gestion des touches
   useEffect(() => {

@@ -680,28 +680,6 @@ const Block: React.FC<BlockProps> = () => {
         
 
         </div>
-        
-        {/* Instructions */}
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          color: 'white',
-          padding: '15px 30px',
-          borderRadius: '10px',
-          textAlign: 'center',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          zIndex: 20
-        }}>
-          🎮 Cliquez sur la zone rouge pour commencer le jeu !
-          <br />
-          <span style={{ fontSize: '12px', opacity: 0.8 }}>
-            (La zone rouge est juste pour la démonstration - elle sera invisible une fois le bouton détecté)
-          </span>
-        </div>
       </div>
     );
   }

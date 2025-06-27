@@ -643,19 +643,20 @@ const Block: React.FC<BlockProps> = () => {
   // Rendu du menu d'accueil
   if (gameState === 'menu') {
     return (
-      <div 
-        style={{
-          height: '100vh',
-          width: '100vw',
-          margin: 0,
-          backgroundImage: `url(${menuBackgroundUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          position: 'relative',
-          overflow: 'hidden',
-          cursor: 'pointer'
-        }}
+  <div 
+    style={{
+      height: '100vh',
+      width: '100vw',
+      margin: 0,
+      backgroundImage: `url(${menuBackgroundUrl})`,
+      backgroundSize: 'contain', // CHANGÉ de 'cover' à 'contain'
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      position: 'relative',
+      overflow: 'hidden',
+      cursor: 'pointer',
+      backgroundColor: '#000' // Ajouter un fond noir pour les espaces vides
+    }}
         onClick={handleMenuClick}
       >
         {/* Zone de détection du bouton Play (invisible, pour debug) */}

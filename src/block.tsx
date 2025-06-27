@@ -52,12 +52,12 @@ const Block: React.FC<BlockProps> = () => {
   // Vous pouvez modifier ces valeurs selon vos préférences :
   
   // Largeur du background du menu des niveaux (plus grand = plus large)
-  const MENU_BACKGROUND_WIDTH = 1200; // Actuellement 900px - augmentez pour élargir
+  const MENU_BACKGROUND_WIDTH = 1600; // Actuellement 900px - augmentez pour élargir
   
   // Positions horizontales des boutons (en pourcentage, 0% = gauche, 100% = droite)
-  const LEVEL1_BUTTON_POSITION = 25; // Position du bouton niveau 1 (actuellement 30%)
+  const LEVEL1_BUTTON_POSITION = 44; // Position du bouton niveau 1 (actuellement 30%)
   const LEVEL2_BUTTON_POSITION = 50; // Position du bouton niveau 2 (actuellement 50%)
-  const LEVEL3_BUTTON_POSITION = 75; // Position du bouton niveau 3 (actuellement 70%)
+  const LEVEL3_BUTTON_POSITION = 56; // Position du bouton niveau 3 (actuellement 70%)
   
   // Pour rapprocher tous les boutons vers le centre, utilisez des valeurs comme :
   // const LEVEL1_BUTTON_POSITION = 35; // Plus proche du centre

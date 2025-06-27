@@ -21,9 +21,11 @@ interface Enemy {
 }
 
 const Block: React.FC<BlockProps> = () => {
-  // État pour gérer le menu d'accueil
-  const [gameState, setGameState] = useState<'menu' | 'playing'>('menu');
+  // État pour gérer le menu d'accueil et sélection de niveau
+  const [gameState, setGameState] = useState<'menu' | 'levelSelect' | 'playing'>('menu');
   const [isPlayButtonHovered, setIsPlayButtonHovered] = useState(false);
+  const [isLevel1ButtonHovered, setIsLevel1ButtonHovered] = useState(false);
+  const [currentLevel, setCurrentLevel] = useState(1);
   
   const [currentFrame, setCurrentFrame] = useState(0);
   const [direction, setDirection] = useState(0); // Direction du sprite
@@ -43,8 +45,14 @@ const Block: React.FC<BlockProps> = () => {
   const enemiesRef = useRef<Enemy[]>([]); // Référence pour les ennemis
   const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
 
-  // Fonction pour démarrer le jeu
-  const startGame = () => {
+  // Fonction pour aller au menu de sélection de niveau
+  const goToLevelSelect = () => {
+    setGameState('levelSelect');
+  };
+
+  // Fonction pour démarrer le jeu avec un niveau spécifique
+  const startGame = (level: number = 1) => {
+    setCurrentLevel(level);
     setGameState('playing');
     // Réinitialiser le jeu
     setPlayerHp(10);
@@ -57,6 +65,17 @@ const Block: React.FC<BlockProps> = () => {
   // Fonction pour retourner au menu
   const returnToMenu = () => {
     setGameState('menu');
+    // Réinitialiser le jeu
+    setPlayerHp(10);
+    setPosition({ x: 50, y: 50 });
+    setEnemies([]);
+    enemiesInitialized.current = false;
+    setLastDamageTime(0);
+  };
+
+  // Fonction pour retourner à la sélection de niveau
+  const returnToLevelSelect = () => {
+    setGameState('levelSelect');
     // Réinitialiser le jeu
     setPlayerHp(10);
     setPosition({ x: 50, y: 50 });
@@ -526,7 +545,7 @@ const Block: React.FC<BlockProps> = () => {
       
       // Gestion du retour au menu avec Escape
       if (key === 'escape') {
-        returnToMenu();
+        returnToLevelSelect();
         return;
       }
       
@@ -572,11 +591,13 @@ const Block: React.FC<BlockProps> = () => {
   const mushroomAttackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=15xo5LfJBU2kBCGx9bPdQO9sV7U8yvOx2&sz=w1000';
   const heartSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
   
-  // URL de votre image de menu d'accueil
+  // URLs pour les menus
   const menuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1RzUqegcgPQH2S-Rd5dVIgxRG59NHVjSi&sz=w2000';
-  
-  // URL de votre nouveau bouton Play sans background (MISE À JOUR)
   const playButtonUrl = 'https://drive.google.com/thumbnail?id=1kOu9XlhpCc1p7GPqdZuDosBc7OyH3t9k&sz=w500';
+  
+  // Nouvelles URLs pour le menu des niveaux
+  const levelMenuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1WcBQAkpbUXuhwcTAzu-G2xKwU6pkotyc&sz=w1000';
+  const level1ButtonUrl = 'https://drive.google.com/thumbnail?id=1WcBQAkpbUXuhwcTAzu-G2xKwU6pkotyc&sz=w500'; // Remplacez par l'URL correcte du bouton niveau 1
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -620,13 +641,18 @@ const Block: React.FC<BlockProps> = () => {
     }
   };
 
-  // Fonction pour détecter les clics sur le bouton Play avec zone précise
+  // Fonctions pour gérer les clics sur les boutons
   const handlePlayButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation(); // Empêcher la propagation au div parent
-    startGame();
+    event.stopPropagation();
+    goToLevelSelect();
   };
 
-  // Fonction pour gérer le hover du bouton Play
+  const handleLevel1ButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    startGame(1);
+  };
+
+  // Fonctions pour gérer le hover des boutons
   const handlePlayButtonMouseEnter = () => {
     setIsPlayButtonHovered(true);
   };
@@ -635,7 +661,15 @@ const Block: React.FC<BlockProps> = () => {
     setIsPlayButtonHovered(false);
   };
 
-  // Rendu du menu d'accueil avec votre nouveau bouton Play - BOUTON AGRANDI x2 ET RELEVÉ
+  const handleLevel1ButtonMouseEnter = () => {
+    setIsLevel1ButtonHovered(true);
+  };
+
+  const handleLevel1ButtonMouseLeave = () => {
+    setIsLevel1ButtonHovered(false);
+  };
+
+  // Rendu du menu d'accueil
   if (gameState === 'menu') {
     return (
       <div 
@@ -649,18 +683,17 @@ const Block: React.FC<BlockProps> = () => {
           backgroundRepeat: 'no-repeat',
           position: 'relative',
           overflow: 'hidden',
-          backgroundColor: '#1a1a1a' // Fond sombre pour les espaces vides
+          backgroundColor: '#1a1a1a'
         }}
       >
-        {/* Bouton Play avec nouvelle image sans background - AGRANDI x2 ET RELEVÉ */}
         <div
           style={{
             position: 'absolute',
             left: '50%',
-            top: '60%', // Relevé de 70% à 60%
-            transform: `translate(-50%, -50%) scale(${isPlayButtonHovered ? 2.2 : 2})`, // Taille x2 (était 1.1 et 1)
-            width: '180px', // Taille de base conservée
-            height: '90px', // Taille de base conservée
+            top: '60%',
+            transform: `translate(-50%, -50%) scale(${isPlayButtonHovered ? 2.2 : 2})`,
+            width: '180px',
+            height: '90px',
             backgroundImage: `url(${playButtonUrl})`,
             backgroundSize: 'contain',
             backgroundPosition: 'center',
@@ -671,13 +704,114 @@ const Block: React.FC<BlockProps> = () => {
             filter: isPlayButtonHovered ? 
               'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6)) saturate(1.2)' : 
               'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
-            // Effet supplémentaire pour le hover
             opacity: isPlayButtonHovered ? 1 : 0.95,
           }}
           onClick={handlePlayButtonClick}
           onMouseEnter={handlePlayButtonMouseEnter}
           onMouseLeave={handlePlayButtonMouseLeave}
         />
+      </div>
+    );
+  }
+
+  // Rendu du menu de sélection de niveau
+  if (gameState === 'levelSelect') {
+    return (
+      <div 
+        style={{
+          height: '100vh',
+          width: '100vw',
+          margin: 0,
+          backgroundImage: `url(${menuBackgroundUrl})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          position: 'relative',
+          overflow: 'hidden',
+          backgroundColor: '#1a1a1a'
+        }}
+      >
+        {/* Rectangle background du menu des niveaux */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '600px',
+            height: '400px',
+            backgroundImage: `url(${levelMenuBackgroundUrl})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            zIndex: 5
+          }}
+        >
+          {/* Bouton Niveau 1 - placé au centre gauche du rectangle */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '25%', // Centre gauche du rectangle
+              top: '50%',
+              transform: `translate(-50%, -50%) scale(${isLevel1ButtonHovered ? 1.1 : 1})`,
+              width: '120px',
+              height: '60px',
+              backgroundColor: '#4CAF50',
+              border: '3px solid #2E7D32',
+              borderRadius: '15px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '18px',
+              fontWeight: 'bold',
+              fontFamily: 'Arial, sans-serif',
+              transition: 'all 0.2s ease',
+              filter: isLevel1ButtonHovered ? 
+                'brightness(1.2) drop-shadow(0 0 10px rgba(76,175,80,0.6))' : 
+                'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
+              boxShadow: isLevel1ButtonHovered ? 
+                '0 0 20px rgba(76,175,80,0.5)' : 
+                '0 4px 8px rgba(0,0,0,0.2)'
+            }}
+            onClick={handleLevel1ButtonClick}
+            onMouseEnter={handleLevel1ButtonMouseEnter}
+            onMouseLeave={handleLevel1ButtonMouseLeave}
+          >
+            NIVEAU 1
+          </div>
+
+          {/* Bouton Retour */}
+          <div
+            style={{
+              position: 'absolute',
+              right: '20px',
+              bottom: '20px',
+              padding: '10px 20px',
+              backgroundColor: '#f44336',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              fontFamily: 'Arial, sans-serif',
+              transition: 'all 0.2s ease'
+            }}
+            onClick={returnToMenu}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#d32f2f';
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#f44336';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            ← RETOUR
+          </div>
+        </div>
       </div>
     );
   }
@@ -695,9 +829,9 @@ const Block: React.FC<BlockProps> = () => {
         position: 'relative',
         overflow: 'hidden'
       }}
-      tabIndex={0} // Permet la capture des événements clavier
+      tabIndex={0}
     >
-      {/* Personnage sprite qui se déplace - Ajusté à 3.5 */}
+      {/* Personnage sprite qui se déplace */}
       <div style={{
         position: 'absolute',
         left: `${position.x}%`,
@@ -713,7 +847,7 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 10
       }} />
 
-      {/* Système de cœurs SIMPLIFIÉ - SEULEMENT LES CŒURS */}
+      {/* Système de cœurs */}
       <div style={{
         position: 'absolute',
         top: '20px',
@@ -748,20 +882,17 @@ const Block: React.FC<BlockProps> = () => {
         let enemySpriteX, enemySpriteY, enemySpriteUrl, enemyBackgroundSizeX;
         
         if (enemy.isDying) {
-          // Animation de mort - utiliser les images 2,3,4,5
           const deathImageIndex = enemy.deathFrame + 2;
           enemySpriteX = deathImageIndex * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomDeathSpriteSheetUrl;
           enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * 3;
         } else if (enemy.isAttacking) {
-          // Animation d'attaque
           enemySpriteX = enemy.attackFrame * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomAttackSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * attackFramesPerRow * 3; // 8 images par ligne
+          enemyBackgroundSizeX = spriteWidth * attackFramesPerRow * 3;
         } else {
-          // Animation normale
           enemySpriteX = enemy.currentFrame * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomSpriteSheetUrl;
@@ -770,7 +901,6 @@ const Block: React.FC<BlockProps> = () => {
         
         return (
           <div key={enemy.id}>
-            {/* Sprite de l'ennemi - SANS SURBRILLANCE */}
             <div
               style={{
                 position: 'absolute',
@@ -789,7 +919,6 @@ const Block: React.FC<BlockProps> = () => {
               }}
             />
             
-            {/* Barre de HP au-dessus de l'ennemi (cachée pendant la mort) */}
             {!enemy.isDying && (
               <>
                 <div
@@ -818,7 +947,6 @@ const Block: React.FC<BlockProps> = () => {
                   />
                 </div>
                 
-                {/* Texte HP et état */}
                 <div
                   style={{
                     position: 'absolute',
@@ -857,9 +985,9 @@ const Block: React.FC<BlockProps> = () => {
         <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
         <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD pour se déplacer</p>
         <p style={{ margin: '0 0 5px 0' }}>ESPACE pour attaquer</p>
-        <p style={{ margin: '0 0 5px 0' }}>ECHAP pour retourner au menu</p>
+        <p style={{ margin: '0 0 5px 0' }}>ECHAP pour retourner aux niveaux</p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Position: ({Math.round(position.x)}, {Math.round(position.y)})
+          Niveau {currentLevel} - Position: ({Math.round(position.x)}, {Math.round(position.y)})
         </p>
         <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
           Direction: {getDirectionName(direction)} - {isAttacking ? `⚔️ Attaque 180° !` : isWalking ? '🚶 Marche' : '🧍 Repos'}
@@ -894,7 +1022,7 @@ const Block: React.FC<BlockProps> = () => {
           </span>
           <br />
           <button
-            onClick={returnToMenu}
+            onClick={returnToLevelSelect}
             style={{
               marginTop: '20px',
               padding: '10px 20px',
@@ -906,7 +1034,7 @@ const Block: React.FC<BlockProps> = () => {
               cursor: 'pointer'
             }}
           >
-            Retour au menu
+            Retour aux niveaux
           </button>
         </div>
       )}

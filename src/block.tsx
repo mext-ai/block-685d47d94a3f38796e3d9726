@@ -18,6 +18,8 @@ interface Enemy {
   isAttacking: boolean;
   attackFrame: number;
   lastAttackTime: number;
+  spawnTime: number; // Nouveau : temps d'apparition
+  hasSpawned: boolean; // Nouveau : si l'ennemi est déjà apparu
 }
 
 const Block: React.FC<BlockProps> = () => {
@@ -41,6 +43,7 @@ const Block: React.FC<BlockProps> = () => {
   const [playerHp, setPlayerHp] = useState(10); // HP du joueur
   const [maxPlayerHp] = useState(10); // HP max
   const [lastDamageTime, setLastDamageTime] = useState(0); // Pour éviter les dégâts répétés
+  const [gameStartTime, setGameStartTime] = useState(0); // Nouveau : temps de début du jeu
   
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
   const playerPositionRef = useRef({ x: 50, y: 50 });
@@ -81,6 +84,7 @@ const Block: React.FC<BlockProps> = () => {
     setEnemies([]);
     enemiesInitialized.current = false;
     setLastDamageTime(0);
+    setGameStartTime(Date.now()); // Nouveau : enregistrer le temps de début
   };
 
   // Fonction pour retourner au menu
@@ -92,6 +96,7 @@ const Block: React.FC<BlockProps> = () => {
     setEnemies([]);
     enemiesInitialized.current = false;
     setLastDamageTime(0);
+    setGameStartTime(0);
   };
 
   // Fonction pour retourner à la sélection de niveau
@@ -103,12 +108,71 @@ const Block: React.FC<BlockProps> = () => {
     setEnemies([]);
     enemiesInitialized.current = false;
     setLastDamageTime(0);
+    setGameStartTime(0);
   };
 
   // Vérifier si un niveau est déverrouillé
   const isLevelUnlocked = (level: number) => {
     if (level === 1) return true; // Le niveau 1 est toujours déverrouillé
     return completedLevels.includes(level - 1); // Un niveau est déverrouillé si le précédent est terminé
+  };
+
+  // Fonction pour créer les ennemis du niveau 1 - MODIFIÉE POUR 10 ENNEMIS
+  const createLevel1Enemies = (): Enemy[] => {
+    const enemies: Enemy[] = [];
+    
+    // Configuration pour 10 ennemis qui apparaissent progressivement
+    const enemySpawnTimes = [
+      0,    // Ennemi 1 : immédiat
+      3000, // Ennemi 2 : après 3 secondes
+      5000, // Ennemi 3 : après 5 secondes
+      8000, // Ennemi 4 : après 8 secondes
+      12000, // Ennemi 5 : après 12 secondes
+      15000, // Ennemi 6 : après 15 secondes
+      18000, // Ennemi 7 : après 18 secondes
+      22000, // Ennemi 8 : après 22 secondes
+      25000, // Ennemi 9 : après 25 secondes
+      30000  // Ennemi 10 : après 30 secondes
+    ];
+
+    for (let i = 0; i < 10; i++) {
+      // Alternance côté gauche/droite
+      const fromLeft = i % 2 === 0;
+      
+      // Position X : côté gauche (5-15%) ou côté droit (85-95%)
+      const startX = fromLeft ? 
+        5 + Math.random() * 10 :   // Gauche : 5% à 15%
+        85 + Math.random() * 10;   // Droite : 85% à 95%
+      
+      // Position Y : hauteur variée entre les limites du jeu
+      const startY = 40 + Math.random() * 45; // Entre 40% et 85% de hauteur
+      
+      // Direction initiale : vers la droite si vient de gauche, vers la gauche si vient de droite
+      const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
+
+      const enemy: Enemy = {
+        id: i + 1,
+        type: 'mushroom',
+        x: startX,
+        y: startY,
+        direction: initialDirection,
+        currentFrame: 0,
+        isAlive: true,
+        hp: 3,
+        maxHp: 3,
+        isDying: false,
+        deathFrame: 0,
+        isAttacking: false,
+        attackFrame: 0,
+        lastAttackTime: 0,
+        spawnTime: enemySpawnTimes[i],
+        hasSpawned: enemySpawnTimes[i] === 0 // Le premier ennemi apparaît immédiatement
+      };
+      
+      enemies.push(enemy);
+    }
+    
+    return enemies;
   };
 
   // Vérifier la victoire (tous les ennemis morts)
@@ -164,29 +228,60 @@ const Block: React.FC<BlockProps> = () => {
     }, '*');
   }, []);
 
-  // Initialisation des ennemis quand le jeu commence
+  // Initialisation des ennemis quand le jeu commence - MODIFIÉE
   useEffect(() => {
     if (gameState === 'playing' && !enemiesInitialized.current) {
-      const initialMushroom: Enemy = {
-        id: 1,
-        type: 'mushroom',
-        x: 20,
-        y: 70,
-        direction: 3,
-        currentFrame: 0,
-        isAlive: true,
-        hp: 3,
-        maxHp: 3,
-        isDying: false,
-        deathFrame: 0,
-        isAttacking: false,
-        attackFrame: 0,
-        lastAttackTime: 0
-      };
-      setEnemies([initialMushroom]);
+      if (currentLevel === 1) {
+        const level1Enemies = createLevel1Enemies();
+        setEnemies(level1Enemies);
+      } else {
+        // Pour les autres niveaux, garder l'ancien système pour l'instant
+        const initialMushroom: Enemy = {
+          id: 1,
+          type: 'mushroom',
+          x: 20,
+          y: 70,
+          direction: 3,
+          currentFrame: 0,
+          isAlive: true,
+          hp: 3,
+          maxHp: 3,
+          isDying: false,
+          deathFrame: 0,
+          isAttacking: false,
+          attackFrame: 0,
+          lastAttackTime: 0,
+          spawnTime: 0,
+          hasSpawned: true
+        };
+        setEnemies([initialMushroom]);
+      }
       enemiesInitialized.current = true;
     }
-  }, [gameState]);
+  }, [gameState, currentLevel]);
+
+  // Système d'apparition progressive des ennemis - NOUVEAU
+  useEffect(() => {
+    if (gameState !== 'playing' || gameStartTime === 0) return;
+    
+    const spawnCheckInterval = setInterval(() => {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - gameStartTime;
+      
+      setEnemies(prev => prev.map(enemy => {
+        // Si l'ennemi n'est pas encore apparu et que son temps est venu
+        if (!enemy.hasSpawned && elapsedTime >= enemy.spawnTime) {
+          return {
+            ...enemy,
+            hasSpawned: true
+          };
+        }
+        return enemy;
+      }));
+    }, 100); // Vérifier toutes les 100ms
+
+    return () => clearInterval(spawnCheckInterval);
+  }, [gameState, gameStartTime]);
 
   // Animation du sprite de marche du joueur
   useEffect(() => {
@@ -207,7 +302,7 @@ const Block: React.FC<BlockProps> = () => {
     
     const enemyAnimationInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
-        if (enemy.isDying || !enemy.isAlive || enemy.isAttacking) return enemy;
+        if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
         return {
           ...enemy,
@@ -225,7 +320,7 @@ const Block: React.FC<BlockProps> = () => {
     
     const enemyAttackAnimationInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
-        if (!enemy.isAttacking) return enemy;
+        if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
         const nextFrame = enemy.attackFrame + 1;
         
@@ -258,7 +353,7 @@ const Block: React.FC<BlockProps> = () => {
     
     const deathAnimationInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
-        if (!enemy.isDying) return enemy;
+        if (!enemy.isDying || !enemy.hasSpawned) return enemy;
         
         const nextFrame = enemy.deathFrame + 1;
         
@@ -321,13 +416,14 @@ const Block: React.FC<BlockProps> = () => {
     return 2;
   };
 
-  // Mouvement des ennemis avec collision et IA d'attaque
+  // Mouvement des ennemis avec collision et IA d'attaque - MODIFIÉE
   useEffect(() => {
     if (gameState !== 'playing') return;
     
     const enemyMovementInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
-        if (!enemy.isAlive || enemy.isDying || enemy.isAttacking) return enemy;
+        // Ne pas bouger les ennemis qui ne sont pas encore apparus
+        if (!enemy.isAlive || enemy.isDying || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
         let newX = enemy.x;
         let newY = enemy.y;
@@ -452,7 +548,7 @@ const Block: React.FC<BlockProps> = () => {
     const currentPlayerDirection = playerDirectionRef.current;
     
     setEnemies(prev => prev.map(enemy => {
-      if (!enemy.isAlive || enemy.isDying) return enemy;
+      if (!enemy.isAlive || enemy.isDying || !enemy.hasSpawned) return enemy;
       
       const deltaX = currentPlayerPos.x - enemy.x;
       const deltaY = currentPlayerPos.y - enemy.y;
@@ -514,7 +610,7 @@ const Block: React.FC<BlockProps> = () => {
           let hasCollision = false;
           
           enemiesRef.current.forEach(enemy => {
-            if (enemy.isAlive && !enemy.isDying && checkCollision(potentialPos, { x: enemy.x, y: enemy.y }, collisionDistance)) {
+            if (enemy.isAlive && !enemy.isDying && enemy.hasSpawned && checkCollision(potentialPos, { x: enemy.x, y: enemy.y }, collisionDistance)) {
               hasCollision = true;
             }
           });
@@ -907,9 +1003,10 @@ const Block: React.FC<BlockProps> = () => {
         })}
       </div>
 
-      {/* Ennemis avec barres de HP et animations */}
+      {/* Ennemis avec barres de HP et animations - MODIFIÉE POUR NE MONTRER QUE LES ENNEMIS APPARUS */}
       {enemies.map(enemy => {
-        if (!enemy.isAlive && !enemy.isDying) return null;
+        // Ne pas afficher les ennemis qui ne sont pas encore apparus ou qui sont morts
+        if (!enemy.hasSpawned || (!enemy.isAlive && !enemy.isDying)) return null;
         
         let enemySpriteX, enemySpriteY, enemySpriteUrl, enemyBackgroundSizeX;
         
@@ -1025,7 +1122,7 @@ const Block: React.FC<BlockProps> = () => {
         </div>
       )}
 
-      {/* Instructions de contrôle */}
+      {/* Instructions de contrôle - MODIFIÉES POUR AFFICHER LES STATS DES 10 ENNEMIS */}
       <div style={{
         position: 'absolute',
         top: '20px',
@@ -1049,10 +1146,16 @@ const Block: React.FC<BlockProps> = () => {
           Direction: {getDirectionName(direction)} - {isAttacking ? `⚔️ Attaque 180° !` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-          🍄 Ennemis vivants: {enemies.filter(e => e.isAlive && !e.isDying).length} | 
+          🍄 Apparus: {enemies.filter(e => e.hasSpawned).length}/10 | 
+          💚 Vivants: {enemies.filter(e => e.isAlive && !e.isDying && e.hasSpawned).length} | 
           💀 En train de mourir: {enemies.filter(e => e.isDying).length} |
           ⚔️ En attaque: {enemies.filter(e => e.isAttacking).length}
         </p>
+        {currentLevel === 1 && gameStartTime > 0 && (
+          <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
+            ⏱️ Temps écoulé: {Math.floor((Date.now() - gameStartTime) / 1000)}s
+          </p>
+        )}
       </div>
 
       {/* Game Over */}
@@ -1074,7 +1177,7 @@ const Block: React.FC<BlockProps> = () => {
           💀 GAME OVER 💀
           <br />
           <span style={{ fontSize: '16px', color: 'white' }}>
-            Le champignon vous a vaincu !
+            Les champignons vous ont vaincu !
           </span>
           <br />
           <button

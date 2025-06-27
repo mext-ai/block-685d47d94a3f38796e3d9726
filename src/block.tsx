@@ -675,49 +675,6 @@ const Block: React.FC<BlockProps> = () => {
           onMouseEnter={handlePlayButtonMouseEnter}
           onMouseLeave={handlePlayButtonMouseLeave}
         />
-
-        {/* Instructions temporaires */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: '15%',
-            transform: 'translateX(-50%)',
-            color: 'white',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-            textAlign: 'center',
-            zIndex: 10,
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            padding: '10px 20px',
-            borderRadius: '8px',
-          }}
-        >
-          🎮 Cliquez sur le bouton Play pour commencer ! 🎮
-        </div>
-
-        {/* Zone de debug (temporaire) */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '20px',
-            left: '20px',
-            color: 'white',
-            fontSize: '12px',
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            padding: '10px',
-            borderRadius: '5px',
-            zIndex: 10,
-            fontFamily: 'monospace'
-          }}
-        >
-          ✅ Bouton Play personnalisé intégré
-          <br />
-          ✅ Effets hover et animations
-          <br />
-          ✅ Zone de clic précise
-        </div>
       </div>
     );
   }

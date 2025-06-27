@@ -376,7 +376,7 @@ const Block: React.FC<BlockProps> = () => {
   // URL du sprite sheet du mushroom
   const mushroomSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1j2LelD-leMi_3y44PFuLCJOl_cmRRysA&sz=w1000';
   
-  // URL du sprite sheet de mort du mushroom (8 images par ligne)
+  // URL du sprite sheet de mort du mushroom (4 lignes de 8 images)
   const mushroomDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1Xf5RQQHzgCU2m39l3iCJ1wwBge-XCtZD&sz=w1000';
 
   // Configuration du sprite
@@ -452,9 +452,9 @@ const Block: React.FC<BlockProps> = () => {
         let enemySpriteX, enemySpriteY, enemySpriteUrl, enemyBackgroundSizeX;
         
         if (enemy.isDying) {
-          // Animation de mort
+          // Animation de mort - utiliser la direction du champignon pour choisir la ligne
           enemySpriteX = enemy.deathFrame * spriteWidth;
-          enemySpriteY = 0; // Première ligne du sprite sheet de mort
+          enemySpriteY = enemy.direction * spriteHeight; // CORRECTION : utiliser la direction du champignon
           enemySpriteUrl = mushroomDeathSpriteSheetUrl;
           enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * 3; // 8 images par ligne
         } else {

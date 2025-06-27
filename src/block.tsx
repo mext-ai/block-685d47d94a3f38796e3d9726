@@ -45,6 +45,11 @@ const Block: React.FC<BlockProps> = () => {
   const [lastDamageTime, setLastDamageTime] = useState(0); // Pour éviter les dégâts répétés
   const [gameStartTime, setGameStartTime] = useState(0); // Nouveau : temps de début du jeu
   
+  // États pour la responsivité - NOUVEAU
+  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [spriteScale, setSpriteScale] = useState(3.5);
+  const [enemySpriteScale, setEnemySpriteScale] = useState(3);
+  
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
   const playerPositionRef = useRef({ x: 50, y: 50 });
   const playerDirectionRef = useRef(0); // Référence pour la direction du joueur
@@ -68,6 +73,43 @@ const Block: React.FC<BlockProps> = () => {
   // const LEVEL3_BUTTON_POSITION = 65; // Plus proche du centre
   
   // ============================================================
+
+  // NOUVEAU : Système de calcul responsif pour les tailles de sprites
+  const calculateResponsiveScale = () => {
+    const baseWidth = 1920; // Largeur de référence
+    const baseHeight = 1080; // Hauteur de référence
+    const minScale = 1.5; // Taille minimale
+    const maxScale = 6; // Taille maximale
+    
+    // Calculer le facteur d'échelle basé sur la taille de l'écran
+    const widthRatio = windowSize.width / baseWidth;
+    const heightRatio = windowSize.height / baseHeight;
+    
+    // Utiliser le ratio le plus petit pour éviter que les sprites sortent de l'écran
+    const scaleRatio = Math.min(widthRatio, heightRatio);
+    
+    // Calculer les nouvelles échelles
+    const newPlayerScale = Math.max(minScale, Math.min(maxScale, 3.5 * scaleRatio));
+    const newEnemyScale = Math.max(minScale * 0.8, Math.min(maxScale * 0.8, 3 * scaleRatio));
+    
+    setSpriteScale(newPlayerScale);
+    setEnemySpriteScale(newEnemyScale);
+  };
+
+  // NOUVEAU : Écouter les changements de taille de fenêtre
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // NOUVEAU : Recalculer les échelles quand la taille de fenêtre change
+  useEffect(() => {
+    calculateResponsiveScale();
+  }, [windowSize]);
 
   // Fonction pour aller au menu de sélection de niveau
   const goToLevelSelect = () => {
@@ -707,11 +749,10 @@ const Block: React.FC<BlockProps> = () => {
   const walkFramesPerRow = 4;
   const attackFramesPerRow = 8;
   const deathFramesPerRow = 9;
-  const spriteScale = 3.5;
   
-  // Configuration des cœurs
+  // Configuration des cœurs - MODIFIÉE POUR ÊTRE RESPONSIVE
   const heartSize = 32;
-  const heartScale = 1.5;
+  const heartScale = Math.max(1, Math.min(2.5, 1.5 * (windowSize.width / 1920))); // Responsive pour les cœurs
   
   // Calcul de la position dans le sprite sheet
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
@@ -972,7 +1013,7 @@ const Block: React.FC<BlockProps> = () => {
       }}
       tabIndex={0}
     >
-      {/* Personnage sprite qui se déplace */}
+      {/* Personnage sprite qui se déplace - MODIFIÉ POUR UTILISER L'ÉCHELLE RESPONSIVE */}
       <div style={{
         position: 'absolute',
         left: `${position.x}%`,
@@ -988,7 +1029,7 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 10
       }} />
 
-      {/* Système de cœurs - CORRIGÉ SANS TRANSITION */}
+      {/* Système de cœurs - MODIFIÉ POUR ÊTRE RESPONSIVE */}
       <div style={{
         position: 'absolute',
         top: '20px',
@@ -1010,14 +1051,13 @@ const Block: React.FC<BlockProps> = () => {
                 backgroundPosition: `-${heartState * heartSize * heartScale}px 0px`,
                 backgroundSize: `${heartSize * 3 * heartScale}px ${heartSize * heartScale}px`,
                 imageRendering: 'pixelated'
-                // TRANSITION SUPPRIMÉE pour éviter l'effet de glissement
               }}
             />
           );
         })}
       </div>
 
-      {/* Ennemis avec barres de HP et animations - MODIFIÉE POUR NE MONTRER QUE LES ENNEMIS APPARUS */}
+      {/* Ennemis avec barres de HP et animations - MODIFIÉE POUR UTILISER L'ÉCHELLE RESPONSIVE DES ENNEMIS */}
       {enemies.map(enemy => {
         // Ne pas afficher les ennemis qui ne sont pas encore apparus ou qui sont morts
         if (!enemy.hasSpawned || (!enemy.isAlive && !enemy.isDying)) return null;
@@ -1029,17 +1069,17 @@ const Block: React.FC<BlockProps> = () => {
           enemySpriteX = deathImageIndex * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomDeathSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * 3;
+          enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * enemySpriteScale;
         } else if (enemy.isAttacking) {
           enemySpriteX = enemy.attackFrame * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomAttackSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * attackFramesPerRow * 3;
+          enemyBackgroundSizeX = spriteWidth * attackFramesPerRow * enemySpriteScale;
         } else {
           enemySpriteX = enemy.currentFrame * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * walkFramesPerRow * 3;
+          enemyBackgroundSizeX = spriteWidth * walkFramesPerRow * enemySpriteScale;
         }
         
         return (
@@ -1050,10 +1090,10 @@ const Block: React.FC<BlockProps> = () => {
                 left: `${enemy.x}%`,
                 top: `${enemy.y}%`,
                 transform: 'translate(-50%, -50%)',
-                width: `${spriteWidth * 3}px`,
-                height: `${spriteHeight * 3}px`,
+                width: `${spriteWidth * enemySpriteScale}px`,
+                height: `${spriteHeight * enemySpriteScale}px`,
                 backgroundImage: `url(${enemySpriteUrl})`,
-                backgroundPosition: `-${enemySpriteX * 3}px -${enemySpriteY * 3}px`,
+                backgroundPosition: `-${enemySpriteX * enemySpriteScale}px -${enemySpriteY * enemySpriteScale}px`,
                 backgroundSize: `${enemyBackgroundSizeX}px auto`,
                 imageRendering: 'pixelated',
                 transition: 'none',
@@ -1070,8 +1110,8 @@ const Block: React.FC<BlockProps> = () => {
                     left: `${enemy.x}%`,
                     top: `${enemy.y - 8}%`,
                     transform: 'translateX(-50%)',
-                    width: '60px',
-                    height: '8px',
+                    width: `${60 * (enemySpriteScale / 3)}px`, // Ajuster la largeur de la barre de HP selon l'échelle
+                    height: `${8 * (enemySpriteScale / 3)}px`, // Ajuster la hauteur de la barre de HP selon l'échelle
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     border: '1px solid #333',
                     borderRadius: '3px',
@@ -1097,7 +1137,7 @@ const Block: React.FC<BlockProps> = () => {
                     top: `${enemy.y - 12}%`,
                     transform: 'translateX(-50%)',
                     color: 'white',
-                    fontSize: '12px',
+                    fontSize: `${12 * (enemySpriteScale / 3)}px`, // Ajuster la taille du texte selon l'échelle
                     fontWeight: 'bold',
                     textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
                     zIndex: 12,
@@ -1136,7 +1176,7 @@ const Block: React.FC<BlockProps> = () => {
         </div>
       )}
 
-      {/* Instructions de contrôle - MODIFIÉES POUR AFFICHER LES STATS DES 10 ENNEMIS */}
+      {/* Instructions de contrôle - MODIFIÉES POUR AFFICHER LES INFOS DE RESPONSIVITÉ */}
       <div style={{
         position: 'absolute',
         top: '20px',
@@ -1164,6 +1204,10 @@ const Block: React.FC<BlockProps> = () => {
           💚 Vivants: {enemies.filter(e => e.isAlive && !e.isDying && e.hasSpawned).length} | 
           💀 En train de mourir: {enemies.filter(e => e.isDying).length} |
           ⚔️ En attaque: {enemies.filter(e => e.isAttacking).length}
+        </p>
+        <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
+          📱 Responsive: {windowSize.width}x{windowSize.height} | 
+          🎭 Échelle: Joueur={spriteScale.toFixed(1)}x, Ennemis={enemySpriteScale.toFixed(1)}x
         </p>
         {currentLevel === 1 && gameStartTime > 0 && (
           <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>

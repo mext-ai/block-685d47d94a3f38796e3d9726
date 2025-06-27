@@ -13,6 +13,8 @@ interface Enemy {
   isAlive: boolean;
   hp: number;
   maxHp: number;
+  isDying: boolean;
+  deathFrame: number;
 }
 
 const Block: React.FC<BlockProps> = () => {
@@ -71,7 +73,9 @@ const Block: React.FC<BlockProps> = () => {
         currentFrame: 0,
         isAlive: true,
         hp: 3, // 3 points de vie
-        maxHp: 3
+        maxHp: 3,
+        isDying: false,
+        deathFrame: 0
       };
       setEnemies([initialMushroom]);
       enemiesInitialized.current = true;
@@ -89,23 +93,59 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(walkAnimationInterval);
   }, [isWalking, isAttacking]);
 
-  // Animation des ennemis
+  // Animation des ennemis (marche normale)
   useEffect(() => {
     const enemyAnimationInterval = setInterval(() => {
-      setEnemies(prev => prev.map(enemy => ({
-        ...enemy,
-        currentFrame: (enemy.currentFrame + 1) % 3 // Animation continue pour les ennemis
-      })));
+      setEnemies(prev => prev.map(enemy => {
+        if (enemy.isDying || !enemy.isAlive) return enemy;
+        
+        return {
+          ...enemy,
+          currentFrame: (enemy.currentFrame + 1) % 3 // Animation continue pour les ennemis vivants
+        };
+      }));
     }, 200); // Animation un peu plus lente pour les ennemis
 
     return () => clearInterval(enemyAnimationInterval);
+  }, []);
+
+  // Animation de mort des ennemis
+  useEffect(() => {
+    const deathAnimationInterval = setInterval(() => {
+      setEnemies(prev => prev.map(enemy => {
+        if (!enemy.isDying) return enemy;
+        
+        const nextFrame = enemy.deathFrame + 1;
+        
+        if (nextFrame >= 8) {
+          // Animation terminée, supprimer l'ennemi
+          return { ...enemy, isAlive: false, isDying: false };
+        }
+        
+        return {
+          ...enemy,
+          deathFrame: nextFrame
+        };
+      }));
+    }, 100); // Animation de mort plus rapide (100ms par frame)
+
+    return () => clearInterval(deathAnimationInterval);
+  }, []);
+
+  // Nettoyer les ennemis morts après l'animation
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      setEnemies(prev => prev.filter(enemy => enemy.isAlive));
+    }, 1000); // Nettoyer toutes les secondes
+
+    return () => clearInterval(cleanupInterval);
   }, []);
 
   // Mouvement des ennemis - IA de poursuite en temps réel avec distance d'arrêt augmentée
   useEffect(() => {
     const enemyMovementInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
-        if (!enemy.isAlive) return enemy;
+        if (!enemy.isAlive || enemy.isDying) return enemy;
         
         let newX = enemy.x;
         let newY = enemy.y;
@@ -209,7 +249,7 @@ const Block: React.FC<BlockProps> = () => {
     const currentPlayerDirection = playerDirectionRef.current;
     
     setEnemies(prev => prev.map(enemy => {
-      if (!enemy.isAlive) return enemy;
+      if (!enemy.isAlive || enemy.isDying) return enemy;
       
       // Calculer la distance entre le joueur et l'ennemi
       const deltaX = currentPlayerPos.x - enemy.x;
@@ -220,10 +260,19 @@ const Block: React.FC<BlockProps> = () => {
       if (distance <= attackRange && isEnemyInAttackDirection(currentPlayerPos.x, currentPlayerPos.y, enemy.x, enemy.y, currentPlayerDirection)) {
         const newHp = enemy.hp - 1; // Infliger 1 point de dégât
         
+        if (newHp <= 0) {
+          // Déclencher l'animation de mort
+          return {
+            ...enemy,
+            hp: 0,
+            isDying: true,
+            deathFrame: 0
+          };
+        }
+        
         return {
           ...enemy,
-          hp: newHp,
-          isAlive: newHp > 0 // L'ennemi meurt si ses HP tombent à 0
+          hp: newHp
         };
       }
       
@@ -326,12 +375,16 @@ const Block: React.FC<BlockProps> = () => {
   
   // URL du sprite sheet du mushroom
   const mushroomSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1j2LelD-leMi_3y44PFuLCJOl_cmRRysA&sz=w1000';
+  
+  // URL du sprite sheet de mort du mushroom (8 images par ligne)
+  const mushroomDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1Xf5RQQHzgCU2m39l3iCJ1wwBge-XCtZD&sz=w1000';
 
   // Configuration du sprite
   const spriteWidth = 32;
   const spriteHeight = 32;
   const walkFramesPerRow = 4; // 4 frames pour la marche
   const attackFramesPerRow = 8; // 8 frames pour l'attaque
+  const deathFramesPerRow = 8; // 8 frames pour l'animation de mort
   const spriteScale = 3.5; // Taille ajustée à 3.5
   
   // Calcul de la position dans le sprite sheet
@@ -392,12 +445,25 @@ const Block: React.FC<BlockProps> = () => {
         zIndex: 10
       }} />
 
-      {/* Ennemis avec barres de HP */}
+      {/* Ennemis avec barres de HP et animation de mort */}
       {enemies.map(enemy => {
-        if (!enemy.isAlive) return null;
+        if (!enemy.isAlive && !enemy.isDying) return null;
         
-        const enemySpriteX = enemy.currentFrame * spriteWidth;
-        const enemySpriteY = enemy.direction * spriteHeight;
+        let enemySpriteX, enemySpriteY, enemySpriteUrl, enemyBackgroundSizeX;
+        
+        if (enemy.isDying) {
+          // Animation de mort
+          enemySpriteX = enemy.deathFrame * spriteWidth;
+          enemySpriteY = 0; // Première ligne du sprite sheet de mort
+          enemySpriteUrl = mushroomDeathSpriteSheetUrl;
+          enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * 3; // 8 images par ligne
+        } else {
+          // Animation normale
+          enemySpriteX = enemy.currentFrame * spriteWidth;
+          enemySpriteY = enemy.direction * spriteHeight;
+          enemySpriteUrl = mushroomSpriteSheetUrl;
+          enemyBackgroundSizeX = spriteWidth * walkFramesPerRow * 3; // 4 images par ligne
+        }
         
         return (
           <div key={enemy.id}>
@@ -410,60 +476,65 @@ const Block: React.FC<BlockProps> = () => {
                 transform: 'translate(-50%, -50%)',
                 width: `${spriteWidth * 3}px`, // Mushroom un peu plus petit
                 height: `${spriteHeight * 3}px`,
-                backgroundImage: `url(${mushroomSpriteSheetUrl})`,
+                backgroundImage: `url(${enemySpriteUrl})`,
                 backgroundPosition: `-${enemySpriteX * 3}px -${enemySpriteY * 3}px`,
-                backgroundSize: `${spriteWidth * walkFramesPerRow * 3}px auto`,
+                backgroundSize: `${enemyBackgroundSizeX}px auto`,
                 imageRendering: 'pixelated',
                 transition: 'none',
-                zIndex: 9
+                zIndex: 9,
+                opacity: enemy.isDying ? 0.8 : 1 // Légère transparence pendant la mort
               }}
             />
             
-            {/* Barre de HP au-dessus de l'ennemi */}
-            <div
-              style={{
-                position: 'absolute',
-                left: `${enemy.x}%`,
-                top: `${enemy.y - 8}%`, // Placée au-dessus de l'ennemi
-                transform: 'translateX(-50%)',
-                width: '60px',
-                height: '8px',
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                border: '1px solid #333',
-                borderRadius: '3px',
-                zIndex: 11
-              }}
-            >
-              {/* Barre de HP colorée */}
-              <div
-                style={{
-                  width: `${(enemy.hp / enemy.maxHp) * 100}%`,
-                  height: '100%',
-                  backgroundColor: enemy.hp > enemy.maxHp * 0.6 ? '#4CAF50' : 
-                                 enemy.hp > enemy.maxHp * 0.3 ? '#FF9800' : '#F44336',
-                  borderRadius: '2px',
-                  transition: 'width 0.3s ease, background-color 0.3s ease'
-                }}
-              />
-            </div>
-            
-            {/* Texte HP */}
-            <div
-              style={{
-                position: 'absolute',
-                left: `${enemy.x}%`,
-                top: `${enemy.y - 12}%`,
-                transform: 'translateX(-50%)',
-                color: 'white',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                zIndex: 12,
-                textAlign: 'center'
-              }}
-            >
-              {enemy.hp}/{enemy.maxHp}
-            </div>
+            {/* Barre de HP au-dessus de l'ennemi (cachée pendant la mort) */}
+            {!enemy.isDying && (
+              <>
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: `${enemy.x}%`,
+                    top: `${enemy.y - 8}%`, // Placée au-dessus de l'ennemi
+                    transform: 'translateX(-50%)',
+                    width: '60px',
+                    height: '8px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    border: '1px solid #333',
+                    borderRadius: '3px',
+                    zIndex: 11
+                  }}
+                >
+                  {/* Barre de HP colorée */}
+                  <div
+                    style={{
+                      width: `${(enemy.hp / enemy.maxHp) * 100}%`,
+                      height: '100%',
+                      backgroundColor: enemy.hp > enemy.maxHp * 0.6 ? '#4CAF50' : 
+                                     enemy.hp > enemy.maxHp * 0.3 ? '#FF9800' : '#F44336',
+                      borderRadius: '2px',
+                      transition: 'width 0.3s ease, background-color 0.3s ease'
+                    }}
+                  />
+                </div>
+                
+                {/* Texte HP */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: `${enemy.x}%`,
+                    top: `${enemy.y - 12}%`,
+                    transform: 'translateX(-50%)',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                    zIndex: 12,
+                    textAlign: 'center'
+                  }}
+                >
+                  {enemy.hp}/{enemy.maxHp}
+                </div>
+              </>
+            )}
           </div>
         );
       })}
@@ -491,7 +562,8 @@ const Block: React.FC<BlockProps> = () => {
           Direction: {getDirectionName(direction)} - {isAttacking ? `⚔️ Attaque directionnelle!` : isWalking ? '🚶 Marche' : '🧍 Repos'}
         </p>
         <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-          🍄 Ennemis vivants: {enemies.filter(e => e.isAlive).length} | 
+          🍄 Ennemis vivants: {enemies.filter(e => e.isAlive && !e.isDying).length} | 
+          💀 En train de mourir: {enemies.filter(e => e.isDying).length} |
           ⚡ Portée: 8 | 🛡️ Distance d'arrêt: 6
         </p>
       </div>

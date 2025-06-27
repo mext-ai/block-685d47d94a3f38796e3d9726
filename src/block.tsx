@@ -635,7 +635,7 @@ const Block: React.FC<BlockProps> = () => {
     setIsPlayButtonHovered(false);
   };
 
-  // Rendu du menu d'accueil avec votre bouton Play
+  // Rendu du menu d'accueil avec votre bouton Play - CORRIGÉ
   if (gameState === 'menu') {
     return (
       <div 
@@ -652,23 +652,23 @@ const Block: React.FC<BlockProps> = () => {
           backgroundColor: '#1a1a1a' // Fond sombre pour les espaces vides
         }}
       >
-        {/* Bouton Play avec image personnalisée */}
+        {/* Bouton Play avec image personnalisée - ZONE CLIQUABLE RÉDUITE */}
         <div
           style={{
             position: 'absolute',
             left: '50%',
-            top: '70%', // Ajustez cette position selon votre design
-            transform: 'translate(-50%, -50%)',
-            width: '200px', // Ajustez la taille selon votre bouton
-            height: '80px', // Ajustez la taille selon votre bouton
+            top: '70%',
+            transform: `translate(-50%, -50%) scale(${isPlayButtonHovered ? 1.1 : 1})`,
+            width: '160px', // RÉDUIT de 200px à 160px
+            height: '80px', // Hauteur maintenue parfaite
             backgroundImage: `url(${playButtonUrl})`,
             backgroundSize: 'contain',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
+            backgroundColor: 'transparent', // AJOUTÉ : Fond transparent pour éviter le blanc
             cursor: 'pointer',
             zIndex: 10,
             transition: 'all 0.2s ease',
-            transform: `translate(-50%, -50%) scale(${isPlayButtonHovered ? 1.1 : 1})`,
             filter: isPlayButtonHovered ? 'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.5))' : 'brightness(1)',
           }}
           onClick={handlePlayButtonClick}

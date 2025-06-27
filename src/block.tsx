@@ -36,138 +36,15 @@ const Block: React.FC<BlockProps> = () => {
   const [maxPlayerHp] = useState(10); // HP max - CHANGÉ de 5 à 10
   const [lastDamageTime, setLastDamageTime] = useState(0); // Pour éviter les dégâts répétés
   
-  // États pour l'audio
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const [musicVolume, setMusicVolume] = useState(0.3); // Volume par défaut à 30%
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
   const playerPositionRef = useRef({ x: 50, y: 50 });
   const playerDirectionRef = useRef(0); // Référence pour la direction du joueur
   const enemiesRef = useRef<Enemy[]>([]); // Référence pour les ennemis
   const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
 
-  // Initialiser l'audio
-  useEffect(() => {
-    // Créer l'élément audio avec une musique libre de droits
-    const audio = new Audio();
-    // Utilisation d'une musique d'ambiance médiévale libre de droits
-    audio.src = 'https://www.soundjay.com/misc/sounds/magic-chime-02.wav'; // Son temporaire
-    // Pour une vraie musique de fond, vous pouvez utiliser :
-    // audio.src = 'https://opengameart.org/sites/default/files/audio_preview/medieval_town.ogg';
-    
-    // Configuration de l'audio
-    audio.loop = true; // Boucle infinie
-    audio.volume = musicVolume;
-    audio.preload = 'auto';
-    
-    // Gestion des erreurs
-    audio.onerror = () => {
-      console.log('Erreur de chargement audio, utilisation d\'un son alternatif');
-      // Fallback vers un générateur de tonalité simple
-      createBackgroundTone();
-    };
-    
-    audioRef.current = audio;
-    
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
-
-  // Fonction pour créer un son de fond alternatif avec l'API Web Audio
-  const createBackgroundTone = () => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      // Créer plusieurs oscillateurs pour une mélodie simple
-      const createTone = (frequency: number, startTime: number, duration: number, volume: number = 0.1) => {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(frequency, startTime);
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0, startTime);
-        gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.1);
-        gainNode.gain.linearRampToValueAtTime(volume * 0.7, startTime + duration - 0.1);
-        gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
-        
-        oscillator.start(startTime);
-        oscillator.stop(startTime + duration);
-      };
-      
-      // Mélodie simple et répétitive (notes en Hz)
-      const playMelody = () => {
-        const now = audioContext.currentTime;
-        const notes = [261.63, 293.66, 329.63, 261.63, 293.66, 329.63, 392.00, 349.23]; // Do, Ré, Mi, Do, Ré, Mi, Sol, Fa
-        const noteDuration = 0.8;
-        
-        notes.forEach((note, index) => {
-          createTone(note, now + index * noteDuration, noteDuration, musicVolume * 0.3);
-        });
-        
-        // Programmer la prochaine répétition
-        setTimeout(() => {
-          if (isMusicPlaying && audioContext.state !== 'closed') {
-            playMelody();
-          }
-        }, notes.length * noteDuration * 1000);
-      };
-      
-      if (isMusicPlaying) {
-        playMelody();
-      }
-    } catch (error) {
-      console.log('Web Audio API non supportée');
-    }
-  };
-
-  // Fonction pour démarrer/arrêter la musique
-  const toggleMusic = async () => {
-    if (!audioRef.current) {
-      createBackgroundTone();
-      setIsMusicPlaying(!isMusicPlaying);
-      return;
-    }
-
-    try {
-      if (isMusicPlaying) {
-        audioRef.current.pause();
-        setIsMusicPlaying(false);
-      } else {
-        // Tentative de lecture
-        await audioRef.current.play();
-        setIsMusicPlaying(true);
-      }
-    } catch (error) {
-      console.log('Erreur lecture audio:', error);
-      // Fallback vers le générateur de tonalité
-      createBackgroundTone();
-      setIsMusicPlaying(!isMusicPlaying);
-    }
-  };
-
-  // Mettre à jour le volume
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = musicVolume;
-    }
-  }, [musicVolume]);
-
   // Fonction pour démarrer le jeu
   const startGame = () => {
     setGameState('playing');
-    // Démarrer la musique automatiquement au lancement du jeu
-    if (!isMusicPlaying) {
-      toggleMusic();
-    }
     // Réinitialiser le jeu
     setPlayerHp(10);
     setPosition({ x: 50, y: 50 });
@@ -179,7 +56,6 @@ const Block: React.FC<BlockProps> = () => {
   // Fonction pour retourner au menu
   const returnToMenu = () => {
     setGameState('menu');
-    // Garder la musique en cours si elle joue
     // Réinitialiser le jeu
     setPlayerHp(10);
     setPosition({ x: 50, y: 50 });
@@ -653,12 +529,6 @@ const Block: React.FC<BlockProps> = () => {
         return;
       }
       
-      // Gestion de la musique avec M
-      if (key === 'm') {
-        toggleMusic();
-        return;
-      }
-      
       setKeys(prev => ({
         ...prev,
         up: prev.up || key === 'arrowup' || key === 'z',
@@ -773,81 +643,30 @@ const Block: React.FC<BlockProps> = () => {
   // Rendu du menu d'accueil
   if (gameState === 'menu') {
     return (
-      <div 
-        style={{
-          height: '100vh',
-          width: '100vw',
-          margin: 0,
-          backgroundImage: `url(${menuBackgroundUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          position: 'relative',
-          overflow: 'hidden',
-          cursor: 'pointer'
-        }}
+  <div 
+    style={{
+      height: '100vh',
+      width: '100vw',
+      margin: 0,
+      backgroundImage: `url(${menuBackgroundUrl})`,
+      backgroundSize: 'contain', // CHANGÉ de 'cover' à 'contain'
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      position: 'relative',
+      overflow: 'hidden',
+      cursor: 'pointer',
+      backgroundColor: '#000' // Ajouter un fond noir pour les espaces vides
+    }}
         onClick={handleMenuClick}
       >
-        {/* Contrôles audio dans le menu */}
-        <div style={{
-          position: 'absolute',
-          top: '20px',
-          left: '20px',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          color: 'white',
-          padding: '15px',
-          borderRadius: '8px',
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '14px',
-          zIndex: 30
-        }}>
-          <p style={{ margin: '0 0 10px 0', fontWeight: 'bold' }}>🎵 Audio</p>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleMusic();
-            }}
-            style={{
-              padding: '8px 16px',
-              fontSize: '14px',
-              backgroundColor: isMusicPlaying ? '#f44336' : '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              marginBottom: '10px',
-              width: '100%'
-            }}
-          >
-            {isMusicPlaying ? '🔊 Arrêter Musique' : '🔇 Démarrer Musique'}
-          </button>
-          <div style={{ marginBottom: '5px' }}>
-            <label style={{ fontSize: '12px', display: 'block' }}>Volume: {Math.round(musicVolume * 100)}%</label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={musicVolume}
-              onChange={(e) => {
-                e.stopPropagation();
-                setMusicVolume(parseFloat(e.target.value));
-              }}
-              style={{ width: '100%' }}
-            />
-          </div>
-        </div>
-        
         {/* Zone de détection du bouton Play (invisible, pour debug) */}
         <div
           style={{
             position: 'absolute',
-            left: '25%',
+            left: '20%',
             top: '60%',
-            width: '50%',
-            height: '25%',
-            backgroundColor: 'rgba(255, 0, 0, 0.2)', // Rouge transparent pour visualiser la zone
-            border: '2px dashed rgba(255, 0, 0, 0.5)',
+            width: '15%',
+            height: '9%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -858,9 +677,8 @@ const Block: React.FC<BlockProps> = () => {
             zIndex: 10
           }}
         >
-          ZONE CLIQUABLE DÉTECTÉE
-          <br />
-          Cliquez ici pour jouer !
+        
+
         </div>
         
         {/* Instructions */}
@@ -879,8 +697,6 @@ const Block: React.FC<BlockProps> = () => {
           zIndex: 20
         }}>
           🎮 Cliquez sur la zone rouge pour commencer le jeu !
-          <br />
-          🎵 La musique de fond démarrera automatiquement
           <br />
           <span style={{ fontSize: '12px', opacity: 0.8 }}>
             (La zone rouge est juste pour la démonstration - elle sera invisible une fois le bouton détecté)
@@ -947,48 +763,6 @@ const Block: React.FC<BlockProps> = () => {
             />
           );
         })}
-      </div>
-
-      {/* Contrôles audio en jeu */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        left: '20px',
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        color: 'white',
-        padding: '15px',
-        borderRadius: '8px',
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '14px',
-        zIndex: 20
-      }}>
-        <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
-        <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD pour se déplacer</p>
-        <p style={{ margin: '0 0 5px 0' }}>ESPACE pour attaquer</p>
-        <p style={{ margin: '0 0 5px 0' }}>M pour musique ON/OFF</p>
-        <p style={{ margin: '0 0 5px 0' }}>ECHAP pour retourner au menu</p>
-        <div style={{ 
-          marginTop: '10px', 
-          padding: '8px', 
-          backgroundColor: 'rgba(255,255,255,0.1)', 
-          borderRadius: '4px' 
-        }}>
-          <p style={{ margin: '0 0 5px 0', fontSize: '12px' }}>
-            🎵 Musique: {isMusicPlaying ? '🔊 ON' : '🔇 OFF'} 
-            ({Math.round(musicVolume * 100)}%)
-          </p>
-        </div>
-        <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Position: ({Math.round(position.x)}, {Math.round(position.y)})
-        </p>
-        <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
-          Direction: {getDirectionName(direction)} - {isAttacking ? `⚔️ Attaque 180° !` : isWalking ? '🚶 Marche' : '🧍 Repos'}
-        </p>
-        <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
-          🍄 Ennemis vivants: {enemies.filter(e => e.isAlive && !e.isDying).length} | 
-          💀 En train de mourir: {enemies.filter(e => e.isDying).length} |
-          ⚔️ En attaque: {enemies.filter(e => e.isAttacking).length}
-        </p>
       </div>
 
       {/* Ennemis avec barres de HP et animations */}
@@ -1090,6 +864,36 @@ const Block: React.FC<BlockProps> = () => {
           </div>
         );
       })}
+
+      {/* Instructions de contrôle */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        color: 'white',
+        padding: '15px',
+        borderRadius: '8px',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '14px',
+        zIndex: 20
+      }}>
+        <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎮 Contrôles :</p>
+        <p style={{ margin: '0 0 5px 0' }}>↑ ↓ ← → ou ZQSD pour se déplacer</p>
+        <p style={{ margin: '0 0 5px 0' }}>ESPACE pour attaquer</p>
+        <p style={{ margin: '0 0 5px 0' }}>ECHAP pour retourner au menu</p>
+        <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
+          Position: ({Math.round(position.x)}, {Math.round(position.y)})
+        </p>
+        <p style={{ margin: '0', fontSize: '12px', opacity: 0.8 }}>
+          Direction: {getDirectionName(direction)} - {isAttacking ? `⚔️ Attaque 180° !` : isWalking ? '🚶 Marche' : '🧍 Repos'}
+        </p>
+        <p style={{ margin: '0', fontSize: '10px', opacity: 0.6 }}>
+          🍄 Ennemis vivants: {enemies.filter(e => e.isAlive && !e.isDying).length} | 
+          💀 En train de mourir: {enemies.filter(e => e.isDying).length} |
+          ⚔️ En attaque: {enemies.filter(e => e.isAttacking).length}
+        </p>
+      </div>
 
       {/* Game Over */}
       {playerHp <= 0 && (

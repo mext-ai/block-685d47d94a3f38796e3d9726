@@ -25,7 +25,10 @@ const Block: React.FC<BlockProps> = () => {
   const [gameState, setGameState] = useState<'menu' | 'levelSelect' | 'playing'>('menu');
   const [isPlayButtonHovered, setIsPlayButtonHovered] = useState(false);
   const [isLevel1ButtonHovered, setIsLevel1ButtonHovered] = useState(false);
+  const [isLevel2ButtonHovered, setIsLevel2ButtonHovered] = useState(false);
+  const [isLevel3ButtonHovered, setIsLevel3ButtonHovered] = useState(false);
   const [currentLevel, setCurrentLevel] = useState(1);
+  const [completedLevels, setCompletedLevels] = useState<number[]>([]); // Niveaux terminés
   
   const [currentFrame, setCurrentFrame] = useState(0);
   const [direction, setDirection] = useState(0); // Direction du sprite
@@ -35,8 +38,8 @@ const Block: React.FC<BlockProps> = () => {
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false, space: false });
   const [enemies, setEnemies] = useState<Enemy[]>([]);
-  const [playerHp, setPlayerHp] = useState(10); // HP du joueur - CHANGÉ de 5 à 10
-  const [maxPlayerHp] = useState(10); // HP max - CHANGÉ de 5 à 10
+  const [playerHp, setPlayerHp] = useState(10); // HP du joueur
+  const [maxPlayerHp] = useState(10); // HP max
   const [lastDamageTime, setLastDamageTime] = useState(0); // Pour éviter les dégâts répétés
   
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
@@ -84,6 +87,29 @@ const Block: React.FC<BlockProps> = () => {
     setLastDamageTime(0);
   };
 
+  // Vérifier si un niveau est déverrouillé
+  const isLevelUnlocked = (level: number) => {
+    if (level === 1) return true; // Le niveau 1 est toujours déverrouillé
+    return completedLevels.includes(level - 1); // Un niveau est déverrouillé si le précédent est terminé
+  };
+
+  // Vérifier la victoire (tous les ennemis morts)
+  useEffect(() => {
+    if (gameState === 'playing' && enemies.length > 0) {
+      const aliveEnemies = enemies.filter(enemy => enemy.isAlive || enemy.isDying);
+      if (aliveEnemies.length === 0) {
+        // Niveau terminé !
+        if (!completedLevels.includes(currentLevel)) {
+          setCompletedLevels(prev => [...prev, currentLevel]);
+        }
+        // Retourner automatiquement au menu des niveaux après 2 secondes
+        setTimeout(() => {
+          returnToLevelSelect();
+        }, 2000);
+      }
+    }
+  }, [enemies, gameState, currentLevel, completedLevels]);
+
   // Mettre à jour la référence à chaque changement de position
   useEffect(() => {
     playerPositionRef.current = position;
@@ -99,11 +125,11 @@ const Block: React.FC<BlockProps> = () => {
     enemiesRef.current = enemies;
   }, [enemies]);
 
-  // Limites de la zone de jeu - Réduction encore plus importante de la zone de déplacement depuis le haut
-  const topLimit = 35; // Augmenté de 30% à 35% pour encore plus réduire la zone de déplacement
-  const bottomLimit = 90; // 10% du bas bloqué (100% - 10% = 90%)
-  const leftLimit = 5; // 5% des côtés pour éviter de sortir
-  const rightLimit = 95; // 95% des côtés
+  // Limites de la zone de jeu
+  const topLimit = 35;
+  const bottomLimit = 90;
+  const leftLimit = 5;
+  const rightLimit = 95;
 
   // Initialisation unique au chargement du composant
   useEffect(() => {
@@ -126,12 +152,12 @@ const Block: React.FC<BlockProps> = () => {
       const initialMushroom: Enemy = {
         id: 1,
         type: 'mushroom',
-        x: 20, // Position initiale différente du joueur
-        y: 70, // Position verticale différente du joueur
-        direction: 3, // Direction droite par défaut
+        x: 20,
+        y: 70,
+        direction: 3,
         currentFrame: 0,
         isAlive: true,
-        hp: 3, // 3 points de vie
+        hp: 3,
         maxHp: 3,
         isDying: false,
         deathFrame: 0,
@@ -150,7 +176,7 @@ const Block: React.FC<BlockProps> = () => {
     
     const walkAnimationInterval = setInterval(() => {
       if (isWalking && !isAttacking) {
-        setCurrentFrame(prev => (prev + 1) % 3); // 3 frames d'animation + 1 frame de repos
+        setCurrentFrame(prev => (prev + 1) % 3);
       }
     }, 150);
 
@@ -167,10 +193,10 @@ const Block: React.FC<BlockProps> = () => {
         
         return {
           ...enemy,
-          currentFrame: (enemy.currentFrame + 1) % 3 // Animation continue pour les ennemis vivants
+          currentFrame: (enemy.currentFrame + 1) % 3
         };
       }));
-    }, 200); // Animation un peu plus lente pour les ennemis
+    }, 200);
 
     return () => clearInterval(enemyAnimationInterval);
   }, [gameState]);
@@ -186,7 +212,6 @@ const Block: React.FC<BlockProps> = () => {
         const nextFrame = enemy.attackFrame + 1;
         
         if (nextFrame >= 8) {
-          // Animation d'attaque terminée
           return {
             ...enemy,
             isAttacking: false,
@@ -195,7 +220,6 @@ const Block: React.FC<BlockProps> = () => {
           };
         }
         
-        // Vérifier les dégâts au joueur à la frame 4 (milieu de l'attaque)
         if (nextFrame === 4) {
           checkEnemyAttackHit(enemy);
         }
@@ -205,12 +229,12 @@ const Block: React.FC<BlockProps> = () => {
           attackFrame: nextFrame
         };
       }));
-    }, 100); // Animation d'attaque rapide
+    }, 100);
 
     return () => clearInterval(enemyAttackAnimationInterval);
   }, [gameState]);
 
-  // Animation de mort des ennemis - CORRIGÉE pour utiliser les frames 2,3,4,5
+  // Animation de mort des ennemis
   useEffect(() => {
     if (gameState !== 'playing') return;
     
@@ -221,7 +245,6 @@ const Block: React.FC<BlockProps> = () => {
         const nextFrame = enemy.deathFrame + 1;
         
         if (nextFrame >= 4) {
-          // Animation terminée après 4 frames (2,3,4,5), supprimer l'ennemi
           return { ...enemy, isAlive: false, isDying: false };
         }
         
@@ -230,7 +253,7 @@ const Block: React.FC<BlockProps> = () => {
           deathFrame: nextFrame
         };
       }));
-    }, 150); // Animation de mort à 150ms par frame
+    }, 150);
 
     return () => clearInterval(deathAnimationInterval);
   }, [gameState]);
@@ -241,12 +264,12 @@ const Block: React.FC<BlockProps> = () => {
     
     const cleanupInterval = setInterval(() => {
       setEnemies(prev => prev.filter(enemy => enemy.isAlive));
-    }, 1000); // Nettoyer toutes les secondes
+    }, 1000);
 
     return () => clearInterval(cleanupInterval);
   }, [gameState]);
 
-  // Fonction de collision entre deux entités - DISTANCE RÉDUITE
+  // Fonction de collision entre deux entités
   const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 3) => {
     const deltaX = pos1.x - pos2.x;
     const deltaY = pos1.y - pos2.y;
@@ -254,36 +277,33 @@ const Block: React.FC<BlockProps> = () => {
     return distance < minDistance;
   };
 
-  // Fonction pour vérifier les dégâts de l'ennemi au joueur - PORTÉE AJUSTÉE
+  // Fonction pour vérifier les dégâts de l'ennemi au joueur
   const checkEnemyAttackHit = (enemy: Enemy) => {
     const currentPlayerPos = playerPositionRef.current;
     const currentTime = Date.now();
     
-    // Éviter les dégâts répétés (cooldown de 1 seconde)
     if (currentTime - lastDamageTime < 1000) return;
     
-    // Calculer la distance
     const deltaX = currentPlayerPos.x - enemy.x;
     const deltaY = currentPlayerPos.y - enemy.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     
-    // Vérifier si le joueur est dans la portée d'attaque de l'ennemi - AUGMENTÉE
-    const attackRange = 6; // Augmenté de 6 à 8 pour correspondre à la distance d'arrêt
+    const attackRange = 6;
     if (distance <= attackRange) {
-      setPlayerHp(prev => Math.max(0, prev - 1)); // Infliger 1 dégât
+      setPlayerHp(prev => Math.max(0, prev - 1));
       setLastDamageTime(currentTime);
     }
   };
 
-  // Fonction pour calculer l'état d'un cœur (NOUVELLE FONCTION)
+  // Fonction pour calculer l'état d'un cœur
   const getHeartState = (heartIndex: number, currentHp: number) => {
     const hpForThisHeart = currentHp - (heartIndex * 2);
-    if (hpForThisHeart >= 2) return 0; // Cœur plein (index 0)
-    if (hpForThisHeart === 1) return 1; // Cœur à moitié (index 1)
-    return 2; // Cœur vide (index 2)
+    if (hpForThisHeart >= 2) return 0;
+    if (hpForThisHeart === 1) return 1;
+    return 2;
   };
 
-  // Mouvement des ennemis avec collision et IA d'attaque - DISTANCES AJUSTÉES
+  // Mouvement des ennemis avec collision et IA d'attaque
   useEffect(() => {
     if (gameState !== 'playing') return;
     
@@ -300,39 +320,32 @@ const Block: React.FC<BlockProps> = () => {
         if (enemy.type === 'mushroom') {
           const currentPlayerPos = playerPositionRef.current;
           
-          // Calculer la distance vers le joueur
           const deltaX = currentPlayerPos.x - enemy.x;
           const deltaY = currentPlayerPos.y - enemy.y;
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
-          // Distance d'attaque et de collision AJUSTÉES
-          const attackDistance = 4; // Réduit de 8 à 6 pour se rapprocher avant d'attaquer
-          const collisionDistance = 3; // Réduit de 4 à 3 pour moins d'espace visuel
+          const attackDistance = 4;
+          const collisionDistance = 3;
           const currentTime = Date.now();
           
-          // Vérifier si on doit attaquer (cooldown de 2 secondes)
           if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 2000) {
             shouldAttack = true;
-            // Orienter vers le joueur pour l'attaque
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
-              newDirection = deltaX > 0 ? 3 : 2; // Droite ou gauche
+              newDirection = deltaX > 0 ? 3 : 2;
             } else {
-              newDirection = deltaY > 0 ? 0 : 1; // Bas ou haut
+              newDirection = deltaY > 0 ? 0 : 1;
             }
           } else if (distance > collisionDistance && !shouldAttack) {
-            // Se déplacer vers le joueur seulement si pas de collision
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
             const potentialX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
             const potentialY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
             
-            // Vérifier la collision avec la nouvelle position
             if (!checkCollision({x: potentialX, y: potentialY}, currentPlayerPos, collisionDistance)) {
               newX = potentialX;
               newY = potentialY;
               
-              // Déterminer la direction du sprite
               if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 newDirection = deltaX > 0 ? 3 : 2;
               } else {
@@ -365,25 +378,20 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(enemyMovementInterval);
   }, [gameState]);
 
-  // Animation d'attaque simple : image 3 → image 4 → fin
+  // Animation d'attaque simple
   useEffect(() => {
     if (gameState !== 'playing') return;
     
     if (isAttacking) {
-      // Commencer par l'image 3 (index 2)
       setAttackFrame(2);
       
-      // Passer à l'image 4 (index 3) après 120ms
       const step1 = setTimeout(() => {
         setAttackFrame(3);
       }, 120);
       
-      // Terminer l'attaque après 240ms total
       const step2 = setTimeout(() => {
         setIsAttacking(false);
         setAttackFrame(0);
-        
-        // Vérifier les ennemis touchés par l'attaque
         checkAttackHit();
       }, 240);
 
@@ -394,65 +402,48 @@ const Block: React.FC<BlockProps> = () => {
     }
   }, [isAttacking, gameState]);
 
-  // Fonction pour vérifier si l'ennemi est dans l'arc d'attaque de 180° (AMÉLIORÉE)
+  // Fonction pour vérifier si l'ennemi est dans l'arc d'attaque de 180°
   const isEnemyInAttackDirection = (playerX: number, playerY: number, enemyX: number, enemyY: number, playerDirection: number) => {
     const deltaX = enemyX - playerX;
     const deltaY = enemyY - playerY;
     
-    // Calculer l'angle vers l'ennemi en radians
     const angleToEnemy = Math.atan2(deltaY, deltaX);
     
-    // Définir l'angle de base selon la direction du personnage
     let baseAngle;
     switch (playerDirection) {
-      case 0: // Bas
-        baseAngle = Math.PI / 2; // 90°
-        break;
-      case 1: // Haut
-        baseAngle = -Math.PI / 2; // -90°
-        break;
-      case 2: // Gauche
-        baseAngle = Math.PI; // 180°
-        break;
-      case 3: // Droite
-        baseAngle = 0; // 0°
-        break;
-      default:
-        return false;
+      case 0: baseAngle = Math.PI / 2; break;
+      case 1: baseAngle = -Math.PI / 2; break;
+      case 2: baseAngle = Math.PI; break;
+      case 3: baseAngle = 0; break;
+      default: return false;
     }
     
-    // Calculer la différence d'angle
     let angleDiff = angleToEnemy - baseAngle;
     
-    // Normaliser l'angle entre -π et π
     while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
     while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
     
-    // Vérifier si l'ennemi est dans l'arc de 180° (±90°)
-    const halfArcAngle = Math.PI / 2; // 90° de chaque côté = 180° total
+    const halfArcAngle = Math.PI / 2;
     return Math.abs(angleDiff) <= halfArcAngle;
   };
 
-  // Fonction pour vérifier si l'attaque touche un ennemi (AVEC ARC DE 180°)
+  // Fonction pour vérifier si l'attaque touche un ennemi
   const checkAttackHit = () => {
-    const attackRange = 8; // Portée de l'attaque
+    const attackRange = 8;
     const currentPlayerPos = playerPositionRef.current;
     const currentPlayerDirection = playerDirectionRef.current;
     
     setEnemies(prev => prev.map(enemy => {
       if (!enemy.isAlive || enemy.isDying) return enemy;
       
-      // Calculer la distance entre le joueur et l'ennemi
       const deltaX = currentPlayerPos.x - enemy.x;
       const deltaY = currentPlayerPos.y - enemy.y;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       
-      // Vérifier si l'ennemi est dans la portée ET dans l'arc d'attaque de 180°
       if (distance <= attackRange && isEnemyInAttackDirection(currentPlayerPos.x, currentPlayerPos.y, enemy.x, enemy.y, currentPlayerDirection)) {
-        const newHp = enemy.hp - 1; // Infliger 1 point de dégât
+        const newHp = enemy.hp - 1;
         
         if (newHp <= 0) {
-          // Déclencher l'animation de mort
           return {
             ...enemy,
             hp: 0,
@@ -471,7 +462,7 @@ const Block: React.FC<BlockProps> = () => {
     }));
   };
 
-  // Gestion du mouvement avec limites et collision avec les ennemis - COLLISION RÉDUITE
+  // Gestion du mouvement avec limites et collision avec les ennemis
   useEffect(() => {
     if (gameState !== 'playing') return;
     
@@ -481,38 +472,35 @@ const Block: React.FC<BlockProps> = () => {
         setPosition(prev => {
           let newX = prev.x;
           let newY = prev.y;
-          const speed = 0.5; // Vitesse de déplacement en %
+          const speed = 0.5;
 
           if (keys.up) {
-            newY = Math.max(topLimit, prev.y - speed); // Limite haute à 35%
-            setDirection(1); // Direction haut dans votre sprite
+            newY = Math.max(topLimit, prev.y - speed);
+            setDirection(1);
           }
           if (keys.down) {
-            newY = Math.min(bottomLimit, prev.y + speed); // Limite basse à 90%
-            setDirection(0); // Direction bas (première ligne)
+            newY = Math.min(bottomLimit, prev.y + speed);
+            setDirection(0);
           }
           if (keys.left) {
-            newX = Math.max(leftLimit, prev.x - speed); // Limite gauche à 5%
-            setDirection(2); // Direction gauche dans votre sprite
+            newX = Math.max(leftLimit, prev.x - speed);
+            setDirection(2);
           }
           if (keys.right) {
-            newX = Math.min(rightLimit, prev.x + speed); // Limite droite à 95%
-            setDirection(3); // Direction droite dans votre sprite
+            newX = Math.min(rightLimit, prev.x + speed);
+            setDirection(3);
           }
 
-          // Vérifier les collisions avec les ennemis en utilisant la référence - DISTANCE RÉDUITE
           const potentialPos = { x: newX, y: newY };
-          const collisionDistance = 3; // Réduit de 4 à 3
+          const collisionDistance = 3;
           let hasCollision = false;
           
-          // Utiliser enemiesRef.current au lieu de enemies
           enemiesRef.current.forEach(enemy => {
             if (enemy.isAlive && !enemy.isDying && checkCollision(potentialPos, { x: enemy.x, y: enemy.y }, collisionDistance)) {
               hasCollision = true;
             }
           });
           
-          // Si collision, ne pas bouger
           if (hasCollision) {
             return prev;
           }
@@ -521,9 +509,9 @@ const Block: React.FC<BlockProps> = () => {
         });
       } else {
         setIsWalking(false);
-        setCurrentFrame(1); // Frame de repos (milieu)
+        setCurrentFrame(1);
       }
-    }, 16); // ~60 FPS
+    }, 16);
 
     return () => clearInterval(moveInterval);
   }, [keys, topLimit, bottomLimit, leftLimit, rightLimit, isAttacking, gameState]);
@@ -536,14 +524,12 @@ const Block: React.FC<BlockProps> = () => {
       event.preventDefault();
       const key = event.key.toLowerCase();
       
-      // Gestion de l'attaque
       if (key === ' ' && !isAttacking) {
         setIsAttacking(true);
         setIsWalking(false);
         return;
       }
       
-      // Gestion du retour au menu avec Escape
       if (key === 'escape') {
         returnToLevelSelect();
         return;
@@ -595,38 +581,38 @@ const Block: React.FC<BlockProps> = () => {
   const menuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1RzUqegcgPQH2S-Rd5dVIgxRG59NHVjSi&sz=w2000';
   const playButtonUrl = 'https://drive.google.com/thumbnail?id=1kOu9XlhpCc1p7GPqdZuDosBc7OyH3t9k&sz=w500';
   
-  // URLs pour le menu des niveaux - MISE À JOUR
+  // URLs pour le menu des niveaux - NOUVELLES IMAGES
   const levelMenuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1WcBQAkpbUXuhwcTAzu-G2xKwU6pkotyc&sz=w1000';
-  const level1ButtonUrl = 'https://drive.google.com/thumbnail?id=1W_Wi6_CQ3zo-5nI31qRIkm9ZsCPpNu3p&sz=w500'; // NOUVELLE URL du bouton niveau 1
+  const level1ButtonUrl = 'https://drive.google.com/thumbnail?id=1W_Wi6_CQ3zo-5nI31qRIkm9ZsCPpNu3p&sz=w500';
+  const level2ButtonUrl = 'https://drive.google.com/thumbnail?id=1gGMkrpQ7t10YxG16q0PNx7yyV7QEekyG&sz=w500'; // Niveau 2 grisé
+  const level3ButtonUrl = 'https://drive.google.com/thumbnail?id=18oZ0B_hXP89joEFxUb0lDMu7K1oif2s3&sz=w500'; // Niveau 3 grisé
 
   // Configuration du sprite
   const spriteWidth = 32;
   const spriteHeight = 32;
-  const walkFramesPerRow = 4; // 4 frames pour la marche
-  const attackFramesPerRow = 8; // 8 frames pour l'attaque
-  const deathFramesPerRow = 9; // 9 frames pour l'animation de mort
-  const spriteScale = 3.5; // Taille ajustée à 3.5
+  const walkFramesPerRow = 4;
+  const attackFramesPerRow = 8;
+  const deathFramesPerRow = 9;
+  const spriteScale = 3.5;
   
   // Configuration des cœurs
-  const heartSize = 32; // Taille d'un cœur dans le sprite sheet
-  const heartScale = 1.5; // Échelle d'affichage des cœurs
+  const heartSize = 32;
+  const heartScale = 1.5;
   
-  // Calcul de la position dans le sprite sheet (seulement si en jeu)
+  // Calcul de la position dans le sprite sheet
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
   
   if (gameState === 'playing') {
     if (isAttacking) {
-      // Utiliser les images 3 et 4 (index 2 et 3) pour l'animation d'attaque
       spriteX = attackFrame * spriteWidth;
       spriteY = direction * spriteHeight;
       currentSpriteUrl = attackSpriteSheetUrl;
-      backgroundSizeX = spriteWidth * attackFramesPerRow * spriteScale; // 8 images par ligne
+      backgroundSizeX = spriteWidth * attackFramesPerRow * spriteScale;
     } else {
-      // Utiliser le sprite de marche
       spriteX = currentFrame * spriteWidth;
       spriteY = direction * spriteHeight;
       currentSpriteUrl = walkSpriteSheetUrl;
-      backgroundSizeX = spriteWidth * walkFramesPerRow * spriteScale; // 4 images par ligne
+      backgroundSizeX = spriteWidth * walkFramesPerRow * spriteScale;
     }
   }
 
@@ -652,22 +638,29 @@ const Block: React.FC<BlockProps> = () => {
     startGame(1);
   };
 
+  const handleLevel2ButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    if (isLevelUnlocked(2)) {
+      startGame(2);
+    }
+  };
+
+  const handleLevel3ButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    if (isLevelUnlocked(3)) {
+      startGame(3);
+    }
+  };
+
   // Fonctions pour gérer le hover des boutons
-  const handlePlayButtonMouseEnter = () => {
-    setIsPlayButtonHovered(true);
-  };
-
-  const handlePlayButtonMouseLeave = () => {
-    setIsPlayButtonHovered(false);
-  };
-
-  const handleLevel1ButtonMouseEnter = () => {
-    setIsLevel1ButtonHovered(true);
-  };
-
-  const handleLevel1ButtonMouseLeave = () => {
-    setIsLevel1ButtonHovered(false);
-  };
+  const handlePlayButtonMouseEnter = () => setIsPlayButtonHovered(true);
+  const handlePlayButtonMouseLeave = () => setIsPlayButtonHovered(false);
+  const handleLevel1ButtonMouseEnter = () => setIsLevel1ButtonHovered(true);
+  const handleLevel1ButtonMouseLeave = () => setIsLevel1ButtonHovered(false);
+  const handleLevel2ButtonMouseEnter = () => setIsLevel2ButtonHovered(true);
+  const handleLevel2ButtonMouseLeave = () => setIsLevel2ButtonHovered(false);
+  const handleLevel3ButtonMouseEnter = () => setIsLevel3ButtonHovered(true);
+  const handleLevel3ButtonMouseLeave = () => setIsLevel3ButtonHovered(false);
 
   // Rendu du menu d'accueil
   if (gameState === 'menu') {
@@ -714,7 +707,7 @@ const Block: React.FC<BlockProps> = () => {
     );
   }
 
-  // Rendu du menu de sélection de niveau - HAUTEUR RÉDUITE DE 10% ET NOUVEAU BOUTON
+  // Rendu du menu de sélection de niveau - MENU ÉLARGI ET BOUTONS AGRANDIS x2
   if (gameState === 'levelSelect') {
     return (
       <div 
@@ -731,15 +724,15 @@ const Block: React.FC<BlockProps> = () => {
           backgroundColor: '#1a1a1a'
         }}
       >
-        {/* Rectangle background du menu des niveaux - HAUTEUR RÉDUITE DE 10% */}
+        {/* Rectangle background du menu des niveaux - ÉLARGI */}
         <div
           style={{
             position: 'absolute',
             left: '50%',
             top: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '600px',
-            height: '360px', // Réduit de 400px à 360px (10% de réduction)
+            width: '800px', // Élargi de 600px à 800px
+            height: '360px',
             backgroundImage: `url(${levelMenuBackgroundUrl})`,
             backgroundSize: 'contain',
             backgroundPosition: 'center',
@@ -747,15 +740,15 @@ const Block: React.FC<BlockProps> = () => {
             zIndex: 5
           }}
         >
-          {/* Bouton Niveau 1 - NOUVELLE IMAGE ET DÉCALAGE VERS LA DROITE */}
+          {/* Bouton Niveau 1 - AGRANDI x2 */}
           <div
             style={{
               position: 'absolute',
-              left: '35%', // Décalé vers la droite de 25% à 35%
+              left: '20%',
               top: '50%',
-              transform: `translate(-50%, -50%) scale(${isLevel1ButtonHovered ? 1.1 : 1})`,
-              width: '100px', // Taille adaptée à votre image
-              height: '50px', // Taille adaptée à votre image
+              transform: `translate(-50%, -50%) scale(${isLevel1ButtonHovered ? 2.2 : 2})`, // x2 au lieu de 1
+              width: '100px',
+              height: '50px',
               backgroundImage: `url(${level1ButtonUrl})`,
               backgroundSize: 'contain',
               backgroundPosition: 'center',
@@ -771,6 +764,79 @@ const Block: React.FC<BlockProps> = () => {
             onMouseEnter={handleLevel1ButtonMouseEnter}
             onMouseLeave={handleLevel1ButtonMouseLeave}
           />
+
+          {/* Bouton Niveau 2 - AGRANDI x2 ET GRISÉ SI VERROUILLÉ */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: `translate(-50%, -50%) scale(${isLevel2ButtonHovered && isLevelUnlocked(2) ? 2.2 : 2})`,
+              width: '100px',
+              height: '50px',
+              backgroundImage: `url(${level2ButtonUrl})`,
+              backgroundSize: 'contain',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              cursor: isLevelUnlocked(2) ? 'pointer' : 'not-allowed',
+              transition: 'all 0.2s ease',
+              filter: isLevelUnlocked(2) ? 
+                (isLevel2ButtonHovered ? 
+                  'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
+                  'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))') :
+                'brightness(0.5) grayscale(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
+              opacity: isLevelUnlocked(2) ? 1 : 0.6,
+              zIndex: 10
+            }}
+            onClick={handleLevel2ButtonClick}
+            onMouseEnter={handleLevel2ButtonMouseEnter}
+            onMouseLeave={handleLevel2ButtonMouseLeave}
+          />
+
+          {/* Bouton Niveau 3 - AGRANDI x2 ET GRISÉ SI VERROUILLÉ */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '80%',
+              top: '50%',
+              transform: `translate(-50%, -50%) scale(${isLevel3ButtonHovered && isLevelUnlocked(3) ? 2.2 : 2})`,
+              width: '100px',
+              height: '50px',
+              backgroundImage: `url(${level3ButtonUrl})`,
+              backgroundSize: 'contain',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              cursor: isLevelUnlocked(3) ? 'pointer' : 'not-allowed',
+              transition: 'all 0.2s ease',
+              filter: isLevelUnlocked(3) ? 
+                (isLevel3ButtonHovered ? 
+                  'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
+                  'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))') :
+                'brightness(0.5) grayscale(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
+              opacity: isLevelUnlocked(3) ? 1 : 0.6,
+              zIndex: 10
+            }}
+            onClick={handleLevel3ButtonClick}
+            onMouseEnter={handleLevel3ButtonMouseEnter}
+            onMouseLeave={handleLevel3ButtonMouseLeave}
+          />
+
+          {/* Indicateur de progression */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+              textAlign: 'center'
+            }}
+          >
+            Niveaux terminés: {completedLevels.length}/3
+          </div>
 
           {/* Bouton Retour */}
           <div
@@ -806,7 +872,7 @@ const Block: React.FC<BlockProps> = () => {
     );
   }
 
-  // Rendu du jeu (code existant inchangé)
+  // Rendu du jeu
   return (
     <div 
       style={{
@@ -958,6 +1024,30 @@ const Block: React.FC<BlockProps> = () => {
           </div>
         );
       })}
+
+      {/* Message de victoire */}
+      {gameState === 'playing' && enemies.length > 0 && enemies.filter(e => e.isAlive || e.isDying).length === 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: 'rgba(0, 255, 0, 0.9)',
+          color: 'white',
+          padding: '30px',
+          borderRadius: '15px',
+          textAlign: 'center',
+          fontSize: '24px',
+          fontWeight: 'bold',
+          zIndex: 100
+        }}>
+          🎉 NIVEAU {currentLevel} TERMINÉ ! 🎉
+          <br />
+          <span style={{ fontSize: '16px' }}>
+            Retour au menu des niveaux...
+          </span>
+        </div>
+      )}
 
       {/* Instructions de contrôle */}
       <div style={{

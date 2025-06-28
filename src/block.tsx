@@ -367,40 +367,41 @@ const Block: React.FC<BlockProps> = () => {
     return () => clearInterval(enemyAnimationInterval);
   }, [gameState]);
 
-  // Animation d'attaque des ennemis
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-    
-    const enemyAttackAnimationInterval = setInterval(() => {
-      setEnemies(prev => prev.map(enemy => {
-        if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
-        
-        const nextFrame = enemy.attackFrame + 1;
-        
-        const maxAttackFrames = enemy.type === 'treant' ? 7 : 8;
-        if (nextFrame >= maxAttackFrames) {
-          return {
-            ...enemy,
-            isAttacking: false,
-            attackFrame: 0,
-            lastAttackTime: Date.now()
-          };
-        }
-        
-        const maxDeathFrames = enemy.type === 'treant' ? 6 : 4;
-        if (nextFrame >= maxDeathFrames) {
-          checkEnemyAttackHit(enemy);
-        }
-        
+ // Animation d'attaque des ennemis
+useEffect(() => {
+  if (gameState !== 'playing') return;
+  
+  const enemyAttackAnimationInterval = setInterval(() => {
+    setEnemies(prev => prev.map(enemy => {
+      if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
+      
+      const nextFrame = enemy.attackFrame + 1;
+      
+      const maxAttackFrames = enemy.type === 'treant' ? 7 : 8;
+      if (nextFrame >= maxAttackFrames) {
         return {
           ...enemy,
-          attackFrame: nextFrame
+          isAttacking: false,
+          attackFrame: 0,
+          lastAttackTime: Date.now()
         };
-      }));
-    }, 100);
+      }
+      
+      // Infliger des dégâts seulement à la frame d'impact spécifique
+      const impactFrame = enemy.type === 'treant' ? 4 : 5; // Frame d'impact pour chaque type
+      if (nextFrame === impactFrame) {
+        checkEnemyAttackHit(enemy);
+      }
+      
+      return {
+        ...enemy,
+        attackFrame: nextFrame
+      };
+    }));
+  }, 100);
 
-    return () => clearInterval(enemyAttackAnimationInterval);
-  }, [gameState]);
+  return () => clearInterval(enemyAttackAnimationInterval);
+}, [gameState]);
 
   // Animation de mort des ennemis
   useEffect(() => {

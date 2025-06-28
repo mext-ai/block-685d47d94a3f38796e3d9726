@@ -1271,7 +1271,7 @@ const Block: React.FC<BlockProps> = () => {
     <div style={{ 
   display: 'flex', 
   gap: '30px', 
-  marginTop: '100px',
+  marginTop: "25%",
   flexWrap: 'wrap',
   justifyContent: 'center'
 }}>

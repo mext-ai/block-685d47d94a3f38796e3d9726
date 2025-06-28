@@ -217,22 +217,19 @@ const Block: React.FC<BlockProps> = () => {
     return enemies;
   };
 
-  // Vérifier la victoire (tous les ennemis morts)
-  useEffect(() => {
-    if (gameState === 'playing' && enemies.length > 0) {
-      const aliveEnemies = enemies.filter(enemy => enemy.isAlive || enemy.isDying);
-      if (aliveEnemies.length === 0) {
-        // Niveau terminé !
-        if (!completedLevels.includes(currentLevel)) {
-          setCompletedLevels(prev => [...prev, currentLevel]);
-        }
-        // Retourner automatiquement au menu des niveaux après 2 secondes
-        setTimeout(() => {
-          returnToLevelSelect();
-        }, 2000);
+ // Vérifier la victoire (tous les ennemis morts) - NOUVEAU SYSTÈME
+useEffect(() => {
+  if (gameState === 'playing' && enemies.length > 0) {
+    const aliveEnemies = enemies.filter(enemy => enemy.isAlive || enemy.isDying);
+    if (aliveEnemies.length === 0) {
+      // Niveau terminé !
+      if (!completedLevels.includes(currentLevel)) {
+        setCompletedLevels(prev => [...prev, currentLevel]);
       }
+      // Ne plus retourner automatiquement - laisser le menu de victoire
     }
-  }, [enemies, gameState, currentLevel, completedLevels]);
+  }
+}, [enemies, gameState, currentLevel, completedLevels]);
 
   // Mettre à jour la référence à chaque changement de position
   useEffect(() => {
@@ -746,6 +743,7 @@ const Block: React.FC<BlockProps> = () => {
   // URLs pour les nouvelles images de contrôles - AJOUT DES NOUVELLES IMAGES
   const spaceKeyImageUrl = 'https://drive.google.com/thumbnail?id=1dWJOlKIPoA2l_pn5msc8VtImFRwGADf0&sz=w500'; // Image touche espace
   const arrowKeysImageUrl = 'https://drive.google.com/thumbnail?id=1cijWsirQs9sAyTNFtXXubQ_DN6Vqjraj&sz=w500'; // Image flèches directionnelles
+  const nextLevelButtonUrl = 'https://drive.google.com/thumbnail?id=1UDa64VfIOZJgg4oCDfziCvftGkFRZ8dz&sz=w500'; // ← NOUVEAU
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -1212,18 +1210,19 @@ const Block: React.FC<BlockProps> = () => {
         );
       })}
 
-    {/* Message de victoire */}
+{/* Message de victoire - NOUVEAU MENU IDENTIQUE AU GAME OVER */}
 {gameState === 'playing' && enemies.length > 0 && enemies.filter(e => e.isAlive || e.isDying).length === 0 && (
   <div style={{
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: `${Math.max(400, windowSize.width * 0.4)}px`,
-    height: `${Math.max(300, windowSize.height * 0.3)}px`,
-    backgroundImage: `url(https://drive.google.com/thumbnail?id=1cMdqOupNWB-eIM1VFCVvvNfUsJkvinS7&sz=w1000)`,
+    width: `${Math.max(500, windowSize.width * 0.5)}px`,
+    height: `${Math.max(400, windowSize.height * 0.4)}px`,
+    backgroundImage: `url(https://drive.google.com/thumbnail?id=1cMdqOupNWB-eIM1VFCVvvNfUsJkvinS7&sz=w1000)`, // Image de victoire
     backgroundSize: 'cover',
     backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
     color: 'gold',
     padding: '30px',
     borderRadius: '15px',
@@ -1236,11 +1235,56 @@ const Block: React.FC<BlockProps> = () => {
     justifyContent: 'center',
     alignItems: 'center'
   }}>
-    🎉 NIVEAU {currentLevel} TERMINÉ ! 🎉
-    <br />
-    <span style={{ fontSize: `${Math.max(16, windowSize.width * 0.015)}px`, color: 'white' }}>
-      Retour au menu des niveaux...
-    </span>
+    <div style={{ 
+      display: 'flex', 
+      gap: '30px', 
+      marginTop: "25%",
+      flexWrap: 'wrap',
+      justifyContent: 'center'
+    }}>
+      {/* Bouton Next Level (incliquable pour l'instant) */}
+      <div
+        style={{
+          width: `${Math.max(80, windowSize.width * 0.06)}px`,
+          height: `${Math.max(80, windowSize.width * 0.06)}px`,
+          backgroundImage: `url(${nextLevelButtonUrl})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          cursor: 'not-allowed', // ← Curseur "interdit" pour montrer que c'est incliquable
+          transition: 'all 0.2s ease',
+          filter: 'brightness(0.7) drop-shadow(0 0 5px rgba(0,0,0,0.3))', // ← Plus sombre pour montrer qu'il est inactif
+          transform: 'scale(1)',
+          opacity: 0.7 // ← Semi-transparent pour montrer qu'il est inactif
+        }}
+        // Pas de onClick pour l'instant
+      />
+      
+      {/* Bouton Retour aux niveaux */}
+      <div
+        onClick={returnToLevelSelect}
+        style={{
+          width: `${Math.max(80, windowSize.width * 0.06)}px`,
+          height: `${Math.max(80, windowSize.width * 0.06)}px`,
+          backgroundImage: `url(${backToLevelsButtonUrl})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+          transform: 'scale(1)'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1)';
+          e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
+        }}
+      />
+    </div>
   </div>
 )}
 

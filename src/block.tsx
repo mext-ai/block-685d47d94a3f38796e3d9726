@@ -756,7 +756,8 @@ const Block: React.FC<BlockProps> = () => {
 
   // URL pour le compteur d'ennemis - NOUVEAU
   const skullImageUrl = 'https://drive.google.com/thumbnail?id=1Dp4dPzMEZKN-cuMdcXU8c9WrdLpOWmjD&sz=w500';
-
+  const woodFrameImageUrl = 'https://drive.google.com/uc?export=view&id=1ReBlJh1wSzADiby_PFaaj69P4gz2-y4a';
+  
   // Configuration du sprite
   const spriteWidth = 32;
   const spriteHeight = 32;
@@ -1077,47 +1078,50 @@ const Block: React.FC<BlockProps> = () => {
         })}
       </div>
 
-      {/* Compteur d'ennemis restants - NOUVEAU */}
-      {gameState === 'playing' && (
-        <div style={{
-          position: 'absolute',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          zIndex: 20,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          padding: '8px 16px',
-          borderRadius: '25px',
-          border: '2px solid #8B4513'
-        }}>
-          {/* Image du crâne */}
-          <div style={{
-            width: `${skullSize}px`,
-            height: `${skullSize}px`,
-            backgroundImage: `url(${skullImageUrl})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.8))'
-          }} />
-          
-          {/* Nombre d'ennemis restants */}
-          <div style={{
-            color: '#FF6B6B',
-            fontSize: `${Math.max(18, windowSize.width * 0.015)}px`,
-            fontWeight: 'bold',
-            fontFamily: 'Arial, sans-serif',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-            minWidth: '20px',
-            textAlign: 'center'
-          }}>
-            {remainingEnemies}
-          </div>
-        </div>
-      )}
+      {/* Compteur d'ennemis restants - MODIFIÉ */}
+{gameState === 'playing' && (
+  <div style={{
+    position: 'absolute',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    zIndex: 20,
+    backgroundImage: `url(${woodFrameImageUrl})`,
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    padding: '12px 20px',
+    minWidth: '80px',
+    minHeight: '50px'
+  }}>
+    {/* Nombre d'ennemis restants - MAINTENANT À GAUCHE */}
+    <div style={{
+      color: '#8B4513',
+      fontSize: `${Math.max(20, windowSize.width * 0.018)}px`,
+      fontWeight: 'bold',
+      fontFamily: 'Comic Sans MS, cursive, Arial, sans-serif',
+      textShadow: '2px 2px 0px #FFFFFF, -1px -1px 0px #FFFFFF, 1px -1px 0px #FFFFFF, -1px 1px 0px #FFFFFF',
+      minWidth: '25px',
+      textAlign: 'center'
+    }}>
+      {remainingEnemies}
+    </div>
+    
+    {/* Image du crâne - MAINTENANT À DROITE */}
+    <div style={{
+      width: `${skullSize}px`,
+      height: `${skullSize}px`,
+      backgroundImage: `url(${skullImageUrl})`,
+      backgroundSize: 'contain',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.8))'
+    }} />
+  </div>
+)}
 
       {/* NOUVEAU : Contrôles en haut à gauche avec vos images */}
       <div style={{

@@ -1213,66 +1213,101 @@ const Block: React.FC<BlockProps> = () => {
       })}
 
       {/* Message de victoire */}
-      {gameState === 'playing' && enemies.length > 0 && enemies.filter(e => e.isAlive || e.isDying).length === 0 && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          backgroundColor: 'rgba(0, 255, 0, 0.9)',
-          color: 'white',
-          padding: '30px',
-          borderRadius: '15px',
-          textAlign: 'center',
-          fontSize: '24px',
-          fontWeight: 'bold',
-          zIndex: 100
-        }}>
-          🎉 NIVEAU {currentLevel} TERMINÉ ! 🎉
-          <br />
-          <span style={{ fontSize: '16px' }}>
-            Retour au menu des niveaux...
-          </span>
-        </div>
-      )}
+    {gameState === 'playing' && enemies.length > 0 && enemies.filter(e => e.isAlive || e.isDying).length === 0 && (
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: `${Math.max(400, windowSize.width * 0.4)}px`,
+        height: `${Math.max(300, windowSize.height * 0.3)}px`,
+        backgroundImage: `url(https://drive.google.com/thumbnail?id=1cMdqOupNWB-eIM1VFCVvvNfUsJkvinS7&sz=w1000)`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        color: 'gold',
+        padding: '30px',
+        borderRadius: '15px',
+        textAlign: 'center',
+        fontSize: `${Math.max(24, windowSize.width * 0.02)}px`,
+        fontWeight: 'bold',
+        zIndex: 100,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+    🎉 NIVEAU {currentLevel} TERMINÉ ! 🎉
+    <br />
+    <span style={{ fontSize: `${Math.max(16, windowSize.width * 0.015)}px`, color: 'white' }}>
+      Retour au menu des niveaux...
+    </span>
+  </div>
+)}
 
-      {playerHp <= 0 && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          backgroundImage: `url(https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000)`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          color: 'red',
-          padding: '30px',
-          borderRadius: '15px',
-          textAlign: 'center',
-          fontSize: '24px',
-          fontWeight: 'bold',
-          zIndex: 100
-        }}>
-         
-       
-          <br />
-          <button
-            onClick={returnToLevelSelect}
-            style={{
-              marginTop: '20px',
-              padding: '10px 20px',
-              fontSize: '16px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            Retour aux niveaux
-          </button>
-        </div>
-      )}
+      {/* Game Over */}
+{playerHp <= 0 && (
+  <div style={{
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: `${Math.max(400, windowSize.width * 0.4)}px`,
+    height: `${Math.max(300, windowSize.height * 0.3)}px`,
+    backgroundImage: `url(https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000)`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    color: 'red',
+    padding: '30px',
+    borderRadius: '15px',
+    textAlign: 'center',
+    fontSize: `${Math.max(24, windowSize.width * 0.02)}px`,
+    fontWeight: 'bold',
+    zIndex: 100,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }}>
+    <div style={{ 
+      display: 'flex', 
+      gap: '20px', 
+      marginTop: '20px',
+      flexWrap: 'wrap',
+      justifyContent: 'center'
+    }}>
+      <button
+        onClick={() => startGame(currentLevel)}
+        style={{
+          padding: '10px 20px',
+          fontSize: `${Math.max(16, windowSize.width * 0.012)}px`,
+          backgroundColor: '#FF9800',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          minWidth: '120px'
+        }}
+      >
+        🔄 Redémarrer
+      </button>
+      <button
+        onClick={returnToLevelSelect}
+        style={{
+          padding: '10px 20px',
+          fontSize: `${Math.max(16, windowSize.width * 0.012)}px`,
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          minWidth: '120px'
+        }}
+      >
+        📋 Retour aux niveaux
+      </button>
+    </div>
+  </div>
+)}
 
       {/* SUPPRIMÉ : Ancien panneau d'instructions avec background et toutes les infos de debug */}
     </div>

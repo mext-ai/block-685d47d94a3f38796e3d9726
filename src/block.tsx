@@ -1248,15 +1248,15 @@ const Block: React.FC<BlockProps> = () => {
 {playerHp <= 0 && (
   <div style={{
   position: 'absolute',
-  height: `${Math.max(350, windowSize.height * 0.35)}px`,
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: `${Math.max(400, windowSize.width * 0.4)}px`,
-  height: `${Math.max(300, windowSize.height * 0.3)}px`,
+  width: `${Math.max(500, windowSize.width * 0.5)}px`,    // ← Plus large (0.4 → 0.5)
+  height: `${Math.max(400, windowSize.height * 0.4)}px`,  // ← Plus haut (0.35 → 0.4)
   backgroundImage: `url(https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000)`,
-  backgroundSize: 'cover',
+  backgroundSize: 'cover',  // ← Remettre cover
   backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
   color: 'red',
   padding: '30px',
   borderRadius: '15px',
@@ -1266,7 +1266,7 @@ const Block: React.FC<BlockProps> = () => {
   zIndex: 100,
   display: 'flex',
   flexDirection: 'column',
-  justifyContent: 'center',  // ← Centre verticalement tout le contenu
+  justifyContent: 'center',
   alignItems: 'center'
 }}>
     <div style={{ 

@@ -756,7 +756,7 @@ const Block: React.FC<BlockProps> = () => {
 
   // URL pour le compteur d'ennemis - NOUVEAU
   const skullImageUrl = 'https://drive.google.com/thumbnail?id=1Dp4dPzMEZKN-cuMdcXU8c9WrdLpOWmjD&sz=w500';
-  const woodFrameImageUrl = 'https://drive.google.com/uc?export=view&id=1ReBlJh1wSzADiby_PFaaj69P4gz2-y4a';
+  const woodFrameImageUrl = 'https://drive.google.com/thumbnail?id=1ReBlJh1wSzADiby_PFaaj69P4gz2-y4a&sz=w1000'; // AJOUT DU CADRE EN BOIS
   
   // Configuration du sprite
   const spriteWidth = 32;
@@ -1078,7 +1078,7 @@ const Block: React.FC<BlockProps> = () => {
         })}
       </div>
 
-      {/* Compteur d'ennemis restants - MODIFIÉ */}
+     {/* Compteur d'ennemis restants - MODIFIÉ */}
 {gameState === 'playing' && (
   <div style={{
     position: 'absolute',
@@ -1093,9 +1093,9 @@ const Block: React.FC<BlockProps> = () => {
     backgroundSize: 'contain',
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'center',
-    padding: '12px 20px',
+    padding: '4%',
     minWidth: '80px',
-    minHeight: '50px'
+    minHeight: '50px',
   }}>
     {/* Nombre d'ennemis restants - MAINTENANT À GAUCHE */}
     <div style={{

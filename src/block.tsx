@@ -1247,7 +1247,7 @@ useEffect(() => {
         style={{
           width: `${Math.max(80, windowSize.width * 0.06)}px`,
           height: `${Math.max(80, windowSize.width * 0.06)}px`,
-          backgroundImage: `url(${nextLevelButtonUrl})`,
+          backgroundImage: `url(https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500)`,
           backgroundSize: 'contain',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

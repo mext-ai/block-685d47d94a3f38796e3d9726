@@ -1279,10 +1279,12 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
                             style={{
                               position: 'absolute',
                               left: `${enemy.x}%`,
-                              top: `${enemy.y - (enemy.type === 'treant' ? 7 : 5)}%`,
+                              top: `${enemy.y - (enemy.type === 'treant' ? 
+                                Math.max(7, 4 + (treantSpriteScale / 2)) : 
+                                Math.max(5, 3 + (enemySpriteScale / 2)))}%`,
                               transform: 'translateX(-50%)',
                               width: `${(enemy.type === 'treant' ? 40 : 60) * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 3)}px`,
-                              height: `${Math.max(6, (enemy.type === 'treant' ? 8 : 10) * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 4))}px`,
+                              height: `${Math.max(8, (enemy.type === 'treant' ? 10 : 12) * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 5))}px`,
                               backgroundColor: 'rgba(0, 0, 0, 0.5)',
                               border: '1px solid #333',
                               borderRadius: '3px',

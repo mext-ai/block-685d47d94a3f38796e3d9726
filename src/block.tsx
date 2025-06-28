@@ -1212,30 +1212,30 @@ const Block: React.FC<BlockProps> = () => {
         );
       })}
 
-      {/* Message de victoire */}
-    {gameState === 'playing' && enemies.length > 0 && enemies.filter(e => e.isAlive || e.isDying).length === 0 && (
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: `${Math.max(400, windowSize.width * 0.4)}px`,
-        height: `${Math.max(300, windowSize.height * 0.3)}px`,
-        backgroundImage: `url(https://drive.google.com/thumbnail?id=1cMdqOupNWB-eIM1VFCVvvNfUsJkvinS7&sz=w1000)`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        color: 'gold',
-        padding: '30px',
-        borderRadius: '15px',
-        textAlign: 'center',
-        fontSize: `${Math.max(24, windowSize.width * 0.02)}px`,
-        fontWeight: 'bold',
-        zIndex: 100,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
+    {/* Message de victoire */}
+{gameState === 'playing' && enemies.length > 0 && enemies.filter(e => e.isAlive || e.isDying).length === 0 && (
+  <div style={{
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: `${Math.max(400, windowSize.width * 0.4)}px`,
+    height: `${Math.max(300, windowSize.height * 0.3)}px`,
+    backgroundImage: `url(https://drive.google.com/thumbnail?id=1cMdqOupNWB-eIM1VFCVvvNfUsJkvinS7&sz=w1000)`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    color: 'gold',
+    padding: '30px',
+    borderRadius: '15px',
+    textAlign: 'center',
+    fontSize: `${Math.max(24, windowSize.width * 0.02)}px`,
+    fontWeight: 'bold',
+    zIndex: 100,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }}>
     🎉 NIVEAU {currentLevel} TERMINÉ ! 🎉
     <br />
     <span style={{ fontSize: `${Math.max(16, windowSize.width * 0.015)}px`, color: 'white' }}>

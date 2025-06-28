@@ -754,6 +754,9 @@ const Block: React.FC<BlockProps> = () => {
   const backToLevelsButtonUrl = 'https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500';
   const nextLevelButtonUrl = 'https://drive.google.com/thumbnail?id=1UDa64VfIOZJgg4oCDfziCvftGkFRZ8dz&sz=w500';
 
+  // URL pour le compteur d'ennemis - NOUVEAU
+  const skullImageUrl = 'https://drive.google.com/thumbnail?id=1Dp4dPzMEZKN-cuMdcXU8c9WrdLpOWmjD&sz=w500';
+
   // Configuration du sprite
   const spriteWidth = 32;
   const spriteHeight = 32;
@@ -764,6 +767,12 @@ const Block: React.FC<BlockProps> = () => {
   // Configuration des cœurs - MODIFIÉE POUR ÊTRE RESPONSIVE ET x1.5
   const heartSize = 32;
   const heartScale = Math.max(1.5, Math.min(3.75, 2.25 * (windowSize.width / 1920))); // x1.5 : min 1.5, max 3.75, base 2.25
+  
+  // Configuration du compteur d'ennemis - NOUVEAU
+  const skullSize = Math.max(40, windowSize.width * 0.03); // Taille responsive du crâne
+  
+  // Calcul du nombre d'ennemis restants - NOUVEAU
+  const remainingEnemies = enemies.filter(enemy => enemy.isAlive || enemy.isDying).length;
   
   // Calcul de la position dans le sprite sheet
   let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
@@ -1067,6 +1076,48 @@ const Block: React.FC<BlockProps> = () => {
           );
         })}
       </div>
+
+      {/* Compteur d'ennemis restants - NOUVEAU */}
+      {gameState === 'playing' && (
+        <div style={{
+          position: 'absolute',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          zIndex: 20,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          padding: '8px 16px',
+          borderRadius: '25px',
+          border: '2px solid #8B4513'
+        }}>
+          {/* Image du crâne */}
+          <div style={{
+            width: `${skullSize}px`,
+            height: `${skullSize}px`,
+            backgroundImage: `url(${skullImageUrl})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.8))'
+          }} />
+          
+          {/* Nombre d'ennemis restants */}
+          <div style={{
+            color: '#FF6B6B',
+            fontSize: `${Math.max(18, windowSize.width * 0.015)}px`,
+            fontWeight: 'bold',
+            fontFamily: 'Arial, sans-serif',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+            minWidth: '20px',
+            textAlign: 'center'
+          }}>
+            {remainingEnemies}
+          </div>
+        </div>
+      )}
 
       {/* NOUVEAU : Contrôles en haut à gauche avec vos images */}
       <div style={{

@@ -1282,7 +1282,7 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
                               top: `${enemy.y - (enemy.type === 'treant' ? 7 : 5)}%`,
                               transform: 'translateX(-50%)',
                               width: `${(enemy.type === 'treant' ? 40 : 60) * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 3)}px`,
-                              height: `${(enemy.type === 'treant' ? 6 : 8) * ((enemy.type === 'treant' ? treantSpriteScale :   enemySpriteScale) / 3)}px`,
+                              height: `${Math.max(6, (enemy.type === 'treant' ? 8 : 10) * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 4))}px`,
                               backgroundColor: 'rgba(0, 0, 0, 0.5)',
                               border: '1px solid #333',
                               borderRadius: '3px',

@@ -1269,43 +1269,62 @@ const Block: React.FC<BlockProps> = () => {
     alignItems: 'center'
   }}>
     <div style={{ 
-      display: 'flex', 
-      gap: '20px', 
-      marginTop: '20px',
-      flexWrap: 'wrap',
-      justifyContent: 'center'
-    }}>
-      <button
-        onClick={() => startGame(currentLevel)}
-        style={{
-          padding: '10px 20px',
-          fontSize: `${Math.max(16, windowSize.width * 0.012)}px`,
-          backgroundColor: '#FF9800',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          minWidth: '120px'
-        }}
-      >
-        🔄 Redémarrer
-      </button>
-      <button
-        onClick={returnToLevelSelect}
-        style={{
-          padding: '10px 20px',
-          fontSize: `${Math.max(16, windowSize.width * 0.012)}px`,
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          minWidth: '120px'
-        }}
-      >
-        📋 Retour aux niveaux
-      </button>
-    </div>
+  display: 'flex', 
+  gap: '30px', 
+  marginTop: '100px',
+  flexWrap: 'wrap',
+  justifyContent: 'center'
+}}>
+  {/* Bouton Restart avec image spiral */}
+  <div
+    onClick={() => startGame(currentLevel)}
+    style={{
+      width: `${Math.max(80, windowSize.width * 0.06)}px`,
+      height: `${Math.max(80, windowSize.width * 0.06)}px`,
+      backgroundImage: `url(https://drive.google.com/thumbnail?id=1bnG4kCEa3zVA8qmGz8YFfTwm6h6I4Wwk&sz=w500)`,
+      backgroundSize: 'contain',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+      transform: 'scale(1)'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'scale(1.1)';
+      e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'scale(1)';
+      e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
+    }}
+  />
+  
+  {/* Bouton Retour aux niveaux avec image */}
+  <div
+    onClick={returnToLevelSelect}
+    style={{
+      width: `${Math.max(80, windowSize.width * 0.06)}px`,
+      height: `${Math.max(80, windowSize.width * 0.06)}px`,
+      backgroundImage: `url(https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500)`,
+      backgroundSize: 'contain',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+      transform: 'scale(1)'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'scale(1.1)';
+      e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'scale(1)';
+      e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
+    }}
+  />
+</div>
   </div>
 )}
 

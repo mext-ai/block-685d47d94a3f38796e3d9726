@@ -1270,21 +1270,21 @@ const Block: React.FC<BlockProps> = () => {
               />
             
             {!enemy.isDying && (
-              <>
-                <div
-                    style={{
-                      position: 'absolute',
-                      left: `${enemy.x}%`,
-                      top: `${enemy.y - (enemy.type === 'treant' ? 10 : 8)}%`,
-                      transform: 'translateX(-50%)',
-                      width: `${60 * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 3)}px`,
-                      height: `${8 * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 3)}px`,
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                      border: '1px solid #333',
-                      borderRadius: '3px',
-                      zIndex: 11
-                    }}
-                  >
+                      <>
+                        <div
+                            style={{
+                              position: 'absolute',
+                              left: `${enemy.x}%`,
+                              top: `${enemy.y - (enemy.type === 'treant' ? 7 : 5)}%`,
+                              transform: 'translateX(-50%)',
+                              width: `${(enemy.type === 'treant' ? 40 : 60) * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 3)}px`,
+                              height: `${(enemy.type === 'treant' ? 6 : 8) * ((enemy.type === 'treant' ? treantSpriteScale :   enemySpriteScale) / 3)}px`,
+                              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                              border: '1px solid #333',
+                              borderRadius: '3px',
+                              zIndex: 11
+                            }}
+                          >
                   <div
                     style={{
                       width: `${(enemy.hp / enemy.maxHp) * 100}%`,
@@ -1296,23 +1296,8 @@ const Block: React.FC<BlockProps> = () => {
                     }}
                   />
                 </div>
-                
-                <div
-                    style={{
-                      position: 'absolute',
-                      left: `${enemy.x}%`,
-                      top: `${enemy.y - (enemy.type === 'treant' ? 15 : 12)}%`,
-                      transform: 'translateX(-50%)',
-                      color: enemy.type === 'treant' ? 'gold' : 'white',
-                      fontSize: `${12 * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 3)}px`,
-                      fontWeight: 'bold',
-                      textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                      zIndex: 12,
-                      textAlign: 'center'
-                    }}
-                  >
-                  {enemy.isAttacking ? '⚔️ ATTAQUE' : `${enemy.hp}/${enemy.maxHp}`}
-                </div>
+  
+  
               </>
             )}
           </div>

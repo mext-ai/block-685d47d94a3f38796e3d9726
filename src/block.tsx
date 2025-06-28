@@ -31,6 +31,7 @@ const Block: React.FC<BlockProps> = () => {
   const [isLevel3ButtonHovered, setIsLevel3ButtonHovered] = useState(false);
   const [currentLevel, setCurrentLevel] = useState(1);
   const [completedLevels, setCompletedLevels] = useState<number[]>([]); // Niveaux terminés
+  const [isVictory, setIsVictory] = useState(false); // NOUVEAU : État de victoire
   
   const [currentFrame, setCurrentFrame] = useState(0);
   const [direction, setDirection] = useState(0); // Direction du sprite
@@ -120,6 +121,7 @@ const Block: React.FC<BlockProps> = () => {
   const startGame = (level: number = 1) => {
     setCurrentLevel(level);
     setGameState('playing');
+    setIsVictory(false); // NOUVEAU : Réinitialiser l'état de victoire
     // Réinitialiser le jeu
     setPlayerHp(10);
     setPosition({ x: 50, y: 50 });
@@ -132,6 +134,7 @@ const Block: React.FC<BlockProps> = () => {
   // Fonction pour retourner au menu
   const returnToMenu = () => {
     setGameState('menu');
+    setIsVictory(false); // NOUVEAU : Réinitialiser l'état de victoire
     // Réinitialiser le jeu
     setPlayerHp(10);
     setPosition({ x: 50, y: 50 });
@@ -144,6 +147,7 @@ const Block: React.FC<BlockProps> = () => {
   // Fonction pour retourner à la sélection de niveau
   const returnToLevelSelect = () => {
     setGameState('levelSelect');
+    setIsVictory(false); // NOUVEAU : Réinitialiser l'état de victoire
     // Réinitialiser le jeu
     setPlayerHp(10);
     setPosition({ x: 50, y: 50 });
@@ -217,19 +221,20 @@ const Block: React.FC<BlockProps> = () => {
     return enemies;
   };
 
- // Vérifier la victoire (tous les ennemis morts) - NOUVEAU SYSTÈME
-useEffect(() => {
-  if (gameState === 'playing' && enemies.length > 0) {
-    const aliveEnemies = enemies.filter(enemy => enemy.isAlive || enemy.isDying);
-    if (aliveEnemies.length === 0) {
-      // Niveau terminé !
-      if (!completedLevels.includes(currentLevel)) {
-        setCompletedLevels(prev => [...prev, currentLevel]);
+  // Vérifier la victoire (tous les ennemis morts) - NOUVEAU SYSTÈME
+  useEffect(() => {
+    if (gameState === 'playing' && enemies.length > 0) {
+      const aliveEnemies = enemies.filter(enemy => enemy.isAlive || enemy.isDying);
+      if (aliveEnemies.length === 0 && !isVictory) {
+        // Niveau terminé !
+        setIsVictory(true); // NOUVEAU : Marquer la victoire
+        if (!completedLevels.includes(currentLevel)) {
+          setCompletedLevels(prev => [...prev, currentLevel]);
+        }
+        // Ne plus retourner automatiquement - laisser le menu de victoire
       }
-      // Ne plus retourner automatiquement - laisser le menu de victoire
     }
-  }
-}, [enemies, gameState, currentLevel, completedLevels]);
+  }, [enemies, gameState, currentLevel, completedLevels, isVictory]);
 
   // Mettre à jour la référence à chaque changement de position
   useEffect(() => {
@@ -743,7 +748,11 @@ useEffect(() => {
   // URLs pour les nouvelles images de contrôles - AJOUT DES NOUVELLES IMAGES
   const spaceKeyImageUrl = 'https://drive.google.com/thumbnail?id=1dWJOlKIPoA2l_pn5msc8VtImFRwGADf0&sz=w500'; // Image touche espace
   const arrowKeysImageUrl = 'https://drive.google.com/thumbnail?id=1cijWsirQs9sAyTNFtXXubQ_DN6Vqjraj&sz=w500'; // Image flèches directionnelles
-  const nextLevelButtonUrl = 'https://drive.google.com/thumbnail?id=1UDa64VfIOZJgg4oCDfziCvftGkFRZ8dz&sz=w500'; // ← NOUVEAU
+
+  // URLs pour les boutons de Game Over/Victory - NOUVEAU
+  const restartButtonUrl = 'https://drive.google.com/thumbnail?id=1bnG4kCEa3zVA8qmGz8YFfTwm6h6I4Wwk&sz=w500';
+  const backToLevelsButtonUrl = 'https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500';
+  const nextLevelButtonUrl = 'https://drive.google.com/thumbnail?id=1UDa64VfIOZJgg4oCDfziCvftGkFRZ8dz&sz=w500';
 
   // Configuration du sprite
   const spriteWidth = 32;
@@ -1210,168 +1219,167 @@ useEffect(() => {
         );
       })}
 
-{/* Message de victoire - NOUVEAU MENU IDENTIQUE AU GAME OVER */}
-{gameState === 'playing' && enemies.length > 0 && enemies.filter(e => e.isAlive || e.isDying).length === 0 && (
-  <div style={{
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: `${Math.max(500, windowSize.width * 0.5)}px`,
-    height: `${Math.max(400, windowSize.height * 0.4)}px`,
-    backgroundImage: `url(https://drive.google.com/thumbnail?id=1cMdqOupNWB-eIM1VFCVvvNfUsJkvinS7&sz=w1000)`, // Image de victoire
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    color: 'gold',
-    padding: '30px',
-    borderRadius: '15px',
-    textAlign: 'center',
-    fontSize: `${Math.max(24, windowSize.width * 0.02)}px`,
-    fontWeight: 'bold',
-    zIndex: 100,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center'
-  }}>
-    <div style={{ 
-      display: 'flex', 
-      gap: '30px', 
-      marginTop: "25%",
-      flexWrap: 'wrap',
-      justifyContent: 'center'
-    }}>
-      {/* Bouton Next Level (incliquable pour l'instant) */}
-      <div
-        style={{
-          width: `${Math.max(80, windowSize.width * 0.06)}px`,
-          height: `${Math.max(80, windowSize.width * 0.06)}px`,
-          backgroundImage: `url(https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500)`,
-          backgroundSize: 'contain',
+      {/* Message de victoire - NOUVEAU MENU IDENTIQUE AU GAME OVER */}
+      {isVictory && gameState === 'playing' && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: `${Math.max(500, windowSize.width * 0.5)}px`,
+          height: `${Math.max(400, windowSize.height * 0.4)}px`,
+          backgroundImage: `url(https://drive.google.com/thumbnail?id=1cMdqOupNWB-eIM1VFCVvvNfUsJkvinS7&sz=w1000)`,
+          backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          cursor: 'not-allowed', // ← Curseur "interdit" pour montrer que c'est incliquable
-          transition: 'all 0.2s ease',
-          filter: 'brightness(0.7) drop-shadow(0 0 5px rgba(0,0,0,0.3))', // ← Plus sombre pour montrer qu'il est inactif
-          transform: 'scale(1)',
-          opacity: 0.7 // ← Semi-transparent pour montrer qu'il est inactif
-        }}
-        // Pas de onClick pour l'instant
-      />
-      
-      {/* Bouton Retour aux niveaux */}
-      <div
-        onClick={returnToLevelSelect}
-        style={{
-          width: `${Math.max(80, windowSize.width * 0.06)}px`,
-          height: `${Math.max(80, windowSize.width * 0.06)}px`,
-          backgroundImage: `url(https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500)`,
-          backgroundSize: 'contain',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-          filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
-          transform: 'scale(1)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1)';
-          e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
-        }}
-      />
-    </div>
-  </div>
-)}
+          color: 'gold',
+          padding: '30px',
+          borderRadius: '15px',
+          textAlign: 'center',
+          fontSize: `${Math.max(24, windowSize.width * 0.02)}px`,
+          fontWeight: 'bold',
+          zIndex: 100,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            gap: '30px', 
+            marginTop: "25%",
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
+            {/* Bouton Next Level (incliquable pour l'instant) */}
+            <div
+              style={{
+                width: `${Math.max(80, windowSize.width * 0.06)}px`,
+                height: `${Math.max(80, windowSize.width * 0.06)}px`,
+                backgroundImage: `url(${nextLevelButtonUrl})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                cursor: 'not-allowed',
+                transition: 'all 0.2s ease',
+                filter: 'brightness(0.7) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+                transform: 'scale(1)',
+                opacity: 0.7
+              }}
+            />
+            
+            {/* Bouton Retour aux niveaux */}
+            <div
+              onClick={returnToLevelSelect}
+              style={{
+                width: `${Math.max(80, windowSize.width * 0.06)}px`,
+                height: `${Math.max(80, windowSize.width * 0.06)}px`,
+                backgroundImage: `url(${backToLevelsButtonUrl})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+                transform: 'scale(1)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Game Over */}
-{playerHp <= 0 && (
-  <div style={{
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: `${Math.max(600, windowSize.width * 0.45)}px`,    // ← Encore plus large
-height: `${Math.max(450, windowSize.height * 0.45)}px`,  // ← Encore plus haut
-  backgroundImage: `url(https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000)`,
-  backgroundSize: 'cover',  // ← Remettre cover
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat',
-  color: 'red',
-  padding: '30px',
-  borderRadius: '15px',
-  textAlign: 'center',
-  fontSize: `${Math.max(24, windowSize.width * 0.02)}px`,
-  fontWeight: 'bold',
-  zIndex: 100,
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center'
-}}>
-    <div style={{ 
-  display: 'flex', 
-  gap: '30px', 
-  marginTop: "25%",  // ← Remettre ceci
-  flexWrap: 'wrap',
-  justifyContent: 'center'
-}}>
-  {/* Bouton Restart avec image spiral */}
-  <div
-    onClick={() => startGame(currentLevel)}
-    style={{
-      width: `${Math.max(80, windowSize.width * 0.06)}px`,
-      height: `${Math.max(80, windowSize.width * 0.06)}px`,
-      backgroundImage: `url(https://drive.google.com/thumbnail?id=1bnG4kCEa3zVA8qmGz8YFfTwm6h6I4Wwk&sz=w500)`,
-      backgroundSize: 'contain',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
-      transform: 'scale(1)'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'scale(1.1)';
-      e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'scale(1)';
-      e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
-    }}
-  />
-  
-  {/* Bouton Retour aux niveaux avec image */}
-  <div
-    onClick={returnToLevelSelect}
-    style={{
-      width: `${Math.max(80, windowSize.width * 0.06)}px`,
-      height: `${Math.max(80, windowSize.width * 0.06)}px`,
-      backgroundImage: `url(https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500)`,
-      backgroundSize: 'contain',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
-      transform: 'scale(1)'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'scale(1.1)';
-      e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'scale(1)';
-      e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
-    }}
-  />
-</div>
-  </div>
-)}
+      {playerHp <= 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: `${Math.max(500, windowSize.width * 0.5)}px`,
+          height: `${Math.max(400, windowSize.height * 0.4)}px`,
+          backgroundImage: `url(https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          color: 'red',
+          padding: '30px',
+          borderRadius: '15px',
+          textAlign: 'center',
+          fontSize: `${Math.max(24, windowSize.width * 0.02)}px`,
+          fontWeight: 'bold',
+          zIndex: 100,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            gap: '30px', 
+            marginTop: "25%",
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
+            {/* Bouton Restart avec image spiral */}
+            <div
+              onClick={() => startGame(currentLevel)}
+              style={{
+                width: `${Math.max(80, windowSize.width * 0.06)}px`,
+                height: `${Math.max(80, windowSize.width * 0.06)}px`,
+                backgroundImage: `url(${restartButtonUrl})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+                transform: 'scale(1)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
+              }}
+            />
+            
+            {/* Bouton Retour aux niveaux avec image */}
+            <div
+              onClick={returnToLevelSelect}
+              style={{
+                width: `${Math.max(80, windowSize.width * 0.06)}px`,
+                height: `${Math.max(80, windowSize.width * 0.06)}px`,
+                backgroundImage: `url(${backToLevelsButtonUrl})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+                transform: 'scale(1)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* SUPPRIMÉ : Ancien panneau d'instructions avec background et toutes les infos de debug */}
     </div>

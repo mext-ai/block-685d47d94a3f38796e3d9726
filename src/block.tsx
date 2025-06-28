@@ -349,23 +349,23 @@ const Block: React.FC<BlockProps> = () => {
   }, [isWalking, isAttacking, gameState]);
 
   // Animation des ennemis (marche normale)
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-    
-    const enemyAnimationInterval = setInterval(() => {
-      setEnemies(prev => prev.map(enemy => {
-        if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
-        
-        const maxFrames = enemy.type === 'treant' ? 6 : 3;
-        return {
-          ...enemy,
-          currentFrame: (enemy.currentFrame + 1) % maxFrames
-        };
-      }));
-    }, 200);
+useEffect(() => {
+  if (gameState !== 'playing') return;
+  
+  const enemyAnimationInterval = setInterval(() => {
+    setEnemies(prev => prev.map(enemy => {
+      if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
+      
+      const maxFrames = enemy.type === 'treant' ? 6 : 3; // 6 frames de marche pour tréants
+      return {
+        ...enemy,
+        currentFrame: (enemy.currentFrame + 1) % maxFrames
+      };
+    }));
+  }, 200);
 
-    return () => clearInterval(enemyAnimationInterval);
-  }, [gameState]);
+  return () => clearInterval(enemyAnimationInterval);
+}, [gameState]);
 
  // Animation d'attaque des ennemis
 useEffect(() => {
@@ -785,11 +785,11 @@ useEffect(() => {
   const deathFramesPerRow = 9;
 
   // Configuration des frames pour les tréants - NOUVEAU
-  const treantWalkFramesPerRow = 6;
-  const treantIdleFramesPerRow = 4;
-  const treantAttackFramesPerRow = 7;
-  const treantDeathFramesPerRow = 6;
-  
+  const treantWalkFramesPerRow = 6;    // 6 frames de marche
+  const treantIdleFramesPerRow = 4;    // 4 frames idle
+  const treantAttackFramesPerRow = 7;  // 7 frames d'attaque
+  const treantDeathFramesPerRow = 6;   // 6 frames de mort
+    
   // Configuration des cœurs - MODIFIÉE POUR ÊTRE RESPONSIVE ET x1.5
   const heartSize = 32;
   const heartScale = Math.max(1.5, Math.min(3.75, 2.25 * (windowSize.width / 1920))); // x1.5 : min 1.5, max 3.75, base 2.25

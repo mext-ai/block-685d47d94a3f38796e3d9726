@@ -1251,8 +1251,8 @@ const Block: React.FC<BlockProps> = () => {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: `${Math.max(500, windowSize.width * 0.5)}px`,    // ← Plus large (0.4 → 0.5)
-  height: `${Math.max(400, windowSize.height * 0.4)}px`,  // ← Plus haut (0.35 → 0.4)
+  width: `${Math.max(600, windowSize.width * 0.45)}px`,    // ← Encore plus large
+height: `${Math.max(450, windowSize.height * 0.45)}px`,  // ← Encore plus haut
   backgroundImage: `url(https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000)`,
   backgroundSize: 'cover',  // ← Remettre cover
   backgroundPosition: 'center',

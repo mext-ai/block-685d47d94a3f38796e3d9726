@@ -814,7 +814,7 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
   const woodFrameImageUrl = 'https://drive.google.com/thumbnail?id=1ReBlJh1wSzADiby_PFaaj69P4gz2-y4a&sz=w1000'; // AJOUT DU CADRE EN BOIS
   
   // URLs pour l'audio
-  const backgroundMusicUrl = 'https://drive.google.com/uc?export=download&id=1si4khdvpDCbpy8ONuukFunlXjBq5gSc1';
+  const backgroundMusicUrl = 'https://www.dropbox.com/scl/fi/nje1axspmztb7uxe4jg8h/highlanders-ballad-loop-246977.mp3?rlkey=rp4wh80r57cqip87m61j3r4j1&st=8ahbpgym&dl=1';
   const soundOnButtonUrl = 'https://drive.google.com/thumbnail?id=1AuGREbT8dOdws6XpMlBYLHeqtny2vy51&sz=w500';
   const soundOffButtonUrl = 'https://drive.google.com/thumbnail?id=1prPXzn-BOzs4AFmoy9Ess3VpqoqjAoFF&sz=w500';
     

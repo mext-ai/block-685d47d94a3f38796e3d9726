@@ -1237,12 +1237,12 @@ useEffect(() => {
           enemyBackgroundSizeX = spriteWidth * attackFramesPerRow * enemySpriteScale;
         }
       } else {
-        if (enemy.type === 'treant') {
-  enemySpriteX = enemy.deathFrame * spriteWidth;
-  enemySpriteY = enemy.direction * spriteHeight;
-  enemySpriteUrl = treantDeathSpriteSheetUrl;
-  enemyBackgroundSizeX = spriteWidth * treantDeathFramesPerRow * treantSpriteScale;
-} else {
+  if (enemy.type === 'treant') {
+    enemySpriteX = enemy.currentFrame * spriteWidth;     // ✅ CHANGÉ
+    enemySpriteY = enemy.direction * spriteHeight;
+    enemySpriteUrl = treantWalkSpriteSheetUrl;          // ✅ CHANGÉ
+    enemyBackgroundSizeX = spriteWidth * treantWalkFramesPerRow * treantSpriteScale; // ✅ CHANGÉ
+  } else {
           enemySpriteX = enemy.currentFrame * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomSpriteSheetUrl;

@@ -1064,10 +1064,10 @@ const Block: React.FC<BlockProps> = () => {
       {/* NOUVEAU : Contrôles en haut à gauche avec vos images */}
       <div style={{
         position: 'absolute',
-        top: '20px',
-        left: '20px',
+        bottom: '10px',
+        left: '10px',
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
         gap: '15px',
         zIndex: 20
       }}>
@@ -1079,7 +1079,7 @@ const Block: React.FC<BlockProps> = () => {
           gap: '5px'
         }}>
           <div style={{
-            width: '60px',
+            width: windowSize.width * 0.06,
             height: '60px',
             backgroundImage: `url(${arrowKeysImageUrl})`,
             backgroundSize: 'contain',
@@ -1087,16 +1087,6 @@ const Block: React.FC<BlockProps> = () => {
             backgroundRepeat: 'no-repeat',
             filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.5))'
           }} />
-          <div style={{
-            color: 'white',
-            fontSize: '12px',
-            fontWeight: 'bold',
-            fontFamily: 'Arial, sans-serif',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-            textAlign: 'center'
-          }}>
-            MOVE
-          </div>
         </div>
 
         {/* Image de la touche espace avec texte ATTACK */}
@@ -1104,10 +1094,9 @@ const Block: React.FC<BlockProps> = () => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '5px'
         }}>
           <div style={{
-            width: '60px',
+            width: windowSize.width * 0.06,
             height: '60px',
             backgroundImage: `url(${spaceKeyImageUrl})`,
             backgroundSize: 'contain',
@@ -1117,13 +1106,13 @@ const Block: React.FC<BlockProps> = () => {
           }} />
           <div style={{
             color: 'white',
-            fontSize: '12px',
+            fontSize: '16px',
             fontWeight: 'bold',
             fontFamily: 'Arial, sans-serif',
             textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
             textAlign: 'center'
           }}>
-            ATTACK
+
           </div>
         </div>
       </div>

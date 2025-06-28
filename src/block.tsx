@@ -50,7 +50,7 @@ const Block: React.FC<BlockProps> = () => {
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [spriteScale, setSpriteScale] = useState(5.25); // 1.5x de 3.5 = 5.25
   const [enemySpriteScale, setEnemySpriteScale] = useState(4.5); // 1.5x de 3 = 4.5
-  
+  const [treantSpriteScale, setTreantSpriteScale] = useState(9); // 1.5x plus grand que les ennemis normaux
   // Utiliser useRef pour avoir toujours la position actuelle du joueur
   const playerPositionRef = useRef({ x: 50, y: 50 });
   const playerDirectionRef = useRef(0); // Référence pour la direction du joueur
@@ -89,12 +89,13 @@ const Block: React.FC<BlockProps> = () => {
     // Utiliser le ratio le plus petit pour éviter que les sprites sortent de l'écran
     const scaleRatio = Math.min(widthRatio, heightRatio);
     
-    // Calculer les nouvelles échelles - x1.5
     const newPlayerScale = Math.max(minScale, Math.min(maxScale, 5.25 * scaleRatio)); // 5.25 = 3.5 x 1.5
     const newEnemyScale = Math.max(minScale * 0.8, Math.min(maxScale * 0.8, 4.5 * scaleRatio)); // 4.5 = 3 x 1.5
+    const newTreantScale = Math.max(minScale * 1.5, Math.min(maxScale * 1.5, 12 * scaleRatio)); // 6.75 = tréants plus grands
     
     setSpriteScale(newPlayerScale);
     setEnemySpriteScale(newEnemyScale);
+    setTreantSpriteScale(newTreantScale);
   };
 
   // NOUVEAU : Écouter les changements de taille de fenêtre
@@ -118,18 +119,21 @@ const Block: React.FC<BlockProps> = () => {
   };
 
   // Fonction pour démarrer le jeu avec un niveau spécifique
-  const startGame = (level: number = 1) => {
-    setCurrentLevel(level);
-    setGameState('playing');
-    setIsVictory(false); // NOUVEAU : Réinitialiser l'état de victoire
-    // Réinitialiser le jeu
-    setPlayerHp(10);
-    setPosition({ x: 50, y: 50 });
-    setEnemies([]);
-    enemiesInitialized.current = false;
-    setLastDamageTime(0);
-    setGameStartTime(Date.now()); // Nouveau : enregistrer le temps de début
-  };
+ const startGame = (level: number = 1) => {
+  enemiesInitialized.current = false; // FORCER la réinitialisation
+  setCurrentLevel(level);
+  setGameState('playing');
+  setIsVictory(false); // NOUVEAU : Réinitialiser l'état de victoire
+  // Réinitialiser le jeu
+  setPlayerHp(10);
+  setPosition({ x: 50, y: 50 });
+  setEnemies([]);
+  enemiesInitialized.current = false;
+  setIsWalking(false);          // AJOUT : Réinitialiser l'état de marche
+  setIsAttacking(false);        // AJOUT : Réinitialiser l'état d'attaque
+  setLastDamageTime(0);
+  setGameStartTime(Date.now()); // Nouveau : enregistrer le temps de début
+};
 
   // Fonction pour retourner au menu
   const returnToMenu = () => {
@@ -196,24 +200,29 @@ const Block: React.FC<BlockProps> = () => {
       // Direction initiale : vers la droite si vient de gauche, vers la gauche si vient de droite
       const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
 
-      const enemy: Enemy = {
-        id: i + 1,
-        type: 'mushroom',
-        x: startX,
-        y: startY,
-        direction: initialDirection,
-        currentFrame: 0,
-        isAlive: true,
-        hp: 3,
-        maxHp: 3,
-        isDying: false,
-        deathFrame: 0,
-        isAttacking: false,
-        attackFrame: 0,
-        lastAttackTime: 0,
-        spawnTime: enemySpawnTimes[i],
-        hasSpawned: enemySpawnTimes[i] === 0 // Le premier ennemi apparaît immédiatement
-      };
+          // Déterminer le type d'ennemi : tréant aux positions 5 et 10 (indices 4 et 9)
+    const isTreant = i === 4 || i === 9;
+    const enemyType = isTreant ? 'treant' : 'mushroom';
+    const enemyHp = isTreant ? 5 : 3;
+    
+    const enemy: Enemy = {
+      id: i + 1,
+      type: enemyType,
+      x: startX,
+      y: startY,
+      direction: initialDirection,
+      currentFrame: 0,
+      isAlive: true,
+      hp: enemyHp,
+      maxHp: enemyHp,
+      isDying: false,
+      deathFrame: 0,
+      isAttacking: false,
+      attackFrame: 0,
+      lastAttackTime: 0,
+      spawnTime: enemySpawnTimes[i],
+      hasSpawned: enemySpawnTimes[i] === 0
+    };
       
       enemies.push(enemy);
     }
@@ -272,37 +281,36 @@ const Block: React.FC<BlockProps> = () => {
     }, '*');
   }, []);
 
-  // Initialisation des ennemis quand le jeu commence - MODIFIÉE
   useEffect(() => {
-    if (gameState === 'playing' && !enemiesInitialized.current) {
-      if (currentLevel === 1) {
-        const level1Enemies = createLevel1Enemies();
-        setEnemies(level1Enemies);
-      } else {
-        // Pour les autres niveaux, garder l'ancien système pour l'instant
-        const initialMushroom: Enemy = {
-          id: 1,
-          type: 'mushroom',
-          x: 20,
-          y: 70,
-          direction: 3,
-          currentFrame: 0,
-          isAlive: true,
-          hp: 3,
-          maxHp: 3,
-          isDying: false,
-          deathFrame: 0,
-          isAttacking: false,
-          attackFrame: 0,
-          lastAttackTime: 0,
-          spawnTime: 0,
-          hasSpawned: true
-        };
-        setEnemies([initialMushroom]);
-      }
-      enemiesInitialized.current = true;
+  if (gameState === 'playing' && !enemiesInitialized.current && gameStartTime > 0) {
+    if (currentLevel === 1) {
+      const level1Enemies = createLevel1Enemies();
+      setEnemies(level1Enemies);
+    } else {
+      // Pour les autres niveaux, garder l'ancien système pour l'instant
+      const initialMushroom: Enemy = {
+        id: 1,
+        type: 'mushroom',
+        x: 20,
+        y: 70,
+        direction: 3,
+        currentFrame: 0,
+        isAlive: true,
+        hp: 3,
+        maxHp: 3,
+        isDying: false,
+        deathFrame: 0,
+        isAttacking: false,
+        attackFrame: 0,
+        lastAttackTime: 0,
+        spawnTime: 0,
+        hasSpawned: true
+      };
+      setEnemies([initialMushroom]);
     }
-  }, [gameState, currentLevel]);
+    enemiesInitialized.current = true;
+  }
+}, [gameState, currentLevel, gameStartTime]);
 
   // Système d'apparition progressive des ennemis - NOUVEAU
   useEffect(() => {
@@ -348,9 +356,10 @@ const Block: React.FC<BlockProps> = () => {
       setEnemies(prev => prev.map(enemy => {
         if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
+        const maxFrames = enemy.type === 'treant' ? 6 : 3;
         return {
           ...enemy,
-          currentFrame: (enemy.currentFrame + 1) % 3
+          currentFrame: (enemy.currentFrame + 1) % maxFrames
         };
       }));
     }, 200);
@@ -368,7 +377,8 @@ const Block: React.FC<BlockProps> = () => {
         
         const nextFrame = enemy.attackFrame + 1;
         
-        if (nextFrame >= 8) {
+        const maxAttackFrames = enemy.type === 'treant' ? 7 : 8;
+        if (nextFrame >= maxAttackFrames) {
           return {
             ...enemy,
             isAttacking: false,
@@ -377,7 +387,8 @@ const Block: React.FC<BlockProps> = () => {
           };
         }
         
-        if (nextFrame === 4) {
+        const maxDeathFrames = enemy.type === 'treant' ? 6 : 4;
+        if (nextFrame >= maxDeathFrames) {
           checkEnemyAttackHit(enemy);
         }
         
@@ -475,14 +486,15 @@ const Block: React.FC<BlockProps> = () => {
         let shouldAttack = false;
         const speed = 0.25;
         
-        if (enemy.type === 'mushroom') {
+       if (enemy.type === 'mushroom' || enemy.type === 'treant') {
           const currentPlayerPos = playerPositionRef.current;
           
           const deltaX = currentPlayerPos.x - enemy.x;
           const deltaY = currentPlayerPos.y - enemy.y;
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
-          const attackDistance = 4;
+          // Tréants ont une plus longue portée d'attaque
+          const attackDistance = enemy.type === 'treant' ? 8 : 4;
           const collisionDistance = 3;
           const currentTime = Date.now();
           
@@ -538,7 +550,7 @@ const Block: React.FC<BlockProps> = () => {
 
   // Animation d'attaque simple
   useEffect(() => {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isVictory || playerHp <= 0) return;
     
     if (isAttacking) {
       setAttackFrame(2);
@@ -622,7 +634,7 @@ const Block: React.FC<BlockProps> = () => {
 
   // Gestion du mouvement avec limites et collision avec les ennemis
   useEffect(() => {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isVictory || playerHp <= 0) return;
     
     const moveInterval = setInterval(() => {
       if (!isAttacking && (keys.up || keys.down || keys.left || keys.right)) {
@@ -676,7 +688,7 @@ const Block: React.FC<BlockProps> = () => {
 
   // Gestion des touches
   useEffect(() => {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isVictory || playerHp <= 0) return;
     
     const handleKeyDown = (event: KeyboardEvent) => {
       event.preventDefault();
@@ -734,6 +746,12 @@ const Block: React.FC<BlockProps> = () => {
   const mushroomDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1Xf5RQQHzgCU2m39l3iCJ1wwBge-XCtZD&sz=w1000';
   const mushroomAttackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=15xo5LfJBU2kBCGx9bPdQO9sV7U8yvOx2&sz=w1000';
   const heartSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
+
+    // URLs pour les sprites tréants - NOUVEAU
+  const treantWalkSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=10PMGjyO7aSM-zb5BwU5bF6s-3ncsw3xp&sz=w1000';
+  const treantIdleSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=115PIRrlSpHCIbHq56B59I-Qzo9HR1UnC&sz=w1000';
+  const treantDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1tyrK1oHx8DWbHUdL1KEDccU_4kGh3f17&sz=w1000';
+  const treantAttackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1XB5CkBkcoAY-cQd4yKxl4L93DYTzyOly&sz=w1000';
   
   // URLs pour les menus
   const menuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1RzUqegcgPQH2S-Rd5dVIgxRG59NHVjSi&sz=w2000';
@@ -764,6 +782,12 @@ const Block: React.FC<BlockProps> = () => {
   const walkFramesPerRow = 4;
   const attackFramesPerRow = 8;
   const deathFramesPerRow = 9;
+
+  // Configuration des frames pour les tréants - NOUVEAU
+  const treantWalkFramesPerRow = 6;
+  const treantIdleFramesPerRow = 4;
+  const treantAttackFramesPerRow = 7;
+  const treantDeathFramesPerRow = 6;
   
   // Configuration des cœurs - MODIFIÉE POUR ÊTRE RESPONSIVE ET x1.5
   const heartSize = 32;
@@ -1184,62 +1208,83 @@ const Block: React.FC<BlockProps> = () => {
         // Ne pas afficher les ennemis qui ne sont pas encore apparus ou qui sont morts
         if (!enemy.hasSpawned || (!enemy.isAlive && !enemy.isDying)) return null;
         
-        let enemySpriteX, enemySpriteY, enemySpriteUrl, enemyBackgroundSizeX;
-        
-        if (enemy.isDying) {
+       let enemySpriteX, enemySpriteY, enemySpriteUrl, enemyBackgroundSizeX;
+
+      if (enemy.isDying) {
+        if (enemy.type === 'treant') {
+          enemySpriteX = enemy.deathFrame * spriteWidth;
+          enemySpriteY = enemy.direction * spriteHeight;
+          enemySpriteUrl = treantDeathSpriteSheetUrl;
+          enemyBackgroundSizeX = spriteWidth * treantDeathFramesPerRow * enemySpriteScale;
+        } else {
           const deathImageIndex = enemy.deathFrame + 2;
           enemySpriteX = deathImageIndex * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomDeathSpriteSheetUrl;
           enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * enemySpriteScale;
-        } else if (enemy.isAttacking) {
+        }
+      } else if (enemy.isAttacking) {
+        if (enemy.type === 'treant') {
+          enemySpriteX = enemy.attackFrame * spriteWidth;
+          enemySpriteY = enemy.direction * spriteHeight;
+          enemySpriteUrl = treantAttackSpriteSheetUrl;
+          enemyBackgroundSizeX = spriteWidth * treantAttackFramesPerRow * enemySpriteScale;
+        } else {
           enemySpriteX = enemy.attackFrame * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomAttackSpriteSheetUrl;
           enemyBackgroundSizeX = spriteWidth * attackFramesPerRow * enemySpriteScale;
-        } else {
+        }
+      } else {
+        if (enemy.type === 'treant') {
+  enemySpriteX = enemy.deathFrame * spriteWidth;
+  enemySpriteY = enemy.direction * spriteHeight;
+  enemySpriteUrl = treantDeathSpriteSheetUrl;
+  enemyBackgroundSizeX = spriteWidth * treantDeathFramesPerRow * treantSpriteScale;
+} else {
           enemySpriteX = enemy.currentFrame * spriteWidth;
           enemySpriteY = enemy.direction * spriteHeight;
           enemySpriteUrl = mushroomSpriteSheetUrl;
           enemyBackgroundSizeX = spriteWidth * walkFramesPerRow * enemySpriteScale;
         }
-        
+      }
+              
         return (
           <div key={enemy.id}>
             <div
-              style={{
-                position: 'absolute',
-                left: `${enemy.x}%`,
-                top: `${enemy.y}%`,
-                transform: 'translate(-50%, -50%)',
-                width: `${spriteWidth * enemySpriteScale}px`,
-                height: `${spriteHeight * enemySpriteScale}px`,
-                backgroundImage: `url(${enemySpriteUrl})`,
-                backgroundPosition: `-${enemySpriteX * enemySpriteScale}px -${enemySpriteY * enemySpriteScale}px`,
-                backgroundSize: `${enemyBackgroundSizeX}px auto`,
-                imageRendering: 'pixelated',
-                transition: 'none',
-                zIndex: 9,
-                opacity: enemy.isDying ? 0.8 : 1
-              }}
-            />
+                style={{
+                  position: 'absolute',
+                  left: `${enemy.x}%`,
+                  top: `${enemy.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  width: `${spriteWidth * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px`,
+                  height: `${spriteHeight * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px`,
+                  backgroundImage: `url(${enemySpriteUrl})`,
+                  backgroundPosition: `-${enemySpriteX * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px -${enemySpriteY * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px`,
+                  backgroundSize: `${enemy.type === 'treant' ? spriteWidth * treantWalkFramesPerRow * treantSpriteScale : enemyBackgroundSizeX}px auto`,
+                  imageRendering: 'pixelated',
+                  transition: 'none',
+                  zIndex: 9,
+                  opacity: enemy.isDying ? 0.8 : 1
+                }}
+              />
             
             {!enemy.isDying && (
               <>
                 <div
-                  style={{
-                    position: 'absolute',
-                    left: `${enemy.x}%`,
-                    top: `${enemy.y - 8}%`,
-                    transform: 'translateX(-50%)',
-                    width: `${60 * (enemySpriteScale / 3)}px`, // Ajuster la largeur de la barre de HP selon l'échelle x1.5
-                    height: `${8 * (enemySpriteScale / 3)}px`, // Ajuster la hauteur de la barre de HP selon l'échelle x1.5
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    border: '1px solid #333',
-                    borderRadius: '3px',
-                    zIndex: 11
-                  }}
-                >
+                    style={{
+                      position: 'absolute',
+                      left: `${enemy.x}%`,
+                      top: `${enemy.y - (enemy.type === 'treant' ? 10 : 8)}%`,
+                      transform: 'translateX(-50%)',
+                      width: `${60 * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 3)}px`,
+                      height: `${8 * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 3)}px`,
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                      border: '1px solid #333',
+                      borderRadius: '3px',
+                      zIndex: 11
+                    }}
+                  >
                   <div
                     style={{
                       width: `${(enemy.hp / enemy.maxHp) * 100}%`,
@@ -1253,19 +1298,19 @@ const Block: React.FC<BlockProps> = () => {
                 </div>
                 
                 <div
-                  style={{
-                    position: 'absolute',
-                    left: `${enemy.x}%`,
-                    top: `${enemy.y - 12}%`,
-                    transform: 'translateX(-50%)',
-                    color: 'white',
-                    fontSize: `${12 * (enemySpriteScale / 3)}px`, // Ajuster la taille du texte selon l'échelle x1.5
-                    fontWeight: 'bold',
-                    textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                    zIndex: 12,
-                    textAlign: 'center'
-                  }}
-                >
+                    style={{
+                      position: 'absolute',
+                      left: `${enemy.x}%`,
+                      top: `${enemy.y - (enemy.type === 'treant' ? 15 : 12)}%`,
+                      transform: 'translateX(-50%)',
+                      color: enemy.type === 'treant' ? 'gold' : 'white',
+                      fontSize: `${12 * ((enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale) / 3)}px`,
+                      fontWeight: 'bold',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                      zIndex: 12,
+                      textAlign: 'center'
+                    }}
+                  >
                   {enemy.isAttacking ? '⚔️ ATTAQUE' : `${enemy.hp}/${enemy.maxHp}`}
                 </div>
               </>

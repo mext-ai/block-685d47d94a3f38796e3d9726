@@ -1247,31 +1247,32 @@ const Block: React.FC<BlockProps> = () => {
       {/* Game Over */}
 {playerHp <= 0 && (
   <div style={{
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: `${Math.max(400, windowSize.width * 0.4)}px`,
-    height: `${Math.max(300, windowSize.height * 0.3)}px`,
-    backgroundImage: `url(https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000)`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    color: 'red',
-    padding: '30px',
-    borderRadius: '15px',
-    textAlign: 'center',
-    fontSize: `${Math.max(24, windowSize.width * 0.02)}px`,
-    fontWeight: 'bold',
-    zIndex: 100,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center'
-  }}>
+  position: 'absolute',
+  height: `${Math.max(350, windowSize.height * 0.35)}px`,
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: `${Math.max(400, windowSize.width * 0.4)}px`,
+  height: `${Math.max(300, windowSize.height * 0.3)}px`,
+  backgroundImage: `url(https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000)`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  color: 'red',
+  padding: '30px',
+  borderRadius: '15px',
+  textAlign: 'center',
+  fontSize: `${Math.max(24, windowSize.width * 0.02)}px`,
+  fontWeight: 'bold',
+  zIndex: 100,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',  // ← Centre verticalement tout le contenu
+  alignItems: 'center'
+}}>
     <div style={{ 
   display: 'flex', 
   gap: '30px', 
-  marginTop: "25%",
+  marginTop: "25%",  // ← Remettre ceci
   flexWrap: 'wrap',
   justifyContent: 'center'
 }}>

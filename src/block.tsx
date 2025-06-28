@@ -446,23 +446,26 @@ useEffect(() => {
     return distance < minDistance;
   };
 
-  // Fonction pour vérifier les dégâts de l'ennemi au joueur
-  const checkEnemyAttackHit = (enemy: Enemy) => {
-    const currentPlayerPos = playerPositionRef.current;
-    const currentTime = Date.now();
-    
-    if (currentTime - lastDamageTime < 1000) return;
-    
-    const deltaX = currentPlayerPos.x - enemy.x;
-    const deltaY = currentPlayerPos.y - enemy.y;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    
-    const attackRange = 6;
-    if (distance <= attackRange) {
-      setPlayerHp(prev => Math.max(0, prev - 1));
-      setLastDamageTime(currentTime);
-    }
-  };
+// Fonction pour vérifier les dégâts de l'ennemi au joueur
+const checkEnemyAttackHit = (enemy: Enemy) => {
+  const currentPlayerPos = playerPositionRef.current;
+  const currentTime = Date.now();
+  
+  if (currentTime - lastDamageTime < 1000) return;
+  
+  const deltaX = currentPlayerPos.x - enemy.x;
+  const deltaY = currentPlayerPos.y - enemy.y;
+  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  
+  // Différentes portées selon le type d'ennemi
+  const attackRange = enemy.type === 'treant' ? 12 : 6;
+  if (distance <= attackRange) {
+    // Différents dégâts selon le type d'ennemi
+    const damage = enemy.type === 'treant' ? 2 : 1;
+    setPlayerHp(prev => Math.max(0, prev - damage));
+    setLastDamageTime(currentTime);
+  }
+};
 
   // Fonction pour calculer l'état d'un cœur
   const getHeartState = (heartIndex: number, currentHp: number) => {
@@ -494,8 +497,8 @@ useEffect(() => {
           const deltaY = currentPlayerPos.y - enemy.y;
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
-          // Tréants ont une plus longue portée d'attaque
-          const attackDistance = enemy.type === 'treant' ? 8 : 4;
+                    // Tréants ont une plus longue portée d'attaque
+          const attackDistance = enemy.type === 'treant' ? 12 : 4;
           const collisionDistance = 3;
           const currentTime = Date.now();
           
@@ -506,7 +509,7 @@ useEffect(() => {
             } else {
               newDirection = deltaY > 0 ? 0 : 1;
             }
-          } else if (distance > collisionDistance && !shouldAttack) {
+          }else if (distance > collisionDistance && !shouldAttack) {
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
@@ -1212,63 +1215,63 @@ useEffect(() => {
        let enemySpriteX, enemySpriteY, enemySpriteUrl, enemyBackgroundSizeX;
 
       if (enemy.isDying) {
-        if (enemy.type === 'treant') {
-          enemySpriteX = enemy.deathFrame * spriteWidth;
-          enemySpriteY = enemy.direction * spriteHeight;
-          enemySpriteUrl = treantDeathSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * treantDeathFramesPerRow * enemySpriteScale;
-        } else {
-          const deathImageIndex = enemy.deathFrame + 2;
-          enemySpriteX = deathImageIndex * spriteWidth;
-          enemySpriteY = enemy.direction * spriteHeight;
-          enemySpriteUrl = mushroomDeathSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * enemySpriteScale;
-        }
-      } else if (enemy.isAttacking) {
-        if (enemy.type === 'treant') {
-          enemySpriteX = enemy.attackFrame * spriteWidth;
-          enemySpriteY = enemy.direction * spriteHeight;
-          enemySpriteUrl = treantAttackSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * treantAttackFramesPerRow * enemySpriteScale;
-        } else {
-          enemySpriteX = enemy.attackFrame * spriteWidth;
-          enemySpriteY = enemy.direction * spriteHeight;
-          enemySpriteUrl = mushroomAttackSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * attackFramesPerRow * enemySpriteScale;
-        }
+      if (enemy.type === 'treant') {
+        enemySpriteX = enemy.deathFrame * spriteWidth;
+        enemySpriteY = enemy.direction * spriteHeight;
+        enemySpriteUrl = treantDeathSpriteSheetUrl;
+        enemyBackgroundSizeX = spriteWidth * treantDeathFramesPerRow * treantSpriteScale;
       } else {
-  if (enemy.type === 'treant') {
-    enemySpriteX = enemy.currentFrame * spriteWidth;     // ✅ CHANGÉ
-    enemySpriteY = enemy.direction * spriteHeight;
-    enemySpriteUrl = treantWalkSpriteSheetUrl;          // ✅ CHANGÉ
-    enemyBackgroundSizeX = spriteWidth * treantWalkFramesPerRow * treantSpriteScale; // ✅ CHANGÉ
-  } else {
-          enemySpriteX = enemy.currentFrame * spriteWidth;
-          enemySpriteY = enemy.direction * spriteHeight;
-          enemySpriteUrl = mushroomSpriteSheetUrl;
-          enemyBackgroundSizeX = spriteWidth * walkFramesPerRow * enemySpriteScale;
-        }
+        const deathImageIndex = enemy.deathFrame + 2;
+        enemySpriteX = deathImageIndex * spriteWidth;
+        enemySpriteY = enemy.direction * spriteHeight;
+        enemySpriteUrl = mushroomDeathSpriteSheetUrl;
+        enemyBackgroundSizeX = spriteWidth * deathFramesPerRow * enemySpriteScale;
       }
+    } else if (enemy.isAttacking) {
+      if (enemy.type === 'treant') {
+        enemySpriteX = enemy.attackFrame * spriteWidth;
+        enemySpriteY = enemy.direction * spriteHeight;
+        enemySpriteUrl = treantAttackSpriteSheetUrl;
+        enemyBackgroundSizeX = spriteWidth * treantAttackFramesPerRow * treantSpriteScale;
+      } else {
+        enemySpriteX = enemy.attackFrame * spriteWidth;
+        enemySpriteY = enemy.direction * spriteHeight;
+        enemySpriteUrl = mushroomAttackSpriteSheetUrl;
+        enemyBackgroundSizeX = spriteWidth * attackFramesPerRow * enemySpriteScale;
+      }
+    } else {
+      if (enemy.type === 'treant') {
+        enemySpriteX = enemy.currentFrame * spriteWidth;
+        enemySpriteY = enemy.direction * spriteHeight;
+        enemySpriteUrl = treantWalkSpriteSheetUrl;
+        enemyBackgroundSizeX = spriteWidth * treantWalkFramesPerRow * treantSpriteScale;
+      } else {
+        enemySpriteX = enemy.currentFrame * spriteWidth;
+        enemySpriteY = enemy.direction * spriteHeight;
+        enemySpriteUrl = mushroomSpriteSheetUrl;
+        enemyBackgroundSizeX = spriteWidth * walkFramesPerRow * enemySpriteScale;
+      }
+    }
               
         return (
           <div key={enemy.id}>
             <div
-                style={{
-                  position: 'absolute',
-                  left: `${enemy.x}%`,
-                  top: `${enemy.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  width: `${spriteWidth * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px`,
-                  height: `${spriteHeight * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px`,
-                  backgroundImage: `url(${enemySpriteUrl})`,
-                  backgroundPosition: `-${enemySpriteX * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px -${enemySpriteY * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px`,
-                  backgroundSize: `${enemy.type === 'treant' ? spriteWidth * treantWalkFramesPerRow * treantSpriteScale : enemyBackgroundSizeX}px auto`,
-                  imageRendering: 'pixelated',
-                  transition: 'none',
-                  zIndex: 9,
-                  opacity: enemy.isDying ? 0.8 : 1
-                }}
-              />
+              style={{
+                position: 'absolute',
+                left: `${enemy.x}%`,
+                top: `${enemy.y}%`,
+                transform: 'translate(-50%, -50%)',
+                width: `${spriteWidth * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px`,
+                height: `${spriteHeight * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px`,
+                backgroundImage: `url(${enemySpriteUrl})`,
+                backgroundPosition: `-${enemySpriteX * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px -${enemySpriteY * (enemy.type === 'treant' ? treantSpriteScale : enemySpriteScale)}px`,
+                backgroundSize: `${enemyBackgroundSizeX}px auto`,
+                imageRendering: 'pixelated',
+                transition: 'none',
+                zIndex: 9,
+                opacity: enemy.isDying ? 0.8 : 1
+              }}
+            />
             
             {!enemy.isDying && (
                       <>

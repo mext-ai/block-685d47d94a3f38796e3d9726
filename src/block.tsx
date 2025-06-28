@@ -1236,14 +1236,15 @@ const Block: React.FC<BlockProps> = () => {
         </div>
       )}
 
-      {/* Game Over */}
       {playerHp <= 0 && (
         <div style={{
           position: 'absolute',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          backgroundImage: `url(https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
           color: 'red',
           padding: '30px',
           borderRadius: '15px',
@@ -1252,11 +1253,8 @@ const Block: React.FC<BlockProps> = () => {
           fontWeight: 'bold',
           zIndex: 100
         }}>
-          💀 GAME OVER 💀
-          <br />
-          <span style={{ fontSize: '16px', color: 'white' }}>
-            Les champignons vous ont vaincu !
-          </span>
+         
+       
           <br />
           <button
             onClick={returnToLevelSelect}

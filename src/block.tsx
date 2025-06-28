@@ -47,6 +47,7 @@ const Block: React.FC<BlockProps> = () => {
   const [gameStartTime, setGameStartTime] = useState(0); // Nouveau : temps de début du jeu
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
+  
   // États pour la responsivité - MODIFIÉ POUR x1.5
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [spriteScale, setSpriteScale] = useState(5.25); // 1.5x de 3.5 = 5.25
@@ -114,8 +115,9 @@ const Block: React.FC<BlockProps> = () => {
     calculateResponsiveScale();
   }, [windowSize]);
 
-    // Gestion de la musique de fond
+  // Gestion de la musique de fond
   useEffect(() => {
+    const backgroundMusicUrl = 'https://www.dropbox.com/scl/fi/nje1axspmztb7uxe4jg8h/highlanders-ballad-loop-246977.mp3?rlkey=rp4wh80r57cqip87m61j3r4j1&st=8ahbpgym&dl=1';
     const audio = new Audio(backgroundMusicUrl);
     audio.loop = true;
     audio.volume = 0.3;
@@ -133,13 +135,22 @@ const Block: React.FC<BlockProps> = () => {
   useEffect(() => {
     if (!backgroundMusic) return;
 
-    if (gameState === 'menu' && isSoundEnabled) {
-      backgroundMusic.play().catch(e => console.log('Erreur audio:', e));
-    } else {
-      backgroundMusic.pause();
-    }
-  }, [gameState, isSoundEnabled, backgroundMusic]);
+    const playMusic = async () => {
+      if ((gameState === 'menu' || gameState === 'levelSelect') && isSoundEnabled) {
+        try {
+          await backgroundMusic.play();
+          console.log('Musique lancée depuis Dropbox');
+        } catch (error) {
+          console.log('Erreur lecture audio:', error);
+        }
+      } else {
+        backgroundMusic.pause();
+        console.log('Musique stoppée');
+      }
+    };
 
+    playMusic();
+  }, [gameState, isSoundEnabled, backgroundMusic]);
 
   // Fonction pour aller au menu de sélection de niveau
   const goToLevelSelect = () => {
@@ -195,7 +206,7 @@ const Block: React.FC<BlockProps> = () => {
     return completedLevels.includes(level - 1); // Un niveau est déverrouillé si le précédent est terminé
   };
 
-    // Fonction pour activer/désactiver le son
+  // Fonction pour activer/désactiver le son
   const toggleSound = () => {
     setIsSoundEnabled(prev => !prev);
   };
@@ -809,15 +820,14 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
   const backToLevelsButtonUrl = 'https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500';
   const nextLevelButtonUrl = 'https://drive.google.com/thumbnail?id=1UDa64VfIOZJgg4oCDfziCvftGkFRZ8dz&sz=w500';
 
- // URL pour le compteur d'ennemis - NOUVEAU
+  // URL pour le compteur d'ennemis - NOUVEAU
   const skullImageUrl = 'https://drive.google.com/thumbnail?id=1Dp4dPzMEZKN-cuMdcXU8c9WrdLpOWmjD&sz=w500';
   const woodFrameImageUrl = 'https://drive.google.com/thumbnail?id=1ReBlJh1wSzADiby_PFaaj69P4gz2-y4a&sz=w1000'; // AJOUT DU CADRE EN BOIS
   
   // URLs pour l'audio
-  const backgroundMusicUrl = 'https://www.dropbox.com/scl/fi/nje1axspmztb7uxe4jg8h/highlanders-ballad-loop-246977.mp3?rlkey=rp4wh80r57cqip87m61j3r4j1&st=8ahbpgym&dl=1';
   const soundOnButtonUrl = 'https://drive.google.com/thumbnail?id=1AuGREbT8dOdws6XpMlBYLHeqtny2vy51&sz=w500';
   const soundOffButtonUrl = 'https://drive.google.com/thumbnail?id=1prPXzn-BOzs4AFmoy9Ess3VpqoqjAoFF&sz=w500';
-    
+
   // Configuration du sprite
   const spriteWidth = 32;
   const spriteHeight = 32;
@@ -945,6 +955,8 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
           onMouseEnter={handlePlayButtonMouseEnter}
           onMouseLeave={handlePlayButtonMouseLeave}
         />
+
+        {/* Bouton Son */}
         <div
           style={{
             position: 'absolute',
@@ -1109,6 +1121,37 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
           >
             ← RETOUR
           </div>
+
+          {/* Bouton Son dans le menu des niveaux */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              width: '60px',
+              height: '60px',
+              backgroundImage: `url(${isSoundEnabled ? soundOnButtonUrl : soundOffButtonUrl})`,
+              backgroundSize: 'contain',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              cursor: 'pointer',
+              zIndex: 20,
+              transition: 'all 0.2s ease',
+              filter: isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)',
+              transform: 'scale(1)'
+            }}
+            onClick={toggleSound}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.filter = isSoundEnabled ? 
+                'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
+                'brightness(0.7) grayscale(100%) drop-shadow(0 0 10px rgba(255,255,255,0.6))';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.filter = isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)';
+            }}
+          />
         </div>
       </div>
     );

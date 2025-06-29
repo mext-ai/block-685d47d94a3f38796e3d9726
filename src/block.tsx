@@ -115,7 +115,7 @@ const Block: React.FC<BlockProps> = () => {
     calculateResponsiveScale();
   }, [windowSize]);
 
-  // Gestion de la musique de fond
+ // Gestion de la musique de fond
 useEffect(() => {
   const backgroundMusicUrl = 'https://www.dropbox.com/scl/fi/nje1axspmztb7uxe4jg8h/highlanders-ballad-loop-246977.mp3?rlkey=rp4wh80r57cqip87m61j3r4j1&st=8ahbpgym&dl=1';
   const audio = new Audio(backgroundMusicUrl);
@@ -123,15 +123,6 @@ useEffect(() => {
   audio.volume = 0.3;
   audio.preload = 'auto';
   setBackgroundMusic(audio);
-
-  // NOUVEAU : Tenter de lancer la musique immédiatement si on est au menu
-  if (gameState === 'menu' && isSoundEnabled) {
-    setTimeout(() => {
-      audio.play().catch(error => {
-        console.log('Lecture automatique bloquée par le navigateur:', error);
-      });
-    }, 500);
-  }
 
   return () => {
     if (audio) {
@@ -148,12 +139,12 @@ useEffect(() => {
   const playMusic = async () => {
     if ((gameState === 'menu' || gameState === 'levelSelect') && isSoundEnabled) {
       try {
-        // NOUVEAU : Reset et relance la musique pour s'assurer qu'elle joue
+        // NOUVEAU : Assurer que la musique recommence du début
         backgroundMusic.currentTime = 0;
         await backgroundMusic.play();
         console.log('Musique lancée depuis Dropbox');
       } catch (error) {
-        console.log('Erreur lecture audio:', error);
+        console.log('Erreur lecture audio (normal au premier chargement):', error);
       }
     } else {
       backgroundMusic.pause();
@@ -163,6 +154,15 @@ useEffect(() => {
 
   playMusic();
 }, [gameState, isSoundEnabled, backgroundMusic]);
+
+// NOUVEAU : Fonction pour forcer le démarrage de la musique quand l'utilisateur clique
+const forceStartMusic = () => {
+  if (backgroundMusic && isSoundEnabled && (gameState === 'menu' || gameState === 'levelSelect')) {
+    backgroundMusic.play().catch(error => {
+      console.log('Impossible de lancer la musique:', error);
+    });
+  }
+};
 
   // Fonction pour aller au menu de sélection de niveau
   const goToLevelSelect = () => {
@@ -963,12 +963,15 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
               'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
             opacity: isPlayButtonHovered ? 1 : 0.95,
           }}
-          onClick={handlePlayButtonClick}
+          onClick={(e) => {
+            forceStartMusic(); // NOUVEAU : Forcer le démarrage de la musique
+            handlePlayButtonClick(e);
+          }}
           onMouseEnter={handlePlayButtonMouseEnter}
           onMouseLeave={handlePlayButtonMouseLeave}
         />
 
-           {/* Bouton Son - Position fixe en bas à droite */}
+               {/* Bouton Son - Position fixe */}
         <div
           style={{
             position: 'fixed',
@@ -986,7 +989,10 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
             filter: isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)',
             transform: 'scale(1)'
           }}
-          onClick={toggleSound}
+          onClick={(e) => {
+            forceStartMusic(); // NOUVEAU : Forcer le démarrage de la musique
+            toggleSound();
+          }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'scale(1.1)';
             e.currentTarget.style.filter = isSoundEnabled ? 
@@ -1594,7 +1600,7 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
         </div>
       )}
 
-      {/* Bouton Son - Position fixe en bas à droite (aussi durant le jeu) */}
+      {/* Bouton Son - Position fixe (aussi durant le jeu) */}
       <div
         style={{
           position: 'fixed',

@@ -1062,7 +1062,7 @@ const playerDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1ZYuCtt
   // URLs pour les boutons de Game Over/Victory - NOUVEAU
   const restartButtonUrl = 'https://drive.google.com/thumbnail?id=1bnG4kCEa3zVA8qmGz8YFfTwm6h6I4Wwk&sz=w500';
   const backToLevelsButtonUrl = 'https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500';
-  const nextLevelButtonUrl = 'https://drive.google.com/thumbnail?id=1UDa64VfIOZJgg4oCDfziCvftGkFRZ8dz&sz=w500';
+  const nextLevelButtonUrl = 'https://drive.google.com/thumbnail?id=1m-PKE9D-sZt0oU-qy93bM1qhpPrroHdl&sz=w500';
 
   // URL pour le compteur d'ennemis - NOUVEAU
   const skullImageUrl = 'https://drive.google.com/thumbnail?id=1Dp4dPzMEZKN-cuMdcXU8c9WrdLpOWmjD&sz=w500';
@@ -1367,7 +1367,7 @@ if (gameState === 'playing') {
                   'brightness(0.5) grayscale(80%) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
                 transform: `scale(${isLevel3ButtonHovered && isLevelUnlocked(3) ? 1.1 : 1})`,
                 zIndex: 10,
-                opacity: isLevelUnlocked(3) ? 1 : 0.6
+                opacity: isLevelUnlocked(3) ? 1 : 0.8
               }}
               onClick={handleLevel3ButtonClick}
               onMouseEnter={isLevelUnlocked(3) ? handleLevel3ButtonMouseEnter : undefined}
@@ -1739,7 +1739,32 @@ if (gameState === 'playing') {
             flexWrap: 'wrap',
             justifyContent: 'center'
           }}>
-             {/* Bouton Next Level */}
+            
+            {/* Bouton Retour aux niveaux */}
+            <div
+              onClick={returnToLevelSelect}
+              style={{
+                width: `${Math.max(80, windowSize.width * 0.06)}px`,
+                height: `${Math.max(80, windowSize.width * 0.06)}px`,
+                backgroundImage: `url(${backToLevelsButtonUrl})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+                transform: 'scale(1)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
+              }}
+            />
+            {/* Bouton Next Level */}
             <div
               onClick={() => {
                 // Si niveau 1 terminé, aller au niveau 2, sinon désactivé
@@ -1773,31 +1798,6 @@ if (gameState === 'playing') {
                   e.currentTarget.style.transform = 'scale(1)';
                   e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
                 }
-              }}
-            />
-            
-            {/* Bouton Retour aux niveaux */}
-            <div
-              onClick={returnToLevelSelect}
-              style={{
-                width: `${Math.max(80, windowSize.width * 0.06)}px`,
-                height: `${Math.max(80, windowSize.width * 0.06)}px`,
-                backgroundImage: `url(${backToLevelsButtonUrl})`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
-                transform: 'scale(1)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.1)';
-                e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
               }}
             />
           </div>
@@ -1835,32 +1835,7 @@ if (gameState === 'playing') {
             marginTop: "25%",
             flexWrap: 'wrap',
             justifyContent: 'center'
-          }}>
-            {/* Bouton Restart avec image spiral */}
-            <div
-              onClick={() => startGame(currentLevel)}
-              style={{
-                width: `${Math.max(80, windowSize.width * 0.06)}px`,
-                height: `${Math.max(80, windowSize.width * 0.06)}px`,
-                backgroundImage: `url(${restartButtonUrl})`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                filter: 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
-                transform: 'scale(1)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.1)';
-                e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
-              }}
-            />
-            
+          }}>          
             {/* Bouton Retour aux niveaux avec image */}
             <div
               onClick={returnToLevelSelect}
@@ -1886,6 +1861,7 @@ if (gameState === 'playing') {
               }}
             />
                   </div>
+          
         </div>
       )}
 

@@ -1008,7 +1008,7 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
     );
   }
 
-  // Rendu du menu de sélection de niveau - MODIFIÉ AVEC VOS PARAMÈTRES
+    // Rendu du menu de sélection de niveau - MODIFIÉ AVEC VOS PARAMÈTRES
   if (gameState === 'levelSelect') {
     return (
       <div 
@@ -1139,38 +1139,38 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
           >
             ← RETOUR
           </div>
-
-            {/* Bouton Son - Position fixe en bas à droite */}
-          <div
-            style={{
-              position: 'fixed',
-              bottom: '20px',
-              right: '20px',
-              width: '60px',
-              height: '60px',
-              backgroundImage: `url(${isSoundEnabled ? soundOnButtonUrl : soundOffButtonUrl})`,
-              backgroundSize: 'contain',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              cursor: 'pointer',
-              zIndex: 1000,
-              transition: 'all 0.2s ease',
-              filter: isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)',
-              transform: 'scale(1)'
-            }}
-            onClick={toggleSound}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.filter = isSoundEnabled ? 
-                'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
-                'brightness(0.7) grayscale(100%) drop-shadow(0 0 10px rgba(255,255,255,0.6))';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)';
-            }}
-          />
         </div>
+
+        {/* NOUVEAU : Bouton Son SORTI du conteneur du menu, directement dans le conteneur principal */}
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            width: '60px',
+            height: '60px',
+            backgroundImage: `url(${isSoundEnabled ? soundOnButtonUrl : soundOffButtonUrl})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            cursor: 'pointer',
+            zIndex: 1000,
+            transition: 'all 0.2s ease',
+            filter: isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)',
+            transform: 'scale(1)'
+          }}
+          onClick={toggleSound}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1)';
+            e.currentTarget.style.filter = isSoundEnabled ? 
+              'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
+              'brightness(0.7) grayscale(100%) drop-shadow(0 0 10px rgba(255,255,255,0.6))';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.filter = isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)';
+          }}
+        />
       </div>
     );
   }

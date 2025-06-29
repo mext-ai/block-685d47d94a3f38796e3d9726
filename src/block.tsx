@@ -60,16 +60,23 @@ const Block: React.FC<BlockProps> = () => {
   const enemiesRef = useRef<Enemy[]>([]); // Référence pour les ennemis
   const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
 
+  
   // ====== PARAMÈTRES MODIFIABLES POUR LE MENU DES NIVEAUX ======
-  // Vous pouvez modifier ces valeurs selon vos préférences :
+  // CORRIGÉ : Menu plus petit et image non coupée
   
-  // Largeur du background du menu des niveaux (plus grand = plus large)
-  const MENU_BACKGROUND_WIDTH = 1600; // Actuellement 900px - augmentez pour élargir
+  // Calcul responsive de la largeur du background - RÉDUIT À 50%
+  const MENU_BACKGROUND_WIDTH = Math.min(windowSize.width * 0.5, 600); // 50% de l'écran, max 600px
+  const MENU_BACKGROUND_HEIGHT = MENU_BACKGROUND_WIDTH * 0.4; // Ratio fixe pour éviter la coupure
   
-  // Positions horizontales des boutons (en pourcentage, 0% = gauche, 100% = droite)
-  const LEVEL1_BUTTON_POSITION = 44; // Position du bouton niveau 1 (actuellement 30%)
-  const LEVEL2_BUTTON_POSITION = 50; // Position du bouton niveau 2 (actuellement 50%)
-  const LEVEL3_BUTTON_POSITION = 56; // Position du bouton niveau 3 (actuellement 70%)
+  // Positions horizontales des boutons avec plus d'espace (en pourcentage)
+  const LEVEL1_BUTTON_POSITION = 25; // Plus à gauche
+  const LEVEL2_BUTTON_POSITION = 50; // Au centre
+  const LEVEL3_BUTTON_POSITION = 75; // Plus à droite
+  
+  // Tailles responsive des boutons
+  const BUTTON_WIDTH = Math.min(windowSize.width * 0.16, 120); // Responsive mais pas trop large
+  const BUTTON_HEIGHT = Math.min(windowSize.height * 0.12, 60); // Responsive mais pas trop haute
+  const BUTTON_SCALE_BASE = Math.min(windowSize.width / 1920, 1.5); // Échelle de base responsive
   
   // Pour rapprocher tous les boutons vers le centre, utilisez des valeurs comme :
   // const LEVEL1_BUTTON_POSITION = 35; // Plus proche du centre
@@ -1071,7 +1078,7 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
     );
   }
 
-    // Rendu du menu de sélection de niveau - MODIFIÉ AVEC VOS PARAMÈTRES
+  // Rendu du menu de sélection de niveau - CORRIGÉ : RESPONSIVE AVEC IMAGE DE FOND
   if (gameState === 'levelSelect') {
     return (
       <div 
@@ -1085,126 +1092,147 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
           backgroundRepeat: 'no-repeat',
           position: 'relative',
           overflow: 'hidden',
-          backgroundColor: '#1a1a1a'
+          backgroundColor: '#1a1a1a',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
         }}
       >
-        {/* Rectangle background du menu des niveaux - UTILISE VOS PARAMÈTRES */}
+        {/* Rectangle background du menu des niveaux - RESPONSIVE AVEC RATIO FIXE */}
         <div
           style={{
-            position: 'absolute',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: `${MENU_BACKGROUND_WIDTH}px`, // 🔧 Modifiez MENU_BACKGROUND_WIDTH en haut du fichier
-            height: '360px',
+            position: 'relative',
+            width: `${MENU_BACKGROUND_WIDTH}px`,
+            height: `${MENU_BACKGROUND_WIDTH * 0.4}px`, // Ratio fixe pour maintenir les proportions
             backgroundImage: `url(${levelMenuBackgroundUrl})`,
-            backgroundSize: 'contain',
+            backgroundSize: 'cover', // CHANGÉ : cover au lieu de contain
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
-            zIndex: 5
+            zIndex: 5,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '0'
           }}
         >
-          {/* Bouton Niveau 1 - UTILISE VOS PARAMÈTRES */}
+          {/* Conteneur des boutons - CENTRÉ DANS L'IMAGE */}
           <div
             style={{
-              position: 'absolute',
-              left: `${LEVEL1_BUTTON_POSITION}%`, // 🔧 Modifiez LEVEL1_BUTTON_POSITION en haut du fichier
-              top: '50%',
-              transform: `translate(-50%, -50%) scale(${isLevel1ButtonHovered ? 2.2 : 2})`,
-              width: '100px',
-              height: '50px',
-              backgroundImage: `url(${level1ButtonUrl})`,
-              backgroundSize: 'contain',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              filter: isLevel1ButtonHovered ? 
-                'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
-                'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
-              zIndex: 10
-            }}
-            onClick={handleLevel1ButtonClick}
-            onMouseEnter={handleLevel1ButtonMouseEnter}
-            onMouseLeave={handleLevel1ButtonMouseLeave}
-          />
-
-          {/* Bouton Niveau 2 - UTILISE VOS PARAMÈTRES */}
-          <div
-            style={{
-              position: 'absolute',
-              left: `${LEVEL2_BUTTON_POSITION}%`, // 🔧 Modifiez LEVEL2_BUTTON_POSITION en haut du fichier
-              top: '50%',
-              transform: `translate(-50%, -50%) scale(${isLevel2ButtonHovered ? 2.2 : 2})`,
-              width: '100px',
-              height: '50px',
-              backgroundImage: `url(${level2ButtonUrl})`,
-              backgroundSize: 'contain',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              cursor: isLevelUnlocked(2) ? 'pointer' : 'default',
-              transition: 'all 0.2s ease',
-              zIndex: 10
-            }}
-            onClick={handleLevel2ButtonClick}
-            onMouseEnter={handleLevel2ButtonMouseEnter}
-            onMouseLeave={handleLevel2ButtonMouseLeave}
-          />
-
-          {/* Bouton Niveau 3 - UTILISE VOS PARAMÈTRES */}
-          <div
-            style={{
-              position: 'absolute',
-              left: `${LEVEL3_BUTTON_POSITION}%`, // 🔧 Modifiez LEVEL3_BUTTON_POSITION en haut du fichier
-              top: '50%',
-              transform: `translate(-50%, -50%) scale(${isLevel3ButtonHovered ? 2.2 : 2})`,
-              width: '100px',
-              height: '50px',
-              backgroundImage: `url(${level3ButtonUrl})`,
-              backgroundSize: 'contain',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              cursor: isLevelUnlocked(3) ? 'pointer' : 'default',
-              transition: 'all 0.2s ease',
-              zIndex: 10
-            }}
-            onClick={handleLevel3ButtonClick}
-            onMouseEnter={handleLevel3ButtonMouseEnter}
-            onMouseLeave={handleLevel3ButtonMouseLeave}
-          />
-
-          {/* Bouton Retour */}
-          <div
-            style={{
-              position: 'absolute',
-              right: '20px',
-              bottom: '20px',
-              padding: '10px 20px',
-              backgroundColor: '#f44336',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              fontFamily: 'Arial, sans-serif',
-              transition: 'all 0.2s ease'
-            }}
-            onClick={returnToMenu}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#d32f2f';
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f44336';
-              e.currentTarget.style.transform = 'scale(1)';
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: '70%', // Utilise 70% de la largeur de l'image de fond
+              height: '100%',
+              position: 'relative'
             }}
           >
-            ← RETOUR
+            {/* Bouton Niveau 1 - TAILLE PROPORTIONNELLE */}
+            <div
+              style={{
+                width: `${MENU_BACKGROUND_WIDTH * 0.08}px`, // Proportionnel à l'image de fond
+                height: `${MENU_BACKGROUND_WIDTH * 0.08 * 0.5}px`, // Ratio 2:1
+                backgroundImage: `url(${level1ButtonUrl})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                filter: isLevel1ButtonHovered ? 
+                  'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
+                  'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
+                transform: `scale(${isLevel1ButtonHovered ? 1.1 : 1})`,
+                zIndex: 10
+              }}
+              onClick={handleLevel1ButtonClick}
+              onMouseEnter={handleLevel1ButtonMouseEnter}
+              onMouseLeave={handleLevel1ButtonMouseLeave}
+            />
+
+            {/* Bouton Niveau 2 - TAILLE PROPORTIONNELLE */}
+            <div
+              style={{
+                width: `${MENU_BACKGROUND_WIDTH * 0.08}px`,
+                height: `${MENU_BACKGROUND_WIDTH * 0.08 * 0.5}px`,
+                backgroundImage: `url(${level2ButtonUrl})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                cursor: isLevelUnlocked(2) ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s ease',
+                filter: isLevelUnlocked(2) ? 
+                  (isLevel2ButtonHovered ? 
+                    'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
+                    'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))') :
+                  'brightness(0.5) grayscale(80%) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
+                transform: `scale(${isLevel2ButtonHovered && isLevelUnlocked(2) ? 1.1 : 1})`,
+                zIndex: 10,
+                opacity: isLevelUnlocked(2) ? 1 : 0.6
+              }}
+              onClick={handleLevel2ButtonClick}
+              onMouseEnter={isLevelUnlocked(2) ? handleLevel2ButtonMouseEnter : undefined}
+              onMouseLeave={isLevelUnlocked(2) ? handleLevel2ButtonMouseLeave : undefined}
+            />
+
+            {/* Bouton Niveau 3 - TAILLE PROPORTIONNELLE */}
+            <div
+              style={{
+                width: `${MENU_BACKGROUND_WIDTH * 0.08}px`,
+                height: `${MENU_BACKGROUND_WIDTH * 0.08 * 0.5}px`,
+                backgroundImage: `url(${level3ButtonUrl})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                cursor: isLevelUnlocked(3) ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s ease',
+                filter: isLevelUnlocked(3) ? 
+                  (isLevel3ButtonHovered ? 
+                    'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
+                    'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))') :
+                  'brightness(0.5) grayscale(80%) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
+                transform: `scale(${isLevel3ButtonHovered && isLevelUnlocked(3) ? 1.1 : 1})`,
+                zIndex: 10,
+                opacity: isLevelUnlocked(3) ? 1 : 0.6
+              }}
+              onClick={handleLevel3ButtonClick}
+              onMouseEnter={isLevelUnlocked(3) ? handleLevel3ButtonMouseEnter : undefined}
+              onMouseLeave={isLevelUnlocked(3) ? handleLevel3ButtonMouseLeave : undefined}
+            />
           </div>
         </div>
 
-        {/* NOUVEAU : Bouton Son SORTI du conteneur du menu, directement dans le conteneur principal */}
+        {/* Bouton Retour - REPOSITIONNÉ */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '30px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: `${Math.max(8, windowSize.height * 0.01)}px ${Math.max(16, windowSize.width * 0.015)}px`,
+            backgroundColor: '#f44336',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: `${Math.max(12, windowSize.width * 0.012)}px`,
+            fontWeight: 'bold',
+            fontFamily: 'Arial, sans-serif',
+            transition: 'all 0.2s ease',
+            zIndex: 100
+          }}
+          onClick={returnToMenu}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#d32f2f';
+            e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#f44336';
+            e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
+          }}
+        >
+          ← RETOUR
+        </div>
+
+        {/* Bouton Son - Position fixe (sorti du conteneur du menu) */}
         <div
           style={{
             position: 'fixed',

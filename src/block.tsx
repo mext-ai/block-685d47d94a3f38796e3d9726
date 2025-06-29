@@ -50,7 +50,7 @@ const Block: React.FC<BlockProps> = () => {
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
   const [gameMusic, setGameMusic] = useState<HTMLAudioElement | null>(null); // NOUVEAU : Musique de jeu
-  
+  const [hurtSound, setHurtSound] = useState<HTMLAudioElement | null>(null);
   // États pour la responsivité - MODIFIÉ POUR x1.5
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [spriteScale, setSpriteScale] = useState(5.25); // 1.5x de 3.5 = 5.25
@@ -113,6 +113,21 @@ const Block: React.FC<BlockProps> = () => {
     setTreantSpriteScale(newTreantScale);
   };
 
+  // Pré-charger le son de dégâts
+useEffect(() => {
+  const audio = new Audio(playerHurtSoundUrl);
+  audio.volume = 0.6;
+  audio.preload = 'auto';
+  setHurtSound(audio);
+
+  return () => {
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  };
+}, []);
+  
   // NOUVEAU : Écouter les changements de taille de fenêtre
   useEffect(() => {
     const handleResize = () => {
@@ -132,8 +147,6 @@ const Block: React.FC<BlockProps> = () => {
 const playerHurtSoundUrl = 'https://www.dropbox.com/scl/fi/vh2sptq0fypi7zs998z8i/young-man-being-hurt-95628.mp3?rlkey=u32pzwk5rtev7oeyxoe3nnp70&st=9bl3uyyv&dl=1';
  // Gestion de la musique de fond
 useEffect(() => {
-  // URL du son de dégâts du joueur
-const playerHurtSoundUrl = 'https://www.dropbox.com/scl/fi/vh2sptq0fypi7zs998z8i/young-man-being-hurt-95628.mp3?rlkey=u32pzwk5rtev7oeyxoe3nnp70&st=9bl3uyyv&dl=1';
   const backgroundMusicUrl = 'https://www.dropbox.com/scl/fi/nje1axspmztb7uxe4jg8h/highlanders-ballad-loop-246977.mp3?rlkey=rp4wh80r57cqip87m61j3r4j1&st=8ahbpgym&dl=1';
   const audio = new Audio(backgroundMusicUrl);
   audio.loop = true;
@@ -312,12 +325,11 @@ useEffect(() => {
     setIsSoundEnabled(prev => !prev);
   };
 
-  // Fonction pour jouer le son de dégâts
+  // Fonction pour jouer le son de dégâts (version pré-chargée)
 const playHurtSound = () => {
-  if (isSoundEnabled) {
-    const hurtAudio = new Audio(playerHurtSoundUrl);
-    hurtAudio.volume = 0.6; // Volume modéré
-    hurtAudio.play().catch(error => {
+  if (isSoundEnabled && hurtSound) {
+    hurtSound.currentTime = 0; // Recommencer depuis le début
+    hurtSound.play().catch(error => {
       console.log('Erreur lecture son de dégâts:', error);
     });
   }

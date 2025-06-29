@@ -333,7 +333,7 @@ useEffect(() => {
     setIsSoundEnabled(prev => !prev);
   };
 
-  // Fonction pour jouer le son de dégâts (version pré-chargée)
+    // Fonction pour jouer le son de dégâts (version pré-chargée)
 const playHurtSound = () => {
   if (isSoundEnabled && hurtSound) {
     hurtSound.currentTime = 0; // Recommencer depuis le début
@@ -686,8 +686,10 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
     // Différents dégâts selon le type d'ennemi
     const damage = enemy.type === 'treant' ? 2 : 1;
     
-    // NOUVEAU : Jouer le son de dégâts
-    playHurtSound();
+    // NOUVEAU : Jouer le son de dégâts seulement si le son est activé
+    if (isSoundEnabled) {
+      playHurtSound();
+    }
     
     // Utiliser une fonction pour obtenir la valeur actuelle des HP
     setPlayerHp(currentHp => {

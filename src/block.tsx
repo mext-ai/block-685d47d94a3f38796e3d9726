@@ -1051,7 +1051,8 @@ const playerDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1ZYuCtt
   // URLs pour le menu des niveaux - NOUVELLES IMAGES
   const levelMenuBackgroundUrl = 'https://drive.google.com/thumbnail?id=1WcBQAkpbUXuhwcTAzu-G2xKwU6pkotyc&sz=w1000';
   const level1ButtonUrl = 'https://drive.google.com/thumbnail?id=1W_Wi6_CQ3zo-5nI31qRIkm9ZsCPpNu3p&sz=w500';
-  const level2ButtonUrl = 'https://drive.google.com/thumbnail?id=1gGMkrpQ7t10YxG16q0PNx7yyV7QEekyG&sz=w500'; // Niveau 2 grisé
+  const level2ButtonLockedUrl = 'https://drive.google.com/thumbnail?id=1gGMkrpQ7t10YxG16q0PNx7yyV7QEekyG&sz=w500'; // Niveau 2 grisé
+  const level2ButtonUnlockedUrl = 'https://drive.google.com/thumbnail?id=1O-X33f1w3tjdfaKD0hsVcw9ZGJN0USYi&sz=w500'; // Niveau 2 déverrouillé
   const level3ButtonUrl = 'https://drive.google.com/thumbnail?id=18oZ0B_hXP89joEFxUb0lDMu7K1oif2s3&sz=w500'; // Niveau 3 grisé
 
   // URLs pour les nouvelles images de contrôles - AJOUT DES NOUVELLES IMAGES
@@ -1142,16 +1143,20 @@ if (gameState === 'playing') {
 
   const handleLevel2ButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
+    // Les boutons sont maintenant toujours incliquables, mais ne démarrent le jeu que si déverrouillé
     if (isLevelUnlocked(2)) {
       startGame(2);
     }
+    // Si verrouillé, ne rien faire (pas de feedback)
   };
 
   const handleLevel3ButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
+    // Les boutons sont maintenant toujours incliquables, mais ne démarrent le jeu que si déverrouillé
     if (isLevelUnlocked(3)) {
       startGame(3);
     }
+    // Si verrouillé, ne rien faire (pas de feedback)
   };
 
   // Fonctions pour gérer le hover des boutons
@@ -1322,24 +1327,26 @@ if (gameState === 'playing') {
               style={{
                 width: `${MENU_BACKGROUND_WIDTH * 0.12}px`, // AGRANDI : de 0.08 à 0.12
                 height: `${MENU_BACKGROUND_WIDTH * 0.12 * 2}px`, // AGRANDI : proportionnel
-                backgroundImage: `url(${level2ButtonUrl})`,
+                backgroundImage: `url(${isLevelUnlocked(2) ? level2ButtonUnlockedUrl : level2ButtonLockedUrl})`,
                 backgroundSize: 'contain',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
-                cursor: isLevelUnlocked(2) ? 'pointer' : 'not-allowed',
+                cursor: 'pointer', // TOUJOURS cliquable
                 transition: 'all 0.2s ease',
                 filter: isLevelUnlocked(2) ? 
                   (isLevel2ButtonHovered ? 
                     'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
                     'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))') :
-                  'brightness(0.5) grayscale(80%) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
-                transform: `scale(${isLevel2ButtonHovered && isLevelUnlocked(2) ? 1.1 : 1})`,
+                  (isLevel2ButtonHovered ? 
+                    'brightness(0.7) grayscale(60%) drop-shadow(0 0 10px rgba(255,255,255,0.3))' :
+                    'brightness(0.5) grayscale(80%) drop-shadow(0 0 3px rgba(0,0,0,0.3))'),
+                transform: `scale(${isLevel2ButtonHovered ? 1.1 : 1})`, // TOUJOURS responsive au hover
                 zIndex: 10,
-                opacity: isLevelUnlocked(2) ? 1 : 0.6
+                opacity: isLevelUnlocked(2) ? 1 : 0.8 // Moins transparent quand verrouillé
               }}
               onClick={handleLevel2ButtonClick}
-              onMouseEnter={isLevelUnlocked(2) ? handleLevel2ButtonMouseEnter : undefined}
-              onMouseLeave={isLevelUnlocked(2) ? handleLevel2ButtonMouseLeave : undefined}
+              onMouseEnter={handleLevel2ButtonMouseEnter} // TOUJOURS actif
+              onMouseLeave={handleLevel2ButtonMouseLeave} // TOUJOURS actif
             />
 
             {/* Bouton Niveau 3 - TAILLE PROPORTIONNELLE */}

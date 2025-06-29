@@ -44,25 +44,26 @@ const Block: React.FC<BlockProps> = () => {
   const [playerHp, setPlayerHp] = useState(10); // HP du joueur
   const [maxPlayerHp] = useState(10); // HP max
   const [enemyDamageCooldowns, setEnemyDamageCooldowns] = useState<{[key: number]: number}>({}); // Cooldown par ennemi
-  const [isPlayerDying, setIsPlayerDying] = useState(false); // NOUVEAU : État de mort du joueur
-  const [playerDeathFrame, setPlayerDeathFrame] = useState(0); // NOUVEAU : Frame d'animation de mort
-  const [isPlayerDisappeared, setIsPlayerDisappeared] = useState(false); // NOUVEAU : État de disparition du joueur
-  const [gameStartTime, setGameStartTime] = useState(0); // Nouveau : temps de début du jeu
-  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
-  const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
-  const [gameMusic, setGameMusic] = useState<HTMLAudioElement | null>(null); // NOUVEAU : Musique de jeu
-  const [hurtSound, setHurtSound] = useState<HTMLAudioElement | null>(null);
+    const [isPlayerDying, setIsPlayerDying] = useState(false); // NOUVEAU : État de mort du joueur
+    const [playerDeathFrame, setPlayerDeathFrame] = useState(0); // NOUVEAU : Frame d'animation de mort
+    const [isPlayerDisappeared, setIsPlayerDisappeared] = useState(false); // NOUVEAU : État de disparition du joueur
+    const [gameStartTime, setGameStartTime] = useState(0); // Nouveau : temps de début du jeu
+    const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+    const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
+    const [gameMusic, setGameMusic] = useState<HTMLAudioElement | null>(null); // NOUVEAU : Musique de jeu
+    const [hurtSound, setHurtSound] = useState<HTMLAudioElement | null>(null);
   // États pour la responsivité - MODIFIÉ POUR x1.5
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [spriteScale, setSpriteScale] = useState(5.25); // 1.5x de 3.5 = 5.25
   const [enemySpriteScale, setEnemySpriteScale] = useState(4.5); // 1.5x de 3 = 4.5
   const [treantSpriteScale, setTreantSpriteScale] = useState(9); // 1.5x plus grand que les ennemis normaux
-  // Utiliser useRef pour avoir toujours la position actuelle du joueur
+    // Utiliser useRef pour avoir toujours la position actuelle du joueur
   const playerPositionRef = useRef({ x: 50, y: 50 });
   const playerDirectionRef = useRef(0); // Référence pour la direction du joueur
   const enemiesRef = useRef<Enemy[]>([]); // Référence pour les ennemis
   const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
   const enemyDamageCooldownsRef = useRef<{[key: number]: number}>({}); // Référence pour les cooldowns
+  const isPlayerDisappearedRef = useRef(false); // Référence pour l'état de disparition
 
   
   // ====== PARAMÈTRES MODIFIABLES POUR LE MENU DES NIVEAUX ======
@@ -243,17 +244,22 @@ const forceStartMusic = () => {
   }
 };
 
-  // Mettre à jour la référence des cooldowns
+    // Mettre à jour la référence des cooldowns
 useEffect(() => {
   enemyDamageCooldownsRef.current = enemyDamageCooldowns;
 }, [enemyDamageCooldowns]);
+
+// Mettre à jour la référence de disparition
+useEffect(() => {
+  isPlayerDisappearedRef.current = isPlayerDisappeared;
+}, [isPlayerDisappeared]);
   
   // Fonction pour aller au menu de sélection de niveau
   const goToLevelSelect = () => {
     setGameState('levelSelect');
   };
 
- const startGame = (level: number = 1) => {
+  const startGame = (level: number = 1) => {
   enemiesInitialized.current = false; // FORCER la réinitialisation
   setCurrentLevel(level);
   setGameState('playing');
@@ -545,6 +551,16 @@ useEffect(() => {
     setEnemies(prev => prev.map(enemy => {
       if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
       
+      // Si le joueur a disparu, arrêter toutes les attaques en cours
+      if (isPlayerDisappeared) {
+        return {
+          ...enemy,
+          isAttacking: false,
+          attackFrame: 0,
+          lastAttackTime: Date.now()
+        };
+      }
+      
       const nextFrame = enemy.attackFrame + 1;
       
       const maxAttackFrames = enemy.type === 'treant' ? 7 : 8;
@@ -571,7 +587,7 @@ useEffect(() => {
   }, 100);
 
   return () => clearInterval(enemyAttackAnimationInterval);
-}, [gameState]);
+}, [gameState, isPlayerDisappeared]);
 
  // Animation de mort des ennemis
 useEffect(() => {
@@ -649,7 +665,6 @@ useEffect(() => {
   };
 
 // Fonction pour vérifier les dégâts de l'ennemi au joueur
-// Fonction pour vérifier les dégâts de l'ennemi au joueur
 const checkEnemyAttackHit = (enemy: Enemy) => {
   // Si le joueur a disparu, ne plus infliger de dégâts
   if (isPlayerDisappeared) return;
@@ -703,7 +718,7 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
     return 2;
   };
 
-  // Mouvement des ennemis avec collision et IA d'attaque - MODIFIÉE
+// Mouvement des ennemis avec collision et IA d'attaque - MODIFIÉE
   useEffect(() => {
     if (gameState !== 'playing') return;
     
@@ -711,6 +726,9 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
       setEnemies(prev => prev.map(enemy => {
         // Ne pas bouger les ennemis qui ne sont pas encore apparus
         if (!enemy.isAlive || enemy.isDying || enemy.isAttacking || !enemy.hasSpawned) return enemy;
+        
+        // Si le joueur a disparu, les ennemis arrêtent de le poursuivre
+        if (isPlayerDisappearedRef.current) return enemy;
         
         let newX = enemy.x;
         let newY = enemy.y;

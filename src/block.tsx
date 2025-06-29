@@ -44,6 +44,8 @@ const Block: React.FC<BlockProps> = () => {
   const [playerHp, setPlayerHp] = useState(10); // HP du joueur
   const [maxPlayerHp] = useState(10); // HP max
   const [lastDamageTime, setLastDamageTime] = useState(0); // Pour éviter les dégâts répétés
+  const [isPlayerDying, setIsPlayerDying] = useState(false); // NOUVEAU : État de mort du joueur
+  const [playerDeathFrame, setPlayerDeathFrame] = useState(0); // NOUVEAU : Frame d'animation de mort
   const [gameStartTime, setGameStartTime] = useState(0); // Nouveau : temps de début du jeu
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
@@ -242,6 +244,8 @@ const forceStartMusic = () => {
   enemiesInitialized.current = false;
   setIsWalking(false);          // AJOUT : Réinitialiser l'état de marche
   setIsAttacking(false);        // AJOUT : Réinitialiser l'état d'attaque
+  setIsPlayerDying(false);      // NOUVEAU : Réinitialiser l'état de mort
+  setPlayerDeathFrame(0);       // NOUVEAU : Réinitialiser la frame de mort
   setLastDamageTime(0);
   setGameStartTime(Date.now()); // Nouveau : enregistrer le temps de début
 };
@@ -531,29 +535,49 @@ useEffect(() => {
   return () => clearInterval(enemyAttackAnimationInterval);
 }, [gameState]);
 
-  // Animation de mort des ennemis
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-    
-    const deathAnimationInterval = setInterval(() => {
-      setEnemies(prev => prev.map(enemy => {
-        if (!enemy.isDying || !enemy.hasSpawned) return enemy;
-        
-        const nextFrame = enemy.deathFrame + 1;
-        
-        if (nextFrame >= 4) {
-          return { ...enemy, isAlive: false, isDying: false };
-        }
-        
-        return {
-          ...enemy,
-          deathFrame: nextFrame
-        };
-      }));
-    }, 150);
+ // Animation de mort des ennemis
+useEffect(() => {
+  if (gameState !== 'playing') return;
+  
+  const deathAnimationInterval = setInterval(() => {
+    setEnemies(prev => prev.map(enemy => {
+      if (!enemy.isDying || !enemy.hasSpawned) return enemy;
+      
+      const nextFrame = enemy.deathFrame + 1;
+      
+      if (nextFrame >= 4) {
+        return { ...enemy, isAlive: false, isDying: false };
+      }
+      
+      return {
+        ...enemy,
+        deathFrame: nextFrame
+      };
+    }));
+  }, 150);
 
-    return () => clearInterval(deathAnimationInterval);
-  }, [gameState]);
+  return () => clearInterval(deathAnimationInterval);
+}, [gameState]);
+
+// NOUVEAU : Animation de mort du joueur
+useEffect(() => {
+  if (gameState !== 'playing' || !isPlayerDying) return;
+  
+  const playerDeathAnimationInterval = setInterval(() => {
+    setPlayerDeathFrame(prev => {
+      const nextFrame = prev + 1;
+      
+      // Rester sur la dernière frame (frame 5, index 5)
+      if (nextFrame >= playerDeathFramesPerRow - 1) {
+        return playerDeathFramesPerRow - 1; // Rester sur la dernière frame
+      }
+      
+      return nextFrame;
+    });
+  }, 200); // Animation plus lente pour la mort
+
+  return () => clearInterval(playerDeathAnimationInterval);
+}, [gameState, isPlayerDying]);
 
   // Nettoyer les ennemis morts après l'animation
   useEffect(() => {
@@ -590,8 +614,15 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
   if (distance <= attackRange) {
     // Différents dégâts selon le type d'ennemi
     const damage = enemy.type === 'treant' ? 2 : 1;
-    setPlayerHp(prev => Math.max(0, prev - damage));
+    const newHp = Math.max(0, playerHp - damage);
+    setPlayerHp(newHp);
     setLastDamageTime(currentTime);
+    
+    // NOUVEAU : Déclencher l'animation de mort si HP = 0
+    if (newHp <= 0 && !isPlayerDying) {
+      setIsPlayerDying(true);
+      setPlayerDeathFrame(0);
+    }
   }
 };
 
@@ -872,8 +903,9 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
 
   // URLs des images
   const backgroundImageUrl = 'https://drive.google.com/thumbnail?id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR&sz=w2000';
-  const walkSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1_Yp96n--W40rf5sQFA4L5MBpc0IBOYBW&sz=w1000';
-  const attackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1dAguM-5cKwpr6d7IwmL4RyHZNHtnl5To&sz=w1000';
+const walkSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1_Yp96n--W40rf5sQFA4L5MBpc0IBOYBW&sz=w1000';
+const attackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1dAguM-5cKwpr6d7IwmL4RyHZNHtnl5To&sz=w1000';
+const playerDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1ZYuCttJO3GihFzIRbqjTY7SpJcxrRGq9/view?usp=drive_link&sz=w1000'; // NOUVEAU : Sprite de mort joueur
   const mushroomSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1j2LelD-leMi_3y44PFuLCJOl_cmRRysA&sz=w1000';
   const mushroomDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1Xf5RQQHzgCU2m39l3iCJ1wwBge-XCtZD&sz=w1000';
   const mushroomAttackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=15xo5LfJBU2kBCGx9bPdQO9sV7U8yvOx2&sz=w1000';
@@ -912,12 +944,13 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
   const soundOnButtonUrl = 'https://drive.google.com/thumbnail?id=1AuGREbT8dOdws6XpMlBYLHeqtny2vy51&sz=w500';
   const soundOffButtonUrl = 'https://drive.google.com/thumbnail?id=1prPXzn-BOzs4AFmoy9Ess3VpqoqjAoFF&sz=w500';
 
-  // Configuration du sprite
-  const spriteWidth = 32;
-  const spriteHeight = 32;
-  const walkFramesPerRow = 4;
-  const attackFramesPerRow = 8;
-  const deathFramesPerRow = 9;
+// Configuration du sprite
+const spriteWidth = 32;
+const spriteHeight = 32;
+const walkFramesPerRow = 4;
+const attackFramesPerRow = 8;
+const deathFramesPerRow = 9;
+const playerDeathFramesPerRow = 8; // NOUVEAU : Nombre de frames pour l'animation de mort du joueur
 
   // Configuration des frames pour les tréants - NOUVEAU
   const treantWalkFramesPerRow = 6;    // 6 frames de marche
@@ -936,21 +969,27 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
   const remainingEnemies = enemies.filter(enemy => enemy.isAlive || enemy.isDying).length;
   
   // Calcul de la position dans le sprite sheet
-  let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
-  
-  if (gameState === 'playing') {
-    if (isAttacking) {
-      spriteX = attackFrame * spriteWidth;
-      spriteY = direction * spriteHeight;
-      currentSpriteUrl = attackSpriteSheetUrl;
-      backgroundSizeX = spriteWidth * attackFramesPerRow * spriteScale;
-    } else {
-      spriteX = currentFrame * spriteWidth;
-      spriteY = direction * spriteHeight;
-      currentSpriteUrl = walkSpriteSheetUrl;
-      backgroundSizeX = spriteWidth * walkFramesPerRow * spriteScale;
-    }
+let spriteX, spriteY, currentSpriteUrl, backgroundSizeX;
+
+if (gameState === 'playing') {
+  if (isPlayerDying) {
+    // NOUVEAU : Animation de mort du joueur
+    spriteX = playerDeathFrame * spriteWidth;
+    spriteY = direction * spriteHeight;
+    currentSpriteUrl = playerDeathSpriteSheetUrl;
+    backgroundSizeX = spriteWidth * playerDeathFramesPerRow * spriteScale;
+  } else if (isAttacking) {
+    spriteX = attackFrame * spriteWidth;
+    spriteY = direction * spriteHeight;
+    currentSpriteUrl = attackSpriteSheetUrl;
+    backgroundSizeX = spriteWidth * attackFramesPerRow * spriteScale;
+  } else {
+    spriteX = currentFrame * spriteWidth;
+    spriteY = direction * spriteHeight;
+    currentSpriteUrl = walkSpriteSheetUrl;
+    backgroundSizeX = spriteWidth * walkFramesPerRow * spriteScale;
   }
+}
 
   // Fonction pour obtenir le nom de la direction
   const getDirectionName = (dir: number) => {

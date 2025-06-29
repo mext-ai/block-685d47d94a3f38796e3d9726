@@ -348,7 +348,7 @@ const playHurtSound = () => {
   }
 };
 
-  // Fonction pour créer les ennemis du niveau 1 - MODIFIÉE POUR 10 ENNEMIS
+ // Fonction pour créer les ennemis du niveau 1 - MODIFIÉE POUR 10 ENNEMIS
   const createLevel1Enemies = (): Enemy[] => {
     const enemies: Enemy[] = [];
     
@@ -411,6 +411,34 @@ const playHurtSound = () => {
     return enemies;
   };
 
+  // NOUVEAU : Fonction pour créer les ennemis du niveau 2
+  const createLevel2Enemies = (): Enemy[] => {
+    const enemies: Enemy[] = [];
+    
+    // Pour l'instant, un seul mushroom au niveau 2
+    const enemy: Enemy = {
+      id: 1,
+      type: 'mushroom',
+      x: 75, // Position à droite
+      y: 60, // Position au centre verticalement
+      direction: 2, // Face à gauche
+      currentFrame: 0,
+      isAlive: true,
+      hp: 3,
+      maxHp: 3,
+      isDying: false,
+      deathFrame: 0,
+      isAttacking: false,
+      attackFrame: 0,
+      lastAttackTime: 0,
+      spawnTime: 0, // Apparaît immédiatement
+      hasSpawned: true
+    };
+    
+    enemies.push(enemy);
+    return enemies;
+  };
+
   // Vérifier la victoire (tous les ennemis morts) - NOUVEAU SYSTÈME
   useEffect(() => {
     if (gameState === 'playing' && enemies.length > 0) {
@@ -467,6 +495,9 @@ const playHurtSound = () => {
     if (currentLevel === 1) {
       const level1Enemies = createLevel1Enemies();
       setEnemies(level1Enemies);
+    } else if (currentLevel === 2) {
+      const level2Enemies = createLevel2Enemies();
+      setEnemies(level2Enemies);
     } else {
       // Pour les autres niveaux, garder l'ancien système pour l'instant
       const initialMushroom: Enemy = {
@@ -996,7 +1027,9 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
   }, [isAttacking, gameState]);
 
   // URLs des images
+   // URLs des images
   const backgroundImageUrl = 'https://drive.google.com/thumbnail?id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR&sz=w2000';
+  const level2BackgroundUrl = 'https://drive.google.com/thumbnail?id=14_KhsGR-XIyH3ctQekjjjQhIzE4LEs-k&sz=w2000'; // NOUVEAU : Background niveau 2
 const walkSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1_Yp96n--W40rf5sQFA4L5MBpc0IBOYBW&sz=w1000';
 const attackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1dAguM-5cKwpr6d7IwmL4RyHZNHtnl5To&sz=w1000';
 const playerDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1ZYuCttJO3GihFzIRbqjTY7SpJcxrRGq9&sz=w1000'; // NOUVEAU : Sprite de mort joueu // NOUVEAU : Sprite de mort joueur
@@ -1402,13 +1435,13 @@ if (gameState === 'playing') {
     );
   }
 
-  // Rendu du jeu
+   // Rendu du jeu
   return (
     <div 
       style={{
         height: '100vh',
         margin: 0,
-        backgroundImage: `url(${backgroundImageUrl})`,
+        backgroundImage: `url(${currentLevel === 2 ? level2BackgroundUrl : backgroundImageUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -1699,8 +1732,14 @@ if (gameState === 'playing') {
             flexWrap: 'wrap',
             justifyContent: 'center'
           }}>
-            {/* Bouton Next Level (incliquable pour l'instant) */}
+             {/* Bouton Next Level */}
             <div
+              onClick={() => {
+                // Si niveau 1 terminé, aller au niveau 2, sinon désactivé
+                if (currentLevel === 1) {
+                  startGame(2);
+                }
+              }}
               style={{
                 width: `${Math.max(80, windowSize.width * 0.06)}px`,
                 height: `${Math.max(80, windowSize.width * 0.06)}px`,
@@ -1708,11 +1747,25 @@ if (gameState === 'playing') {
                 backgroundSize: 'contain',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
-                cursor: 'not-allowed',
+                cursor: currentLevel === 1 ? 'pointer' : 'not-allowed',
                 transition: 'all 0.2s ease',
-                filter: 'brightness(0.7) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+                filter: currentLevel === 1 ? 
+                  'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))' : 
+                  'brightness(0.7) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
                 transform: 'scale(1)',
-                opacity: 0.7
+                opacity: currentLevel === 1 ? 1 : 0.7
+              }}
+              onMouseEnter={(e) => {
+                if (currentLevel === 1) {
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentLevel === 1) {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
+                }
               }}
             />
             

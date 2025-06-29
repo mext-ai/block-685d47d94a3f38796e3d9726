@@ -64,9 +64,12 @@ const Block: React.FC<BlockProps> = () => {
   // ====== PARAMÈTRES MODIFIABLES POUR LE MENU DES NIVEAUX ======
   // CORRIGÉ : Menu plus petit et image non coupée
   
+    // ====== PARAMÈTRES MODIFIABLES POUR LE MENU DES NIVEAUX ======
+  // CORRIGÉ : Menu plus petit et image non coupée
+  
   // Calcul responsive de la largeur du background - RÉDUIT À 50%
   const MENU_BACKGROUND_WIDTH = Math.min(windowSize.width * 0.5, 600); // 50% de l'écran, max 600px
-  const MENU_BACKGROUND_HEIGHT = MENU_BACKGROUND_WIDTH * 0.4; // Ratio fixe pour éviter la coupure
+  const MENU_BACKGROUND_HEIGHT = Math.min(MENU_BACKGROUND_WIDTH * 0.2, windowSize.height * 0.3); // Encore plus petit
   
   // Positions horizontales des boutons avec plus d'espace (en pourcentage)
   const LEVEL1_BUTTON_POSITION = 25; // Plus à gauche

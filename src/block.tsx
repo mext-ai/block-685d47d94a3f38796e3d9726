@@ -47,6 +47,7 @@ const Block: React.FC<BlockProps> = () => {
   const [gameStartTime, setGameStartTime] = useState(0); // Nouveau : temps de début du jeu
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
+  const [gameMusic, setGameMusic] = useState<HTMLAudioElement | null>(null); // NOUVEAU : Musique de jeu
   
   // États pour la responsivité - MODIFIÉ POUR x1.5
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -155,6 +156,51 @@ useEffect(() => {
   playMusic();
 }, [gameState, isSoundEnabled, backgroundMusic]);
 
+  // NOUVEAU : Gestion de la musique de jeu pour le niveau 1
+useEffect(() => {
+  if (gameState === 'playing' && currentLevel === 1) {
+    // Créer la musique de niveau 1 si elle n'existe pas
+    if (!gameMusic) {
+      const gameMusicUrl = 'https://www.dropbox.com/scl/fi/xwqj85vyt90g4mp7o1hif/flute-rain-flute-loop-ambient-short-loop-340800.mp3?rlkey=819wk666fxdt68uawl1pjbwud&st=4r8oib11&dl=1';
+      const audio = new Audio(gameMusicUrl);
+      audio.loop = true;
+      audio.volume = 0.4; // Volume un peu plus fort que la musique de menu
+      audio.preload = 'auto';
+      setGameMusic(audio);
+      
+      // Lancer la musique si le son est activé
+      if (isSoundEnabled) {
+        setTimeout(() => {
+          audio.play().catch(error => {
+            console.log('Erreur lecture musique de jeu:', error);
+          });
+        }, 500);
+      }
+    }
+  }
+  
+  // Nettoyer la musique de jeu quand on quitte le niveau 1
+  return () => {
+    if (gameMusic && (gameState !== 'playing' || currentLevel !== 1)) {
+      gameMusic.pause();
+      gameMusic.currentTime = 0;
+    }
+  };
+}, [gameState, currentLevel, isSoundEnabled]);
+
+// NOUVEAU : Contrôler la musique de jeu selon l'état du son
+useEffect(() => {
+  if (!gameMusic) return;
+  
+  if (gameState === 'playing' && currentLevel === 1 && isSoundEnabled) {
+    gameMusic.play().catch(error => {
+      console.log('Erreur lecture musique de jeu:', error);
+    });
+  } else {
+    gameMusic.pause();
+  }
+}, [gameState, currentLevel, isSoundEnabled, gameMusic]);
+
 // NOUVEAU : Fonction pour forcer le démarrage de la musique quand l'utilisateur clique
 const forceStartMusic = () => {
   if (backgroundMusic && isSoundEnabled && (gameState === 'menu' || gameState === 'levelSelect')) {
@@ -169,12 +215,17 @@ const forceStartMusic = () => {
     setGameState('levelSelect');
   };
 
-  // Fonction pour démarrer le jeu avec un niveau spécifique
- const startGame = (level: number = 1) => {
+  const startGame = (level: number = 1) => {
   enemiesInitialized.current = false; // FORCER la réinitialisation
   setCurrentLevel(level);
   setGameState('playing');
   setIsVictory(false); // NOUVEAU : Réinitialiser l'état de victoire
+  
+  // NOUVEAU : Arrêter la musique de menu quand on commence à jouer
+  if (backgroundMusic) {
+    backgroundMusic.pause();
+  }
+  
   // Réinitialiser le jeu
   setPlayerHp(10);
   setPosition({ x: 50, y: 50 });
@@ -186,31 +237,43 @@ const forceStartMusic = () => {
   setGameStartTime(Date.now()); // Nouveau : enregistrer le temps de début
 };
 
-  // Fonction pour retourner au menu
   const returnToMenu = () => {
-    setGameState('menu');
-    setIsVictory(false); // NOUVEAU : Réinitialiser l'état de victoire
-    // Réinitialiser le jeu
-    setPlayerHp(10);
-    setPosition({ x: 50, y: 50 });
-    setEnemies([]);
-    enemiesInitialized.current = false;
-    setLastDamageTime(0);
-    setGameStartTime(0);
-  };
+  // NOUVEAU : Arrêter la musique de jeu
+  if (gameMusic) {
+    gameMusic.pause();
+    gameMusic.currentTime = 0;
+    setGameMusic(null);
+  }
+  
+  setGameState('menu');
+  setIsVictory(false); // NOUVEAU : Réinitialiser l'état de victoire
+  // Réinitialiser le jeu
+  setPlayerHp(10);
+  setPosition({ x: 50, y: 50 });
+  setEnemies([]);
+  enemiesInitialized.current = false;
+  setLastDamageTime(0);
+  setGameStartTime(0);
+};
 
-  // Fonction pour retourner à la sélection de niveau
   const returnToLevelSelect = () => {
-    setGameState('levelSelect');
-    setIsVictory(false); // NOUVEAU : Réinitialiser l'état de victoire
-    // Réinitialiser le jeu
-    setPlayerHp(10);
-    setPosition({ x: 50, y: 50 });
-    setEnemies([]);
-    enemiesInitialized.current = false;
-    setLastDamageTime(0);
-    setGameStartTime(0);
-  };
+  // NOUVEAU : Arrêter la musique de jeu
+  if (gameMusic) {
+    gameMusic.pause();
+    gameMusic.currentTime = 0;
+    setGameMusic(null);
+  }
+  
+  setGameState('levelSelect');
+  setIsVictory(false); // NOUVEAU : Réinitialiser l'état de victoire
+  // Réinitialiser le jeu
+  setPlayerHp(10);
+  setPosition({ x: 50, y: 50 });
+  setEnemies([]);
+  enemiesInitialized.current = false;
+  setLastDamageTime(0);
+  setGameStartTime(0);
+};
 
   // Vérifier si un niveau est déverrouillé
   const isLevelUnlocked = (level: number) => {

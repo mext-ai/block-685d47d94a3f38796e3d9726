@@ -64,7 +64,7 @@ const Block: React.FC<BlockProps> = () => {
   const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
   const enemyDamageCooldownsRef = useRef<{[key: number]: number}>({}); // Référence pour les cooldowns
   const isPlayerDisappearedRef = useRef(false); // Référence pour l'état de disparition
-
+   const isSoundEnabledRef = useRef(true); // Référence pour l'état du son
   
   // ====== PARAMÈTRES MODIFIABLES POUR LE MENU DES NIVEAUX ======
   // CORRIGÉ : Menu plus petit et image non coupée
@@ -253,6 +253,11 @@ useEffect(() => {
 useEffect(() => {
   isPlayerDisappearedRef.current = isPlayerDisappeared;
 }, [isPlayerDisappeared]);
+
+// Mettre à jour la référence du son
+useEffect(() => {
+  isSoundEnabledRef.current = isSoundEnabled;
+}, [isSoundEnabled]);
   
   // Fonction pour aller au menu de sélection de niveau
   const goToLevelSelect = () => {
@@ -333,9 +338,9 @@ useEffect(() => {
     setIsSoundEnabled(prev => !prev);
   };
 
-    // Fonction pour jouer le son de dégâts (version pré-chargée)
+     // Fonction pour jouer le son de dégâts (version pré-chargée)
 const playHurtSound = () => {
-  if (isSoundEnabled && hurtSound) {
+  if (isSoundEnabledRef.current && hurtSound) {
     hurtSound.currentTime = 0; // Recommencer depuis le début
     hurtSound.play().catch(error => {
       console.log('Erreur lecture son de dégâts:', error);

@@ -649,7 +649,11 @@ useEffect(() => {
   };
 
 // Fonction pour vérifier les dégâts de l'ennemi au joueur
+// Fonction pour vérifier les dégâts de l'ennemi au joueur
 const checkEnemyAttackHit = (enemy: Enemy) => {
+  // Si le joueur a disparu, ne plus infliger de dégâts
+  if (isPlayerDisappeared) return;
+  
   const currentPlayerPos = playerPositionRef.current;
   const currentTime = Date.now();
   

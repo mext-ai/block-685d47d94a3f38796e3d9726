@@ -67,12 +67,11 @@ const Block: React.FC<BlockProps> = () => {
     // ====== PARAMÈTRES MODIFIABLES POUR LE MENU DES NIVEAUX ======
   // CORRIGÉ : Menu plus petit et image non coupée
   
-  // Calcul responsive de la largeur du background - RÉDUIT À 50%
-  const MENU_BACKGROUND_WIDTH = Math.min(windowSize.width * 0.5, 600); // 50% de l'écran, max 600px
-  const MENU_BACKGROUND_HEIGHT = Math.min(MENU_BACKGROUND_WIDTH * 0.2, windowSize.height * 0.3); // Encore plus petit
+  const MENU_BACKGROUND_HEIGHT = Math.min(windowSize.height * 0.3, 250); // Max 30% de l'écran ou 250px
+  const MENU_BACKGROUND_WIDTH = Math.min(windowSize.width * 0.5, MENU_BACKGROUND_HEIGHT * 3); // Largeur proportionnelle
   
   // Positions horizontales des boutons avec plus d'espace (en pourcentage)
-  const LEVEL1_BUTTON_POSITION = 25; // Plus à gauche
+  const LEVEL1_BUTTON_POSITION = 40; // Plus à gauche
   const LEVEL2_BUTTON_POSITION = 50; // Au centre
   const LEVEL3_BUTTON_POSITION = 75; // Plus à droite
   
@@ -1106,9 +1105,9 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
           style={{
             position: 'relative',
             width: `${MENU_BACKGROUND_WIDTH}px`,
-            height: `${MENU_BACKGROUND_WIDTH * 0.4}px`, // Ratio fixe pour maintenir les proportions
+            height: `${MENU_BACKGROUND_HEIGHT}px`,
             backgroundImage: `url(${levelMenuBackgroundUrl})`,
-            backgroundSize: 'cover', // CHANGÉ : cover au lieu de contain
+            backgroundSize: '75% 100%', // FORCÉ : étire l'image pour remplir exactement le conteneur
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
             zIndex: 5,
@@ -1122,18 +1121,19 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
           <div
             style={{
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent: 'center', // CHANGÉ : center au lieu de space-between
               alignItems: 'center',
               width: '70%', // Utilise 70% de la largeur de l'image de fond
               height: '100%',
-              position: 'relative'
+              position: 'relative',
+              gap: '36px' // AJOUTÉ : espacement fixe entre les boutons
             }}
           >
             {/* Bouton Niveau 1 - TAILLE PROPORTIONNELLE */}
             <div
               style={{
-                width: `${MENU_BACKGROUND_WIDTH * 0.08}px`, // Proportionnel à l'image de fond
-                height: `${MENU_BACKGROUND_WIDTH * 0.08 * 0.5}px`, // Ratio 2:1
+                width: `${MENU_BACKGROUND_WIDTH * 0.12}px`, // AGRANDI : de 0.08 à 0.12
+                height: `${MENU_BACKGROUND_WIDTH * 0.12 * 2}px`, // AGRANDI : proportionnel
                 backgroundImage: `url(${level1ButtonUrl})`,
                 backgroundSize: 'contain',
                 backgroundPosition: 'center',
@@ -1154,8 +1154,8 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
             {/* Bouton Niveau 2 - TAILLE PROPORTIONNELLE */}
             <div
               style={{
-                width: `${MENU_BACKGROUND_WIDTH * 0.08}px`,
-                height: `${MENU_BACKGROUND_WIDTH * 0.08 * 0.5}px`,
+                width: `${MENU_BACKGROUND_WIDTH * 0.12}px`, // AGRANDI : de 0.08 à 0.12
+                height: `${MENU_BACKGROUND_WIDTH * 0.12 * 2}px`, // AGRANDI : proportionnel
                 backgroundImage: `url(${level2ButtonUrl})`,
                 backgroundSize: 'contain',
                 backgroundPosition: 'center',
@@ -1179,8 +1179,8 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
             {/* Bouton Niveau 3 - TAILLE PROPORTIONNELLE */}
             <div
               style={{
-                width: `${MENU_BACKGROUND_WIDTH * 0.08}px`,
-                height: `${MENU_BACKGROUND_WIDTH * 0.08 * 0.5}px`,
+                width: `${MENU_BACKGROUND_WIDTH * 0.12}px`, // AGRANDI : de 0.08 à 0.12
+                height: `${MENU_BACKGROUND_WIDTH * 0.12 * 2}px`, // AGRANDI : proportionnel
                 backgroundImage: `url(${level3ButtonUrl})`,
                 backgroundSize: 'contain',
                 backgroundPosition: 'center',

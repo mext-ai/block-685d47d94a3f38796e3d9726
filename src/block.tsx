@@ -116,41 +116,53 @@ const Block: React.FC<BlockProps> = () => {
   }, [windowSize]);
 
   // Gestion de la musique de fond
-  useEffect(() => {
-    const backgroundMusicUrl = 'https://www.dropbox.com/scl/fi/nje1axspmztb7uxe4jg8h/highlanders-ballad-loop-246977.mp3?rlkey=rp4wh80r57cqip87m61j3r4j1&st=8ahbpgym&dl=1';
-    const audio = new Audio(backgroundMusicUrl);
-    audio.loop = true;
-    audio.volume = 0.3;
-    setBackgroundMusic(audio);
+useEffect(() => {
+  const backgroundMusicUrl = 'https://www.dropbox.com/scl/fi/nje1axspmztb7uxe4jg8h/highlanders-ballad-loop-246977.mp3?rlkey=rp4wh80r57cqip87m61j3r4j1&st=8ahbpgym&dl=1';
+  const audio = new Audio(backgroundMusicUrl);
+  audio.loop = true;
+  audio.volume = 0.3;
+  audio.preload = 'auto';
+  setBackgroundMusic(audio);
 
-    return () => {
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
+  // NOUVEAU : Tenter de lancer la musique immédiatement si on est au menu
+  if (gameState === 'menu' && isSoundEnabled) {
+    setTimeout(() => {
+      audio.play().catch(error => {
+        console.log('Lecture automatique bloquée par le navigateur:', error);
+      });
+    }, 500);
+  }
+
+  return () => {
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  };
+}, []);
+
+// Contrôler la musique selon l'état du jeu
+useEffect(() => {
+  if (!backgroundMusic) return;
+
+  const playMusic = async () => {
+    if ((gameState === 'menu' || gameState === 'levelSelect') && isSoundEnabled) {
+      try {
+        // NOUVEAU : Reset et relance la musique pour s'assurer qu'elle joue
+        backgroundMusic.currentTime = 0;
+        await backgroundMusic.play();
+        console.log('Musique lancée depuis Dropbox');
+      } catch (error) {
+        console.log('Erreur lecture audio:', error);
       }
-    };
-  }, []);
+    } else {
+      backgroundMusic.pause();
+      console.log('Musique stoppée');
+    }
+  };
 
-  // Contrôler la musique selon l'état du jeu
-  useEffect(() => {
-    if (!backgroundMusic) return;
-
-    const playMusic = async () => {
-      if ((gameState === 'menu' || gameState === 'levelSelect') && isSoundEnabled) {
-        try {
-          await backgroundMusic.play();
-          console.log('Musique lancée depuis Dropbox');
-        } catch (error) {
-          console.log('Erreur lecture audio:', error);
-        }
-      } else {
-        backgroundMusic.pause();
-        console.log('Musique stoppée');
-      }
-    };
-
-    playMusic();
-  }, [gameState, isSoundEnabled, backgroundMusic]);
+  playMusic();
+}, [gameState, isSoundEnabled, backgroundMusic]);
 
   // Fonction pour aller au menu de sélection de niveau
   const goToLevelSelect = () => {
@@ -956,11 +968,11 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
           onMouseLeave={handlePlayButtonMouseLeave}
         />
 
-        {/* Bouton Son */}
+           {/* Bouton Son - Position fixe en bas à droite */}
         <div
           style={{
-            position: 'absolute',
-            top: '20px',
+            position: 'fixed',
+            bottom: '20px',
             right: '20px',
             width: '60px',
             height: '60px',
@@ -969,7 +981,7 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
             cursor: 'pointer',
-            zIndex: 20,
+            zIndex: 1000,
             transition: 'all 0.2s ease',
             filter: isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)',
             transform: 'scale(1)'
@@ -1122,11 +1134,11 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
             ← RETOUR
           </div>
 
-          {/* Bouton Son dans le menu des niveaux */}
+            {/* Bouton Son - Position fixe en bas à droite */}
           <div
             style={{
-              position: 'absolute',
-              top: '20px',
+              position: 'fixed',
+              bottom: '20px',
               right: '20px',
               width: '60px',
               height: '60px',
@@ -1135,7 +1147,7 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
               cursor: 'pointer',
-              zIndex: 20,
+              zIndex: 1000,
               transition: 'all 0.2s ease',
               filter: isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)',
               transform: 'scale(1)'
@@ -1578,11 +1590,40 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
                 e.currentTarget.style.filter = 'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))';
               }}
             />
-          </div>
+                  </div>
         </div>
       )}
 
-      {/* SUPPRIMÉ : Ancien panneau d'instructions avec background et toutes les infos de debug */}
+      {/* Bouton Son - Position fixe en bas à droite (aussi durant le jeu) */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: '60px',
+          height: '60px',
+          backgroundImage: `url(${isSoundEnabled ? soundOnButtonUrl : soundOffButtonUrl})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          cursor: 'pointer',
+          zIndex: 1000,
+          transition: 'all 0.2s ease',
+          filter: isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)',
+          transform: 'scale(1)'
+        }}
+        onClick={toggleSound}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1)';
+          e.currentTarget.style.filter = isSoundEnabled ? 
+            'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
+            'brightness(0.7) grayscale(100%) drop-shadow(0 0 10px rgba(255,255,255,0.6))';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.filter = isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)';
+        }}
+      />
     </div>
   );
 };

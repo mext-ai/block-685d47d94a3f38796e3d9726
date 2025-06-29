@@ -573,14 +573,15 @@ useEffect(() => {
     setPlayerDeathFrame(prev => {
       const nextFrame = prev + 1;
       
-      // Rester sur la dernière frame (frame 5, index 5)
+      // Si on atteint la dernière frame, arrêter l'animation
       if (nextFrame >= playerDeathFramesPerRow - 1) {
-        return playerDeathFramesPerRow - 1; // Rester sur la dernière frame
+        clearInterval(playerDeathAnimationInterval); // Arrêter l'interval
+        return playerDeathFramesPerRow - 1; // Rester sur la dernière frame (index 7)
       }
       
       return nextFrame;
     });
-  }, 200); // Animation plus lente pour la mort
+  }, 150);
 
   return () => clearInterval(playerDeathAnimationInterval);
 }, [gameState, isPlayerDying]);
@@ -923,7 +924,7 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
   const backgroundImageUrl = 'https://drive.google.com/thumbnail?id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR&sz=w2000';
 const walkSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1_Yp96n--W40rf5sQFA4L5MBpc0IBOYBW&sz=w1000';
 const attackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1dAguM-5cKwpr6d7IwmL4RyHZNHtnl5To&sz=w1000';
-const playerDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1ZYuCttJO3GihFzIRbqjTY7SpJcxrRGq9/view?usp=drive_link&sz=w1000'; // NOUVEAU : Sprite de mort joueur
+const playerDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1ZYuCttJO3GihFzIRbqjTY7SpJcxrRGq9&sz=w1000'; // NOUVEAU : Sprite de mort joueu // NOUVEAU : Sprite de mort joueur
   const mushroomSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1j2LelD-leMi_3y44PFuLCJOl_cmRRysA&sz=w1000';
   const mushroomDeathSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=1Xf5RQQHzgCU2m39l3iCJ1wwBge-XCtZD&sz=w1000';
   const mushroomAttackSpriteSheetUrl = 'https://drive.google.com/thumbnail?id=15xo5LfJBU2kBCGx9bPdQO9sV7U8yvOx2&sz=w1000';

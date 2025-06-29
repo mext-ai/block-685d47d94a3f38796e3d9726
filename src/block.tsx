@@ -46,6 +46,7 @@ const Block: React.FC<BlockProps> = () => {
   const [enemyDamageCooldowns, setEnemyDamageCooldowns] = useState<{[key: number]: number}>({}); // Cooldown par ennemi
   const [isPlayerDying, setIsPlayerDying] = useState(false); // NOUVEAU : État de mort du joueur
   const [playerDeathFrame, setPlayerDeathFrame] = useState(0); // NOUVEAU : Frame d'animation de mort
+  const [isPlayerDisappeared, setIsPlayerDisappeared] = useState(false); // NOUVEAU : État de disparition du joueur
   const [gameStartTime, setGameStartTime] = useState(0); // Nouveau : temps de début du jeu
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
@@ -252,7 +253,7 @@ useEffect(() => {
     setGameState('levelSelect');
   };
 
-  const startGame = (level: number = 1) => {
+ const startGame = (level: number = 1) => {
   enemiesInitialized.current = false; // FORCER la réinitialisation
   setCurrentLevel(level);
   setGameState('playing');
@@ -272,6 +273,7 @@ useEffect(() => {
   setIsAttacking(false);        // AJOUT : Réinitialiser l'état d'attaque
   setIsPlayerDying(false);      // NOUVEAU : Réinitialiser l'état de mort
   setPlayerDeathFrame(0);       // NOUVEAU : Réinitialiser la frame de mort
+  setIsPlayerDisappeared(false); // NOUVEAU : Réinitialiser l'état de disparition
   setEnemyDamageCooldowns({});  // NOUVEAU : Réinitialiser les cooldowns des ennemis
   setGameStartTime(Date.now()); // Nouveau : enregistrer le temps de début
 };
@@ -615,6 +617,17 @@ useEffect(() => {
 
   return () => clearInterval(playerDeathAnimationInterval);
 }, [gameState, isPlayerDying]);
+
+// NOUVEAU : Timer pour faire disparaître le joueur 1 seconde après sa mort
+useEffect(() => {
+  if (gameState !== 'playing' || !isPlayerDying || isPlayerDisappeared) return;
+  
+  const disappearTimer = setTimeout(() => {
+    setIsPlayerDisappeared(true);
+  }, 1000); // 1 seconde après le début de l'animation de mort
+
+  return () => clearTimeout(disappearTimer);
+}, [gameState, isPlayerDying, isPlayerDisappeared]);
 
   // Nettoyer les ennemis morts après l'animation
   useEffect(() => {
@@ -1375,21 +1388,23 @@ if (gameState === 'playing') {
       }}
       tabIndex={0}
     >
-      {/* Personnage sprite qui se déplace - MODIFIÉ POUR UTILISER L'ÉCHELLE RESPONSIVE x1.5 */}
-      <div style={{
-        position: 'absolute',
-        left: `${position.x}%`,
-        top: `${position.y}%`,
-        transform: 'translate(-50%, -50%)',
-        width: `${spriteWidth * spriteScale}px`,
-        height: `${spriteHeight * spriteScale}px`,
-        backgroundImage: `url(${currentSpriteUrl})`,
-        backgroundPosition: `-${spriteX * spriteScale}px -${spriteY * spriteScale}px`,
-        backgroundSize: `${backgroundSizeX}px auto`,
-        imageRendering: 'pixelated',
-        transition: 'none',
-        zIndex: 10
-      }} />
+         {/* Personnage sprite qui se déplace - MODIFIÉ POUR UTILISER L'ÉCHELLE RESPONSIVE x1.5 */}
+        {!isPlayerDisappeared && (
+          <div style={{
+            position: 'absolute',
+            left: `${position.x}%`,
+            top: `${position.y}%`,
+            transform: 'translate(-50%, -50%)',
+            width: `${spriteWidth * spriteScale}px`,
+            height: `${spriteHeight * spriteScale}px`,
+            backgroundImage: `url(${currentSpriteUrl})`,
+            backgroundPosition: `-${spriteX * spriteScale}px -${spriteY * spriteScale}px`,
+            backgroundSize: `${backgroundSizeX}px auto`,
+            imageRendering: 'pixelated',
+            transition: 'none',
+            zIndex: 10
+          }} />
+        )}
 
       {/* Système de cœurs - MODIFIÉ POUR ÊTRE RESPONSIVE ET x1.5 */}
       <div style={{

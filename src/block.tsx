@@ -43,7 +43,7 @@ const Block: React.FC<BlockProps> = () => {
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const [playerHp, setPlayerHp] = useState(10); // HP du joueur
   const [maxPlayerHp] = useState(10); // HP max
-  const [lastDamageTime, setLastDamageTime] = useState(0); // Pour éviter les dégâts répétés
+  const [enemyDamageCooldowns, setEnemyDamageCooldowns] = useState<{[key: number]: number}>({}); // Cooldown par ennemi
   const [isPlayerDying, setIsPlayerDying] = useState(false); // NOUVEAU : État de mort du joueur
   const [playerDeathFrame, setPlayerDeathFrame] = useState(0); // NOUVEAU : Frame d'animation de mort
   const [gameStartTime, setGameStartTime] = useState(0); // Nouveau : temps de début du jeu
@@ -61,6 +61,7 @@ const Block: React.FC<BlockProps> = () => {
   const playerDirectionRef = useRef(0); // Référence pour la direction du joueur
   const enemiesRef = useRef<Enemy[]>([]); // Référence pour les ennemis
   const enemiesInitialized = useRef(false); // Pour éviter la réinitialisation
+  const enemyDamageCooldownsRef = useRef<{[key: number]: number}>({}); // Référence pour les cooldowns
 
   
   // ====== PARAMÈTRES MODIFIABLES POUR LE MENU DES NIVEAUX ======
@@ -221,6 +222,11 @@ const forceStartMusic = () => {
   }
 };
 
+  // Mettre à jour la référence des cooldowns
+useEffect(() => {
+  enemyDamageCooldownsRef.current = enemyDamageCooldowns;
+}, [enemyDamageCooldowns]);
+  
   // Fonction pour aller au menu de sélection de niveau
   const goToLevelSelect = () => {
     setGameState('levelSelect');
@@ -246,7 +252,7 @@ const forceStartMusic = () => {
   setIsAttacking(false);        // AJOUT : Réinitialiser l'état d'attaque
   setIsPlayerDying(false);      // NOUVEAU : Réinitialiser l'état de mort
   setPlayerDeathFrame(0);       // NOUVEAU : Réinitialiser la frame de mort
-  setLastDamageTime(0);
+  setEnemyDamageCooldowns({});  // NOUVEAU : Réinitialiser les cooldowns des ennemis
   setGameStartTime(Date.now()); // Nouveau : enregistrer le temps de début
 };
 
@@ -265,7 +271,7 @@ const forceStartMusic = () => {
   setPosition({ x: 50, y: 50 });
   setEnemies([]);
   enemiesInitialized.current = false;
-  setLastDamageTime(0);
+  setEnemyDamageCooldowns({}); // NOUVEAU : Réinitialiser les cooldowns des ennemis
   setGameStartTime(0);
 };
 
@@ -284,7 +290,7 @@ const forceStartMusic = () => {
   setPosition({ x: 50, y: 50 });
   setEnemies([]);
   enemiesInitialized.current = false;
-  setLastDamageTime(0);
+  setEnemyDamageCooldowns({}); // NOUVEAU : Réinitialiser les cooldowns des ennemis
   setGameStartTime(0);
 };
 
@@ -603,7 +609,9 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
   const currentPlayerPos = playerPositionRef.current;
   const currentTime = Date.now();
   
-  if (currentTime - lastDamageTime < 1000) return;
+  // Vérifier le cooldown spécifique à cet ennemi
+  const lastDamageFromThisEnemy = enemyDamageCooldowns[enemy.id] || 0;
+  if (currentTime - lastDamageFromThisEnemy < 1000) return; // 1 seconde de cooldown par ennemi
   
   const deltaX = currentPlayerPos.x - enemy.x;
   const deltaY = currentPlayerPos.y - enemy.y;
@@ -614,15 +622,25 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
   if (distance <= attackRange) {
     // Différents dégâts selon le type d'ennemi
     const damage = enemy.type === 'treant' ? 2 : 1;
-    const newHp = Math.max(0, playerHp - damage);
-    setPlayerHp(newHp);
-    setLastDamageTime(currentTime);
     
-    // NOUVEAU : Déclencher l'animation de mort si HP = 0
-    if (newHp <= 0 && !isPlayerDying) {
-      setIsPlayerDying(true);
-      setPlayerDeathFrame(0);
-    }
+    // Utiliser une fonction pour obtenir la valeur actuelle des HP
+    setPlayerHp(currentHp => {
+      const newHp = Math.max(0, currentHp - damage);
+      
+      // Déclencher l'animation de mort si HP = 0
+      if (newHp <= 0 && !isPlayerDying) {
+        setIsPlayerDying(true);
+        setPlayerDeathFrame(0);
+      }
+      
+      return newHp;
+    });
+    
+    // Mettre à jour le cooldown pour cet ennemi spécifique
+    setEnemyDamageCooldowns(prev => ({
+      ...prev,
+      [enemy.id]: currentTime
+    }));
   }
 };
 

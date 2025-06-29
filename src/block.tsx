@@ -128,8 +128,12 @@ const Block: React.FC<BlockProps> = () => {
     calculateResponsiveScale();
   }, [windowSize]);
 
+  // URL du son de dégâts du joueur
+const playerHurtSoundUrl = 'https://www.dropbox.com/scl/fi/vh2sptq0fypi7zs998z8i/young-man-being-hurt-95628.mp3?rlkey=u32pzwk5rtev7oeyxoe3nnp70&st=9bl3uyyv&dl=1';
  // Gestion de la musique de fond
 useEffect(() => {
+  // URL du son de dégâts du joueur
+const playerHurtSoundUrl = 'https://www.dropbox.com/scl/fi/vh2sptq0fypi7zs998z8i/young-man-being-hurt-95628.mp3?rlkey=u32pzwk5rtev7oeyxoe3nnp70&st=9bl3uyyv&dl=1';
   const backgroundMusicUrl = 'https://www.dropbox.com/scl/fi/nje1axspmztb7uxe4jg8h/highlanders-ballad-loop-246977.mp3?rlkey=rp4wh80r57cqip87m61j3r4j1&st=8ahbpgym&dl=1';
   const audio = new Audio(backgroundMusicUrl);
   audio.loop = true;
@@ -144,6 +148,9 @@ useEffect(() => {
     }
   };
 }, []);
+
+
+  
 
 // Contrôler la musique selon l'état du jeu
 useEffect(() => {
@@ -304,6 +311,17 @@ useEffect(() => {
   const toggleSound = () => {
     setIsSoundEnabled(prev => !prev);
   };
+
+  // Fonction pour jouer le son de dégâts
+const playHurtSound = () => {
+  if (isSoundEnabled) {
+    const hurtAudio = new Audio(playerHurtSoundUrl);
+    hurtAudio.volume = 0.6; // Volume modéré
+    hurtAudio.play().catch(error => {
+      console.log('Erreur lecture son de dégâts:', error);
+    });
+  }
+};
 
   // Fonction pour créer les ennemis du niveau 1 - MODIFIÉE POUR 10 ENNEMIS
   const createLevel1Enemies = (): Enemy[] => {
@@ -623,6 +641,9 @@ const checkEnemyAttackHit = (enemy: Enemy) => {
   if (distance <= attackRange) {
     // Différents dégâts selon le type d'ennemi
     const damage = enemy.type === 'treant' ? 2 : 1;
+    
+    // NOUVEAU : Jouer le son de dégâts
+    playHurtSound();
     
     // Utiliser une fonction pour obtenir la valeur actuelle des HP
     setPlayerHp(currentHp => {

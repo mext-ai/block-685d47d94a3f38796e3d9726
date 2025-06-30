@@ -3,25 +3,6 @@ import { BlockProps } from './types';
 import { 
   backgroundImageUrl, 
   level2BackgroundUrl, 
-  walkSpriteSheetUrl, 
-  attackSpriteSheetUrl, 
-  playerDeathSpriteSheetUrl,
-  mushroomSpriteSheetUrl,
-  mushroomDeathSpriteSheetUrl,
-  mushroomAttackSpriteSheetUrl,
-  treantWalkSpriteSheetUrl,
-  treantDeathSpriteSheetUrl,
-  treantAttackSpriteSheetUrl,
-  backToLevelsButtonUrl,
-  nextLevelButtonUrl,
-  spriteWidth,
-  spriteHeight,
-  walkFramesPerRow,
-  attackFramesPerRow,
-  deathFramesPerRow,
-  treantWalkFramesPerRow,
-  treantAttackFramesPerRow,
-  treantDeathFramesPerRow
 } from './constants';
 
 // Hooks personnalisés

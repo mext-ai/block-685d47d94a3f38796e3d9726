@@ -101,11 +101,11 @@ export const usePlayerControls = (
       
       setKeys(prev => ({
         ...prev,
-        up: prev.up && !(key === 'arrowup' || key === 'z'),
-        down: prev.down && !(key === 'arrowdown' || key === 's'),
-        left: prev.left && !(key === 'arrowleft' || key === 'q'),
-        right: prev.right && !(key === 'arrowright' || key === 'd'),
-        space: prev.space && key !== ' '
+        up: key === 'arrowup' || key === 'z' ? false : prev.up,
+        down: key === 'arrowdown' || key === 's' ? false : prev.down,
+        left: key === 'arrowleft' || key === 'q' ? false : prev.left,
+        right: key === 'arrowright' || key === 'd' ? false : prev.right,
+        space: key === ' ' ? false : prev.space
       }));
     };
 
@@ -122,4 +122,4 @@ export const usePlayerControls = (
     keys,
     setKeys
   };
-}; 
+};

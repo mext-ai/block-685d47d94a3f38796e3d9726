@@ -59,22 +59,31 @@ export const usePlayerControls = (
           let newX = prev.x;
           let newY = prev.y;
           const speed = 0.5;
-
-          // Gestion des mouvements avec priorité
+          
+          // Mouvement vertical - les deux directions peuvent être traitées indépendamment
           if (keys.up && !keys.down) {
             newY = Math.max(TOP_LIMIT, prev.y - speed);
-            setDirection(1);
           } else if (keys.down && !keys.up) {
             newY = Math.min(BOTTOM_LIMIT, prev.y + speed);
-            setDirection(0);
           }
           
+          // Mouvement horizontal - traité indépendamment du vertical
           if (keys.left && !keys.right) {
             newX = Math.max(LEFT_LIMIT, prev.x - speed);
-            setDirection(2);
           } else if (keys.right && !keys.left) {
             newX = Math.min(RIGHT_LIMIT, prev.x + speed);
-            setDirection(3);
+          }
+          
+          // Déterminer la direction pour l'animation
+          // Priorité aux mouvements les plus récents ou dominants
+          if (keys.up && !keys.down) {
+            setDirection(1); // Haut
+          } else if (keys.down && !keys.up) {
+            setDirection(0); // Bas
+          } else if (keys.left && !keys.right) {
+            setDirection(2); // Gauche
+          } else if (keys.right && !keys.left) {
+            setDirection(3); // Droite
           }
 
           const potentialPos = { x: newX, y: newY };

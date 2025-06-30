@@ -19,7 +19,6 @@ export const useGameState = () => {
 
   const returnToMenu = () => {
     setGameState('menu');
-    setCurrentLevel(1);
     setIsVictory(false);
   };
 
@@ -28,28 +27,30 @@ export const useGameState = () => {
     setIsVictory(false);
   };
 
-  const completeLevel = (level: number) => {
-    if (!completedLevels.includes(level)) {
-      setCompletedLevels((prev: number[]) => [...prev, level]);
-    }
-    setIsVictory(true);
-  };
-
   const isLevelUnlocked = (level: number) => {
     if (level === 1) return true;
     return completedLevels.includes(level - 1);
   };
 
+  const markLevelCompleted = (level: number) => {
+    if (!completedLevels.includes(level)) {
+      setCompletedLevels(prev => [...prev, level]);
+    }
+  };
+
   return {
     gameState,
+    setGameState,
     currentLevel,
+    setCurrentLevel,
     completedLevels,
     isVictory,
+    setIsVictory,
     goToLevelSelect,
     startGame,
     returnToMenu,
     returnToLevelSelect,
-    completeLevel,
-    isLevelUnlocked
+    isLevelUnlocked,
+    markLevelCompleted
   };
 }; 

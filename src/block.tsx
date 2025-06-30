@@ -2,24 +2,14 @@ import React, { useEffect, useState, useRef } from 'react';
 import { BlockProps } from './types';
 import { 
   backgroundImageUrl, 
-  level2BackgroundUrl, 
+  level2BackgroundUrl
 } from './constants';
 
 // Hooks personnalisés
-import { useGameState } from './hooks/useGameState';
-import { usePlayer } from './hooks/usePlayer';
-import { useEnemies } from './hooks/useEnemies';
-import { useAudio } from './hooks/useAudio';
-import { useResponsive } from './hooks/useResponsive';
+import { useGameState, usePlayer, useEnemies, useAudio, useResponsive } from './hooks';
 
 // Composants
-import { MainMenu } from './components/MainMenu';
-import { LevelSelect } from './components/LevelSelect';
-import { GameUI } from './components/GameUI';
-
-// Logique de jeu
-import { checkCollision, checkEnemyAttackHit, isEnemyInAttackDirection } from './gameLogic/collisionDetection';
-import { updatePlayerPosition, getPlayerDirection, isPlayerWalking } from './gameLogic/playerMovement';
+import { MainMenu, LevelSelect, GameUI, GameWorld } from './components';
 
 const Block: React.FC<BlockProps> = () => {
   // États pour les boutons du menu
@@ -45,22 +35,22 @@ const Block: React.FC<BlockProps> = () => {
       switch (event.code) {
         case 'ArrowUp':
         case 'KeyW':
-          player.setKeys(prev => ({ ...prev, up: true }));
+          player.setKeys((prev: any) => ({ ...prev, up: true }));
           break;
         case 'ArrowDown':
         case 'KeyS':
-          player.setKeys(prev => ({ ...prev, down: true }));
+          player.setKeys((prev: any) => ({ ...prev, down: true }));
           break;
         case 'ArrowLeft':
         case 'KeyA':
-          player.setKeys(prev => ({ ...prev, left: true }));
+          player.setKeys((prev: any) => ({ ...prev, left: true }));
           break;
         case 'ArrowRight':
         case 'KeyD':
-          player.setKeys(prev => ({ ...prev, right: true }));
+          player.setKeys((prev: any) => ({ ...prev, right: true }));
           break;
         case 'Space':
-          player.setKeys(prev => ({ ...prev, space: true }));
+          player.setKeys((prev: any) => ({ ...prev, space: true }));
           break;
       }
     };
@@ -69,22 +59,22 @@ const Block: React.FC<BlockProps> = () => {
       switch (event.code) {
         case 'ArrowUp':
         case 'KeyW':
-          player.setKeys(prev => ({ ...prev, up: false }));
+          player.setKeys((prev: any) => ({ ...prev, up: false }));
           break;
         case 'ArrowDown':
         case 'KeyS':
-          player.setKeys(prev => ({ ...prev, down: false }));
+          player.setKeys((prev: any) => ({ ...prev, down: false }));
           break;
         case 'ArrowLeft':
         case 'KeyA':
-          player.setKeys(prev => ({ ...prev, left: false }));
+          player.setKeys((prev: any) => ({ ...prev, left: false }));
           break;
         case 'ArrowRight':
         case 'KeyD':
-          player.setKeys(prev => ({ ...prev, right: false }));
+          player.setKeys((prev: any) => ({ ...prev, right: false }));
           break;
         case 'Space':
-          player.setKeys(prev => ({ ...prev, space: false }));
+          player.setKeys((prev: any) => ({ ...prev, space: false }));
           break;
       }
     };
@@ -125,7 +115,7 @@ const Block: React.FC<BlockProps> = () => {
     if (gameState.gameState === 'playing' && gameState.currentLevel === 1) {
       if (audio.gameMusic && audio.isSoundEnabled) {
         audio.gameMusic.currentTime = 0;
-        audio.gameMusic.play().catch(error => {
+        audio.gameMusic.play().catch((error: any) => {
           console.log('Erreur lecture musique de jeu:', error);
         });
       }

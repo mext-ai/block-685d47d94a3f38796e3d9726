@@ -61,8 +61,37 @@ export const createLevel1Enemies = (): Enemy[] => {
 export const createLevel2Enemies = (): Enemy[] => {
   const enemies: Enemy[] = [];
   
-  // Créer plusieurs ennemis pour le niveau 2
-  for (let i = 0; i < 8; i++) {
+  // Créer un seul diable pour le niveau 2
+  const enemy: Enemy = {
+    id: 1,
+    type: 'devil',
+    x: 5 + Math.random() * 10, // Gauche : 5% à 15%
+    y: 40 + Math.random() * 45, // Entre 40% et 85% de hauteur
+    direction: 3, // 3 = droite
+    currentFrame: 0,
+    isAlive: true,
+    hp: 4, // HP moyen pour le diable
+    maxHp: 4,
+    isDying: false,
+    deathFrame: 0,
+    isAttacking: false,
+    attackFrame: 0,
+    lastAttackTime: 0,
+    spawnTime: 0, // Apparaît immédiatement
+    hasSpawned: true // Déjà apparu
+  };
+  
+  enemies.push(enemy);
+  
+  return enemies;
+};
+
+// Fonction pour créer les ennemis du niveau 3
+export const createLevel3Enemies = (): Enemy[] => {
+  const enemies: Enemy[] = [];
+  
+  // Créer 3 tréants pour le niveau 3
+  for (let i = 0; i < 3; i++) {
     const fromLeft = i % 2 === 0;
     
     const startX = fromLeft ? 
@@ -72,20 +101,20 @@ export const createLevel2Enemies = (): Enemy[] => {
     
     const enemy: Enemy = {
       id: i + 1,
-      type: i < 4 ? 'mushroom' : 'treant', // Premiers ennemis = mushrooms, derniers = treants
+      type: 'treant',
       x: startX,
       y: startY,
       direction: fromLeft ? 3 : 2, // 3 = droite, 2 = gauche
       currentFrame: 0,
       isAlive: true,
-      hp: i < 4 ? 3 : 5, // Mushrooms = 3 HP, Treants = 5 HP
-      maxHp: i < 4 ? 3 : 5,
+      hp: 5,
+      maxHp: 5,
       isDying: false,
       deathFrame: 0,
       isAttacking: false,
       attackFrame: 0,
       lastAttackTime: 0,
-      spawnTime: i * 2000, // Spawn toutes les 2 secondes
+      spawnTime: i * 3000, // Spawn toutes les 3 secondes
       hasSpawned: i === 0 // Seul le premier apparaît immédiatement
     };
     
@@ -140,6 +169,8 @@ export const createEnemiesForLevel = (level: number): Enemy[] => {
       return createLevel1Enemies();
     case 2:
       return createLevel2Enemies();
+    case 3:
+      return createLevel3Enemies();
     default:
       return createDefaultEnemies();
   }

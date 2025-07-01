@@ -1,74 +1,73 @@
-import { useState, useCallback } from 'react';
-import { Position, GameState } from '../types';
+import { useEffect, useRef } from 'react';
+import { Position, Enemy } from '../types';
+import { TOP_LIMIT, BOTTOM_LIMIT, LEFT_LIMIT, RIGHT_LIMIT } from '../constants';
+import { checkCollision } from '../utils/gameUtils';
 
-export const usePlayerMovement = (
-  initialPosition: Position,
-  speed: number,
-  mapWidth: number,
-  mapHeight: number,
-  gameState: GameState,
-  enemies: any[] = []
-) => {
-  const [playerPosition, setPlayerPosition] = useState<Position>(initialPosition);
+interface UsePlayerMovementProps {
+  gameState: string;
+  playerHealth: number;
+  isAttacking: boolean;
+  keys: { up: boolean; down: boolean; left: boolean; right: boolean };
+  position: Position;
+  enemies: Enemy[];
+  setPosition: (position: Position | ((prev: Position) => Position)) => void;
+}
 
-  // Fonction de collision entre deux entités (comme dans l'original)
-  const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 3) => {
-    const deltaX = pos1.x - pos2.x;
-    const deltaY = pos1.y - pos2.y;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    return distance < minDistance;
-  };
+export const usePlayerMovement = ({
+  gameState,
+  playerHealth,
+  isAttacking,
+  keys,
+  position,
+  enemies,
+  setPosition
+}: UsePlayerMovementProps) => {
+  const enemiesRef = useRef(enemies);
+  enemiesRef.current = enemies;
 
-  const movePlayer = useCallback((dx: number, dy: number) => {
-    if (gameState !== 'playing') {
-      return;
-    }
-
-    setPlayerPosition(prev => {
-      // Limites de mouvement en pourcentages (légèrement élargies)
-      const topLimit = 30;
-      const bottomLimit = 95;
-      const leftLimit = 2;
-      const rightLimit = 98;
+  // Gestion du mouvement avec limites et collision avec les ennemis
+  useEffect(() => {
+    if (gameState !== 'playing' || playerHealth <= 0) return;
+    
+    const moveInterval = setInterval(() => {
+      const isMoving = keys.up || keys.down || keys.left || keys.right;
       
-      const newX = Math.max(leftLimit, Math.min(rightLimit, prev.x + dx * speed));
-      const newY = Math.max(topLimit, Math.min(bottomLimit, prev.y + dy * speed));
-      
-      // Vérifier les collisions avec les ennemis (système optimisé)
-      const collisionDistance = 2.5; // Distance légèrement réduite pour éviter les faux positifs
-      let hasCollision = false;
-      
-      // Vérifier seulement les ennemis qui sont vraiment proches (optimisation)
-      for (let i = 0; i < enemies.length; i++) {
-        const enemy = enemies[i];
-        if (enemy.isAlive && !enemy.isDying && enemy.hasSpawned) {
-          const deltaX = newX - enemy.x;
-          const deltaY = newY - enemy.y;
-          const distanceSquared = deltaX * deltaX + deltaY * deltaY;
+      if (!isAttacking && isMoving) {
+        setPosition(prev => {
+          let newX = prev.x;
+          let newY = prev.y;
+          const speed = 0.5;
           
-          // Utiliser distanceSquared pour éviter le calcul de racine carrée
-          if (distanceSquared < collisionDistance * collisionDistance) {
-            hasCollision = true;
-            break; // Sortir dès qu'on trouve une collision
+          // Mouvement vertical - les deux directions peuvent être traitées indépendamment
+          if (keys.up && !keys.down) {
+            newY = Math.max(TOP_LIMIT, prev.y - speed);
+          } else if (keys.down && !keys.up) {
+            newY = Math.min(BOTTOM_LIMIT, prev.y + speed);
           }
-        }
-      }
-      
-      if (hasCollision) {
-        return prev; // Ne pas bouger si collision
-      }
-      
-      return { x: newX, y: newY };
-    });
-  }, [gameState, speed, enemies]);
+          
+          // Mouvement horizontal - traité indépendamment du vertical
+          if (keys.left && !keys.right) {
+            newX = Math.max(LEFT_LIMIT, prev.x - speed);
+          } else if (keys.right && !keys.left) {
+            newX = Math.min(RIGHT_LIMIT, prev.x + speed);
+          }
 
-  const resetPlayer = useCallback(() => {
-    setPlayerPosition(initialPosition);
-  }, [initialPosition]);
+          const potentialPos = { x: newX, y: newY };
+          const collisionDistance = 3;
+          
+          // Vérification des collisions avec les ennemis
+          for (const enemy of enemiesRef.current) {
+            if (enemy.isAlive && !enemy.isDying && enemy.hasSpawned && 
+                checkCollision(potentialPos, { x: enemy.x, y: enemy.y }, collisionDistance)) {
+              return prev; // Pas de mouvement si collision
+            }
+          }
 
-  return {
-    playerPosition,
-    movePlayer,
-    resetPlayer
-  };
+          return potentialPos;
+        });
+      }
+    }, 16);
+
+    return () => clearInterval(moveInterval);
+  }, [keys, isAttacking, gameState, playerHealth, setPosition]);
 }; 

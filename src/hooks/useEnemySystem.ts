@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Position, Enemy } from '../types';
+import { Position, Enemy, Projectile } from '../types';
 import { checkCollision } from '../utils/gameUtils';
 import { createEnemiesForLevel } from '../utils/enemyUtils';
 
@@ -9,10 +9,12 @@ export const useEnemySystem = (
   mapWidth: number,
   mapHeight: number,
   level: number,
-  onPlayerDamage: () => void
+  onPlayerDamage: (damage?: number) => void
 ) => {
   const [enemies, setEnemies] = useState<Enemy[]>([]);
+  const [projectiles, setProjectiles] = useState<Projectile[]>([]);
   const enemiesRef = useRef<Enemy[]>([]);
+  const projectilesRef = useRef<Projectile[]>([]);
   const gameStartTime = useRef<number>(0);
   const enemyDamageCooldowns = useRef<{[key: number]: number}>({}); // Cooldown par ennemi
   const playerPositionRef = useRef<Position>(playerPosition); // Référence à la position du joueur
@@ -32,16 +34,14 @@ export const useEnemySystem = (
 
   // Initialiser les ennemis au début du jeu
   useEffect(() => {
-    if (gameState === 'playing' && enemies.length === 0) {
+    if (gameState === 'playing') {
       gameStartTime.current = Date.now();
       const levelEnemies = createEnemiesForLevel(level);
-      
-
       
       setEnemies(levelEnemies);
       enemiesRef.current = levelEnemies;
     }
-  }, [gameState, level, enemies.length]);
+  }, [gameState, level]);
 
   // Système d'apparition progressive des ennemis
   useEffect(() => {
@@ -70,7 +70,7 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxFrames = enemy.type === 'treant' ? 6 : 3; // 6 frames de marche pour tréants
+        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' ? 6 : 3; // 6 frames de marche pour tréants et diables
         return {
           ...enemy,
           currentFrame: (enemy.currentFrame + 1) % maxFrames
@@ -81,6 +81,33 @@ export const useEnemySystem = (
     return () => clearInterval(enemyAnimationInterval);
   }, [gameState]);
 
+  // Fonction pour créer un projectile
+  const createProjectile = (enemy: Enemy) => {
+    const currentPlayerPos = playerPositionRef.current;
+    const deltaX = currentPlayerPos.x - enemy.x;
+    const deltaY = currentPlayerPos.y - enemy.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    if (distance > 0) {
+      const directionX = deltaX / distance;
+      const directionY = deltaY / distance;
+      
+      const newProjectile: Projectile = {
+        id: Date.now() + Math.random(),
+        x: enemy.x,
+        y: enemy.y,
+        directionX,
+        directionY,
+        speed: 0.4, // Vitesse réduite comme demandé
+        damage: 1,
+        spawnTime: Date.now()
+      };
+      
+      setProjectiles(prev => [...prev, newProjectile]);
+      projectilesRef.current = [...projectilesRef.current, newProjectile];
+    }
+  };
+
   // Animation d'attaque des ennemis
   useEffect(() => {
     if (gameState !== 'playing') return;
@@ -89,7 +116,7 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxAttackFrames = enemy.type === 'treant' ? 7 : 4; // Différents nombres de frames selon le type
+        const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : 4; // Différents nombres de frames selon le type
         const nextFrame = enemy.attackFrame + 1;
         
         if (nextFrame >= maxAttackFrames) {
@@ -102,9 +129,15 @@ export const useEnemySystem = (
         }
         
         // Infliger des dégâts seulement à la frame d'impact spécifique
-        const impactFrame = enemy.type === 'treant' ? 4 : 3; // Frame d'impact pour chaque type
+        const impactFrame = enemy.type === 'treant' ? 4 : enemy.type === 'devil' ? 3 : 3; // Frame d'impact pour chaque type
         if (nextFrame === impactFrame) {
-          checkEnemyAttackHit(enemy);
+          if (enemy.type === 'devil') {
+            // Créer un projectile pour les diables
+            createProjectile(enemy);
+          } else {
+            // Vérifier les dégâts pour les autres types
+            checkEnemyAttackHit(enemy);
+          }
         }
         
         return {
@@ -199,6 +232,47 @@ export const useEnemySystem = (
               }
             }
           }
+        } else if (enemy.type === 'devil') {
+          const currentPlayerPos = playerPositionRef.current;
+          
+          const deltaX = currentPlayerPos.x - enemy.x;
+          const deltaY = currentPlayerPos.y - enemy.y;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          
+          // Diables ont une portée d'attaque moyenne et s'arrêtent pour tirer
+          const attackDistance = 30; // Portée d'attaque
+          const stopDistance = 30; // Distance à laquelle ils s'arrêtent pour tirer
+          const currentTime = Date.now();
+          
+          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 3000) {
+            shouldAttack = true;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          } else if (distance > stopDistance && !shouldAttack) {
+            const moveX = (deltaX / distance) * speed;
+            const moveY = (deltaY / distance) * speed;
+            
+            // Limites de mouvement en pourcentages
+            const topLimit = 35;
+            const bottomLimit = 90;
+            const leftLimit = 5;
+            const rightLimit = 95;
+            
+            const potentialX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
+            const potentialY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
+            
+            newX = potentialX;
+            newY = potentialY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          }
         }
         
         if (shouldAttack) {
@@ -243,15 +317,62 @@ export const useEnemySystem = (
       // Différents dégâts selon le type d'ennemi
       const damage = enemy.type === 'treant' ? 2 : 1;
       
-      // Appeler la fonction de dégâts
-      for (let i = 0; i < damage; i++) {
-        onPlayerDamage();
-      }
+      // Appeler la fonction de dégâts avec le bon montant
+      onPlayerDamage(damage);
       
       // Mettre à jour le cooldown pour cet ennemi spécifique
       enemyDamageCooldowns.current[enemy.id] = currentTime;
     }
   };
+
+  // Mouvement des projectiles et collision avec le joueur
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+    
+    const projectileInterval = setInterval(() => {
+      setProjectiles(prev => {
+        const currentTime = Date.now();
+        const updatedProjectiles = prev.map(projectile => {
+          // Mouvement du projectile
+          const newX = projectile.x + projectile.directionX * projectile.speed;
+          const newY = projectile.y + projectile.directionY * projectile.speed;
+          
+          // Vérifier collision avec le joueur
+          const currentPlayerPos = playerPositionRef.current;
+          const deltaX = currentPlayerPos.x - newX;
+          const deltaY = currentPlayerPos.y - newY;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          
+          if (distance < 3) {
+            // Projectile touche le joueur
+            onPlayerDamage(projectile.damage); // Utiliser les dégâts du projectile
+            return null; // Supprimer le projectile
+          }
+          
+          // Vérifier si le projectile est sorti de l'écran
+          if (newX < 0 || newX > 100 || newY < 0 || newY > 100) {
+            return null; // Supprimer le projectile
+          }
+          
+          // Vérifier la durée de vie du projectile (10 secondes)
+          if (currentTime - projectile.spawnTime > 10000) {
+            return null; // Supprimer le projectile
+          }
+          
+          return {
+            ...projectile,
+            x: newX,
+            y: newY
+          };
+        }).filter(Boolean) as Projectile[];
+        
+        projectilesRef.current = updatedProjectiles;
+        return updatedProjectiles;
+      });
+    }, 8); // Fréquence doublée pour un mouvement plus fluide
+
+    return () => clearInterval(projectileInterval);
+  }, [gameState, onPlayerDamage]);
 
   // Nettoyer les ennemis morts
   useEffect(() => {
@@ -282,6 +403,9 @@ export const useEnemySystem = (
     enemies,
     setEnemies,
     enemiesRef,
+    projectiles,
+    setProjectiles,
+    projectilesRef,
     updatePlayerPosition
   };
 };

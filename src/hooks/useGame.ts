@@ -28,6 +28,7 @@ export const useGame = () => {
   const [playerHealth, setPlayerHealth] = useState(10);
   const [gameTime, setGameTime] = useState(0);
   const [playerDirection, setPlayerDirection] = useState(0);
+  const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1]); // Seul le niveau 1 est débloqué au démarrage
   
   // Position initiale du joueur (centre de l'écran en pourcentages)
   const initialPlayerPos: Position = { 
@@ -41,7 +42,7 @@ export const useGame = () => {
   }, []);
 
   // Gérer les dégâts au joueur
-  const takeDamage = useCallback((damage: number) => {
+  const takeDamage = useCallback((damage: number = 1) => {
     setPlayerHealth(prev => {
       const newHealth = Math.max(0, prev - damage);
       if (newHealth <= 0) {
@@ -52,29 +53,78 @@ export const useGame = () => {
   }, [endGame]);
 
   // Hook du système d'ennemis
-  const { enemies: enemySystemEnemies, setEnemies: setEnemySystemEnemies, enemiesRef: enemySystemRef, updatePlayerPosition } = useEnemySystem(
+  const { 
+    enemies: enemySystemEnemies, 
+    setEnemies: setEnemySystemEnemies, 
+    enemiesRef: enemySystemRef, 
+    projectiles: enemyProjectiles,
+    setProjectiles: setEnemyProjectiles,
+    projectilesRef: enemyProjectilesRef,
+    updatePlayerPosition 
+  } = useEnemySystem(
     initialPlayerPos, // Utiliser la position initiale pour l'instant
     gameState,
     mapDimensions.width,
     mapDimensions.height,
     level,
-    () => takeDamage(1) // Dégât de base, les dégâts spécifiques sont gérés dans useEnemySystem
+    (damage: number = 1) => takeDamage(damage) // Système de dégâts unifié
   );
 
-  // Hook de mouvement du joueur
-  const { playerPosition, movePlayer, resetPlayer } = usePlayerMovement(
-    initialPlayerPos,
-    PLAYER_SPEED,
-    mapDimensions.width,
-    mapDimensions.height,
-    gameState,
-    enemySystemEnemies
-  );
+  // Position du joueur
+  const [playerPosition, setPlayerPosition] = useState<Position>(initialPlayerPos);
+
+  // Fonction pour déplacer le joueur
+  const movePlayer = useCallback((dx: number, dy: number) => {
+    if (gameState !== 'playing') return;
+    
+    setPlayerPosition(prev => {
+      let newX = prev.x;
+      let newY = prev.y;
+      const speed = PLAYER_SPEED;
+      
+      // Mouvement vertical
+      if (dy < 0) {
+        newY = Math.max(30, prev.y - speed);
+      } else if (dy > 0) {
+        newY = Math.min(95, prev.y + speed);
+      }
+      
+      // Mouvement horizontal
+      if (dx < 0) {
+        newX = Math.max(2, prev.x - speed);
+      } else if (dx > 0) {
+        newX = Math.min(98, prev.x + speed);
+      }
+
+      const potentialPos = { x: newX, y: newY };
+      const collisionDistance = 3;
+      
+      // Vérification des collisions avec les ennemis
+      for (const enemy of enemySystemEnemies) {
+        if (enemy.isAlive && !enemy.isDying && enemy.hasSpawned && 
+            checkCollision(potentialPos, { x: enemy.x, y: enemy.y }, collisionDistance)) {
+          return prev; // Pas de mouvement si collision
+        }
+      }
+
+      return potentialPos;
+    });
+  }, [gameState, enemySystemEnemies]);
+
+  // Fonction pour réinitialiser la position du joueur
+  const resetPlayer = useCallback(() => {
+    setPlayerPosition(initialPlayerPos);
+  }, [initialPlayerPos]);
 
   // Mettre à jour la position du joueur dans le système d'ennemis
   useEffect(() => {
     updatePlayerPosition(playerPosition);
   }, [playerPosition, updatePlayerPosition]);
+
+  // Mettre à jour la direction du joueur dans le système d'attaque
+  useEffect(() => {
+    // La direction sera mise à jour via setPlayerDirection depuis block.tsx
+  }, [playerDirection]);
 
   // Hook du système de balles
   const { bullets, shootBullet } = useBulletSystem(
@@ -96,14 +146,22 @@ export const useGame = () => {
   );
 
   // Démarrer le jeu
-  const startGame = useCallback(() => {
+  const startGame = useCallback((levelNumber: number = 1) => {
     setGameState('playing');
     setScore(0);
-    setLevel(1);
+    setLevel(levelNumber);
     setPlayerHealth(10);
     setGameTime(0);
     resetPlayer();
   }, [resetPlayer]);
+
+  // Démarrer le niveau suivant
+  const startNextLevel = useCallback(() => {
+    // Nettoyer les ennemis avant de redémarrer
+    setEnemySystemEnemies([]);
+    enemySystemRef.current = [];
+    startGame(2); // Toujours démarrer le niveau 2
+  }, [startGame, setEnemySystemEnemies, enemySystemRef]);
 
   // Retourner au menu
   const backToMenu = useCallback(() => {
@@ -113,6 +171,21 @@ export const useGame = () => {
   // Aller au menu de sélection des niveaux
   const goToLevelSelect = useCallback(() => {
     setGameState('levelSelect');
+  }, []);
+
+  // Vérifier si un niveau est débloqué
+  const isLevelUnlocked = useCallback((levelNumber: number) => {
+    return unlockedLevels.includes(levelNumber);
+  }, [unlockedLevels]);
+
+  // Débloquer un niveau
+  const unlockLevel = useCallback((levelNumber: number) => {
+    setUnlockedLevels(prev => {
+      if (!prev.includes(levelNumber)) {
+        return [...prev, levelNumber];
+      }
+      return prev;
+    });
   }, []);
 
   // Tirer vers une position
@@ -134,9 +207,11 @@ export const useGame = () => {
       if (aliveEnemies.length === 0) {
         // Niveau terminé !
         setGameState('victory');
+        // Débloquer le niveau suivant
+        unlockLevel(level + 1);
       }
     }
-  }, [enemySystemEnemies, gameState]);
+  }, [enemySystemEnemies, gameState, level, unlockLevel]);
 
   // Nettoyer les ennemis morts
   useEffect(() => {
@@ -178,15 +253,7 @@ export const useGame = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Augmenter la difficulté avec le temps
-  useEffect(() => {
-    if (gameState !== 'playing') return;
 
-    const newLevel = Math.floor(gameTime / 30) + 1;
-    if (newLevel !== level) {
-      setLevel(newLevel);
-    }
-  }, [gameTime, level, gameState]);
 
   return {
     // États du jeu
@@ -199,6 +266,7 @@ export const useGame = () => {
     // Entités du jeu
     playerPosition,
     enemies: enemySystemEnemies,
+    projectiles: enemyProjectiles,
     bullets,
     
     // Configuration
@@ -207,10 +275,14 @@ export const useGame = () => {
     
     // Actions du jeu
     startGame,
+    startNextLevel,
     endGame,
     backToMenu,
     goToLevelSelect,
+    isLevelUnlocked,
+    unlockLevel,
     movePlayer,
+    setPlayerPosition,
     handleShoot,
     addScore,
     triggerAttack,

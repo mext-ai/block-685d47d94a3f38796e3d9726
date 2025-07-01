@@ -18,6 +18,11 @@ export const TREANT_IDLE_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?
 export const TREANT_DEATH_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1tyrK1oHx8DWbHUdL1KEDccU_4kGh3f17&sz=w1000';
 export const TREANT_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1XB5CkBkcoAY-cQd4yKxl4L93DYTzyOly&sz=w1000';
 
+// URLs des sprites diables
+export const DEVIL_WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1Etm94Zf8r4moSSM3jfPtmndXCfPdXhQ0&sz=w1000';
+export const DEVIL_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=17Y9qoz6HZsQQ0JXkiKH8--Fq5OXPmJxm&sz=w1000';
+export const DEVIL_PROJECTILE_URL = 'https://drive.google.com/thumbnail?id=1xf-kvQhzAqYWtT1RsS-tVVpwMPMvUJwp&sz=w500';
+
 // URLs des sprites UI
 export const HEART_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
 export const SKULL_IMAGE_URL = 'https://drive.google.com/thumbnail?id=1Dp4dPzMEZKN-cuMdcXU8c9WrdLpOWmjD&sz=w500';
@@ -30,7 +35,9 @@ export const LEVEL_MENU_BACKGROUND_URL = 'https://drive.google.com/thumbnail?id=
 export const LEVEL1_BUTTON_URL = 'https://drive.google.com/thumbnail?id=1W_Wi6_CQ3zo-5nI31qRIkm9ZsCPpNu3p&sz=w500';
 export const LEVEL2_BUTTON_LOCKED_URL = 'https://drive.google.com/thumbnail?id=1gGMkrpQ7t10YxG16q0PNx7yyV7QEekyG&sz=w500';
 export const LEVEL2_BUTTON_UNLOCKED_URL = 'https://drive.google.com/thumbnail?id=1O-X33f1w3tjdfaKD0hsVcw9ZGJN0USYi&sz=w500';
+export const LEVEL3_BUTTON_LOCKED_URL = 'https://drive.google.com/thumbnail?id=18oZ0B_hXP89joEFxUb0lDMu7K1oif2s3&sz=w500';
 export const LEVEL3_BUTTON_URL = 'https://drive.google.com/thumbnail?id=18oZ0B_hXP89joEFxUb0lDMu7K1oif2s3&sz=w500';
+export const LEVEL3_BUTTON_UNLOCKED_URL = 'https://drive.google.com/thumbnail?id=1Yo7IMJJmzc9r-H5gGW5qAmSQgK6Oowar&sz=w500';
 
 // URLs des contrôles
 export const SPACE_KEY_IMAGE_URL = 'https://drive.google.com/thumbnail?id=1dWJOlKIPoA2l_pn5msc8VtImFRwGADf0&sz=w500';
@@ -41,6 +48,7 @@ export const RESTART_BUTTON_URL = 'https://drive.google.com/thumbnail?id=1bnG4kC
 export const BACK_TO_LEVELS_BUTTON_URL = 'https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500';
 export const NEXT_LEVEL_BUTTON_URL = 'https://drive.google.com/thumbnail?id=1m-PKE9D-sZt0oU-qy93bM1qhpPrroHdl&sz=w500';
 export const GAME_OVER_BACKGROUND_URL = 'https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000';
+export const VICTORY_BACKGROUND_URL = 'https://drive.google.com/thumbnail?id=1cMdqOupNWB-eIM1VFCVvvNfUsJkvinS7&sz=w1000';
 
 // URLs audio
 export const SOUND_ON_BUTTON_URL = 'https://drive.google.com/thumbnail?id=1AuGREbT8dOdws6XpMlBYLHeqtny2vy51&sz=w500';
@@ -64,6 +72,10 @@ export const TREANT_WALK_FRAMES_PER_ROW = 6;
 export const TREANT_IDLE_FRAMES_PER_ROW = 4;
 export const TREANT_ATTACK_FRAMES_PER_ROW = 7;
 export const TREANT_DEATH_FRAMES_PER_ROW = 6;
+
+// Configuration des diables
+export const DEVIL_WALK_FRAMES_PER_ROW = 6;
+export const DEVIL_ATTACK_FRAMES_PER_ROW = 6;
 
 // Limites du jeu
 export const TOP_LIMIT = 35;

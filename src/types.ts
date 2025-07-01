@@ -2,7 +2,7 @@ export interface BlockProps {}
 
 export interface Enemy {
   id: number;
-  type: string;
+  type: 'mushroom' | 'treant' | 'devil';
   x: number;
   y: number;
   direction: number;
@@ -17,6 +17,17 @@ export interface Enemy {
   lastAttackTime: number;
   spawnTime: number;
   hasSpawned: boolean;
+}
+
+export interface Projectile {
+  id: number;
+  x: number;
+  y: number;
+  directionX: number;
+  directionY: number;
+  speed: number;
+  damage: number;
+  spawnTime: number;
 }
 
 export interface Position {

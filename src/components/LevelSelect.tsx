@@ -1,13 +1,15 @@
 import React from 'react';
-import { 
-  MENU_BACKGROUND_URL, 
-  LEVEL_MENU_BACKGROUND_URL, 
-  LEVEL1_BUTTON_URL, 
-  LEVEL2_BUTTON_LOCKED_URL, 
-  LEVEL2_BUTTON_UNLOCKED_URL, 
+import {
+  MENU_BACKGROUND_URL,
+  LEVEL_MENU_BACKGROUND_URL,
+  LEVEL1_BUTTON_URL,
+  LEVEL2_BUTTON_LOCKED_URL,
+  LEVEL2_BUTTON_UNLOCKED_URL,
+  LEVEL3_BUTTON_LOCKED_URL,
   LEVEL3_BUTTON_URL,
-  SOUND_ON_BUTTON_URL, 
-  SOUND_OFF_BUTTON_URL 
+  LEVEL3_BUTTON_UNLOCKED_URL,
+  SOUND_ON_BUTTON_URL,
+  SOUND_OFF_BUTTON_URL
 } from '../constants';
 
 interface LevelSelectProps {
@@ -130,7 +132,7 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
               backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              cursor: 'pointer',
+              cursor: isLevelUnlocked(2) ? 'pointer' : 'not-allowed',
               transition: 'all 0.2s ease',
               filter: isLevelUnlocked(2) ? 
                 (isLevel2ButtonHovered ? 
@@ -139,13 +141,13 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
                 (isLevel2ButtonHovered ? 
                   'brightness(0.7) grayscale(60%) drop-shadow(0 0 10px rgba(255,255,255,0.3))' :
                   'brightness(0.5) grayscale(80%) drop-shadow(0 0 3px rgba(0,0,0,0.3))'),
-              transform: `scale(${isLevel2ButtonHovered ? 1.1 : 1})`,
+              transform: `scale(${isLevel2ButtonHovered && isLevelUnlocked(2) ? 1.1 : 1})`,
               zIndex: 10,
               opacity: isLevelUnlocked(2) ? 1 : 0.8
             }}
-            onClick={onLevel2ButtonClick}
-            onMouseEnter={onLevel2ButtonMouseEnter}
-            onMouseLeave={onLevel2ButtonMouseLeave}
+            onClick={isLevelUnlocked(2) ? onLevel2ButtonClick : undefined}
+            onMouseEnter={isLevelUnlocked(2) ? onLevel2ButtonMouseEnter : undefined}
+            onMouseLeave={isLevelUnlocked(2) ? onLevel2ButtonMouseLeave : undefined}
           />
 
           {/* Bouton Niveau 3 */}
@@ -153,7 +155,7 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
             style={{
               width: `${MENU_BACKGROUND_WIDTH * 0.12}px`,
               height: `${MENU_BACKGROUND_WIDTH * 0.12 * 2}px`,
-              backgroundImage: `url(${LEVEL3_BUTTON_URL})`,
+              backgroundImage: `url(${isLevelUnlocked(3) ? LEVEL3_BUTTON_UNLOCKED_URL : LEVEL3_BUTTON_LOCKED_URL})`,
               backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
@@ -163,12 +165,14 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
                 (isLevel3ButtonHovered ? 
                   'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
                   'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))') :
-                'brightness(0.5) grayscale(80%) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
+                (isLevel3ButtonHovered ? 
+                  'brightness(0.7) grayscale(60%) drop-shadow(0 0 10px rgba(255,255,255,0.3))' :
+                  'brightness(0.5) grayscale(80%) drop-shadow(0 0 3px rgba(0,0,0,0.3))'),
               transform: `scale(${isLevel3ButtonHovered && isLevelUnlocked(3) ? 1.1 : 1})`,
               zIndex: 10,
               opacity: isLevelUnlocked(3) ? 1 : 0.8
             }}
-            onClick={onLevel3ButtonClick}
+            onClick={isLevelUnlocked(3) ? onLevel3ButtonClick : undefined}
             onMouseEnter={isLevelUnlocked(3) ? onLevel3ButtonMouseEnter : undefined}
             onMouseLeave={isLevelUnlocked(3) ? onLevel3ButtonMouseLeave : undefined}
           />

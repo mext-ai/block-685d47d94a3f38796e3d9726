@@ -1,153 +1,74 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Keys, Position } from '../types';
 import { TOP_LIMIT, BOTTOM_LIMIT, LEFT_LIMIT, RIGHT_LIMIT } from '../constants';
 import { checkCollision } from '../utils/gameUtils';
 
-export const usePlayerControls = (
-  gameState: string,
-  isVictory: boolean,
-  playerHp: number,
-  isAttacking: boolean,
-  position: Position,
-  enemies: any[],
-  setPosition: (position: Position | ((prev: Position) => Position)) => void,
-  setIsWalking: (walking: boolean) => void,
-  setDirection: (direction: number) => void,
-  enemiesRef: React.MutableRefObject<any[]>
-) => {
-  const [keys, setKeys] = useState<Keys>({ 
-    up: false, 
-    down: false, 
-    left: false, 
-    right: false, 
-    space: false 
-  });
+interface UsePlayerControlsProps {
+  gameState: string;
+  playerHealth: number;
+  isAttacking: boolean;
+  triggerAttack: () => void;
+  backToMenu: () => void;
+}
 
-  // Fonction pour normaliser les touches
-  const normalizeKey = useCallback((key: string): string => {
-    return key.toLowerCase();
-  }, []);
+export const usePlayerControls = ({
+  gameState,
+  playerHealth,
+  isAttacking,
+  triggerAttack,
+  backToMenu
+}: UsePlayerControlsProps) => {
+  const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
+  const [isWalking, setIsWalking] = useState(false);
+  const [direction, setDirection] = useState(0);
 
-  // Fonction pour vérifier si une touche correspond à une direction
-  const isKeyForDirection = useCallback((key: string, direction: 'up' | 'down' | 'left' | 'right'): boolean => {
-    const normalizedKey = normalizeKey(key);
-    switch (direction) {
-      case 'up':
-        return normalizedKey === 'arrowup' || normalizedKey === 'z';
-      case 'down':
-        return normalizedKey === 'arrowdown' || normalizedKey === 's';
-      case 'left':
-        return normalizedKey === 'arrowleft' || normalizedKey === 'q';
-      case 'right':
-        return normalizedKey === 'arrowright' || normalizedKey === 'd';
-      default:
-        return false;
-    }
-  }, [normalizeKey]);
-
-  // Gestion du mouvement avec limites et collision avec les ennemis
+  // Gestion des touches pour l'attaque et les contrôles
   useEffect(() => {
-    if (gameState !== 'playing' || isVictory || playerHp <= 0) return;
-    
-    const moveInterval = setInterval(() => {
-      const isMoving = keys.up || keys.down || keys.left || keys.right;
-      
-      if (!isAttacking && isMoving) {
-        setIsWalking(true);
-        
-        setPosition(prev => {
-          let newX = prev.x;
-          let newY = prev.y;
-          const speed = 0.5;
-          
-          // Mouvement vertical - les deux directions peuvent être traitées indépendamment
-          if (keys.up && !keys.down) {
-            newY = Math.max(TOP_LIMIT, prev.y - speed);
-          } else if (keys.down && !keys.up) {
-            newY = Math.min(BOTTOM_LIMIT, prev.y + speed);
-          }
-          
-          // Mouvement horizontal - traité indépendamment du vertical
-          if (keys.left && !keys.right) {
-            newX = Math.max(LEFT_LIMIT, prev.x - speed);
-          } else if (keys.right && !keys.left) {
-            newX = Math.min(RIGHT_LIMIT, prev.x + speed);
-          }
-          
-          // Déterminer la direction pour l'animation
-          // Priorité aux mouvements les plus récents ou dominants
-          if (keys.up && !keys.down) {
-            setDirection(1); // Haut
-          } else if (keys.down && !keys.up) {
-            setDirection(0); // Bas
-          } else if (keys.left && !keys.right) {
-            setDirection(2); // Gauche
-          } else if (keys.right && !keys.left) {
-            setDirection(3); // Droite
-          }
-
-          const potentialPos = { x: newX, y: newY };
-          const collisionDistance = 3;
-          
-          // Vérification des collisions avec les ennemis
-          for (const enemy of enemiesRef.current) {
-            if (enemy.isAlive && !enemy.isDying && enemy.hasSpawned && 
-                checkCollision(potentialPos, { x: enemy.x, y: enemy.y }, collisionDistance)) {
-              return prev; // Pas de mouvement si collision
-            }
-          }
-
-          return potentialPos;
-        });
-      } else {
-        setIsWalking(false);
-      }
-    }, 16);
-
-    return () => clearInterval(moveInterval);
-  }, [keys, isAttacking, gameState, isVictory, playerHp, setPosition, setIsWalking, setDirection, enemiesRef]);
-
-  // Gestion des touches - version corrigée
-  useEffect(() => {
-    if (gameState !== 'playing' || isVictory || playerHp <= 0) return;
+    if (gameState !== 'playing' || playerHealth <= 0) return;
     
     const handleKeyDown = (event: KeyboardEvent) => {
-      event.preventDefault();
-      const key = event.key;
+      const key = event.key.toLowerCase();
       
+      if (key === ' ' && !isAttacking) {
+        event.preventDefault();
+        triggerAttack();
+        setIsWalking(false);
+        return;
+      }
+      
+      if (key === 'escape') {
+        event.preventDefault();
+        backToMenu();
+        return;
+      }
+
+      // Mettre à jour l'état des touches (sans preventDefault pour les touches de mouvement)
       setKeys(prev => {
         const newKeys = { ...prev };
-        
-        if (isKeyForDirection(key, 'up')) newKeys.up = true;
-        if (isKeyForDirection(key, 'down')) newKeys.down = true;
-        if (isKeyForDirection(key, 'left')) newKeys.left = true;
-        if (isKeyForDirection(key, 'right')) newKeys.right = true;
-        if (key === ' ') newKeys.space = true;
-        
+        if (key === 'w' || key === 'arrowup') newKeys.up = true;
+        if (key === 's' || key === 'arrowdown') newKeys.down = true;
+        if (key === 'a' || key === 'arrowleft') newKeys.left = true;
+        if (key === 'd' || key === 'arrowright') newKeys.right = true;
         return newKeys;
       });
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      event.preventDefault();
-      const key = event.key;
+      const key = event.key.toLowerCase();
       
       setKeys(prev => {
         const newKeys = { ...prev };
-        
-        if (isKeyForDirection(key, 'up')) newKeys.up = false;
-        if (isKeyForDirection(key, 'down')) newKeys.down = false;
-        if (isKeyForDirection(key, 'left')) newKeys.left = false;
-        if (isKeyForDirection(key, 'right')) newKeys.right = false;
-        if (key === ' ') newKeys.space = false;
-        
+        if (key === 'w' || key === 'arrowup') newKeys.up = false;
+        if (key === 's' || key === 'arrowdown') newKeys.down = false;
+        if (key === 'a' || key === 'arrowleft') newKeys.left = false;
+        if (key === 'd' || key === 'arrowright') newKeys.right = false;
         return newKeys;
       });
     };
 
-    // Fonction pour réinitialiser les touches si nécessaire
     const handleWindowBlur = () => {
-      setKeys({ up: false, down: false, left: false, right: false, space: false });
+      setKeys({ up: false, down: false, left: false, right: false });
+      setIsWalking(false);
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -159,10 +80,29 @@ export const usePlayerControls = (
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('blur', handleWindowBlur);
     };
-  }, [gameState, isVictory, playerHp, isKeyForDirection]);
+  }, [gameState, playerHealth, isAttacking, triggerAttack, backToMenu]);
+
+  // Déterminer la direction et l'état de marche
+  useEffect(() => {
+    const isMoving = keys.up || keys.down || keys.left || keys.right;
+    setIsWalking(isMoving);
+
+    if (isMoving) {
+      if (keys.up && !keys.down) {
+        setDirection(1); // Haut
+      } else if (keys.down && !keys.up) {
+        setDirection(0); // Bas
+      } else if (keys.left && !keys.right) {
+        setDirection(2); // Gauche
+      } else if (keys.right && !keys.left) {
+        setDirection(3); // Droite
+      }
+    }
+  }, [keys]);
 
   return {
     keys,
-    setKeys
+    isWalking,
+    direction
   };
 };

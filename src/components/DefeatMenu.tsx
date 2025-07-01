@@ -1,107 +1,116 @@
 import React from 'react';
-import {
-  DEFEAT_BACKGROUND_URL,
-  BACK_TO_LEVELS_BUTTON_URL,
-  RESTART_LEVEL_BUTTON_URL
-} from '../constants';
+import { GAME_OVER_BACKGROUND_URL, RESTART_BUTTON_URL, BACK_TO_LEVELS_BUTTON_URL } from '../constants';
 
 interface DefeatMenuProps {
+  onRestart: () => void;
   onBackToLevels: () => void;
-  onRestartLevel: () => void;
-  currentLevel: number;
 }
 
-const DefeatMenu: React.FC<DefeatMenuProps> = ({
-  onBackToLevels,
-  onRestartLevel,
-  currentLevel
-}) => {
+const DefeatMenu: React.FC<DefeatMenuProps> = ({ onRestart, onBackToLevels }) => {
   return (
     <div style={{
       position: 'fixed',
       top: 0,
       left: 0,
-      width: '100%',
-      height: '100%',
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
       display: 'flex',
-      flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 1000,
-      backgroundColor: 'transparent'
     }}>
-      {/* Modale de défaite */}
       <div style={{
-        width: '40%',
-        height: '40%',
-        backgroundImage: `url(${DEFEAT_BACKGROUND_URL})`,
+        position: 'relative',
+        width: '400px',
+        height: '300px',
+        backgroundImage: `url(${GAME_OVER_BACKGROUND_URL})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
+        borderRadius: '15px',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
         alignItems: 'center',
-        position: 'relative'
+        justifyContent: 'center',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
       }}>
-        
-        {/* Boutons - positionnés au centre de la modale */}
+        {/* Skulls decoration */}
         <div style={{
+          position: 'absolute',
+          top: '15%',
+          left: '50%',
+          transform: 'translateX(-50%)',
           display: 'flex',
-          flexDirection: 'row',
-          gap: '15px',
-          alignItems: 'center',
+          gap: '20px',
+        }}>
+          {[...Array(3)].map((_, index) => (
+            <div
+              key={index}
+              style={{
+                width: '30px',
+                height: '30px',
+                background: '#8B0000',
+                borderRadius: '50%',
+                opacity: 0.8,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Buttons container */}
+        <div style={{
           position: 'absolute',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          marginTop: '20px' // Léger décalage vers le bas pour éviter le texte de défaite
+          marginTop: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '15px',
+          alignItems: 'center',
         }}>
-          {/* Bouton Retour aux niveaux */}
-          <div
+          <button
+            onClick={onRestart}
             style={{
-              width: '150px',
-              height: '67px',
-              backgroundImage: `url(${BACK_TO_LEVELS_BUTTON_URL})`,
-              backgroundSize: 'contain',
+              width: '180px',
+              height: '50px',
+              backgroundImage: `url(${RESTART_BUTTON_URL})`,
+              backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
+              border: 'none',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              transform: 'scale(1)'
+              transition: 'transform 0.2s',
+              backgroundColor: 'transparent',
             }}
-            onClick={onBackToLevels}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.8))';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
             }}
           />
-
-          {/* Bouton Recommencer le niveau */}
-          <div
+          
+          <button
+            onClick={onBackToLevels}
             style={{
-              width: '150px',
-              height: '67px',
-              backgroundImage: `url(${RESTART_LEVEL_BUTTON_URL})`,
-              backgroundSize: 'contain',
+              width: '180px',
+              height: '50px',
+              backgroundImage: `url(${BACK_TO_LEVELS_BUTTON_URL})`,
+              backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
+              border: 'none',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              transform: 'scale(1)'
+              transition: 'transform 0.2s',
+              backgroundColor: 'transparent',
             }}
-            onClick={onRestartLevel}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.8))';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
             }}
           />
         </div>

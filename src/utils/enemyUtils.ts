@@ -24,7 +24,7 @@ export const createLevel1Enemies = (): Enemy[] => {
       5 + Math.random() * 10 :   // Gauche : 5% à 15%
       85 + Math.random() * 10;   // Droite : 85% à 95%
     
-    const startY = 40 + Math.random() * 45; // Entre 40% et 85% de hauteur
+    const startY = 40 + Math.random() * 45; // Entre 40% et 85% de hauteur (comme dans l'original)
     
     const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
 
@@ -61,50 +61,76 @@ export const createLevel1Enemies = (): Enemy[] => {
 export const createLevel2Enemies = (): Enemy[] => {
   const enemies: Enemy[] = [];
   
-  const enemy: Enemy = {
-    id: 1,
-    type: 'mushroom',
-    x: 75,
-    y: 60,
-    direction: 2,
-    currentFrame: 0,
-    isAlive: true,
-    hp: 3,
-    maxHp: 3,
-    isDying: false,
-    deathFrame: 0,
-    isAttacking: false,
-    attackFrame: 0,
-    lastAttackTime: 0,
-    spawnTime: 0,
-    hasSpawned: true
-  };
+  // Créer plusieurs ennemis pour le niveau 2
+  for (let i = 0; i < 8; i++) {
+    const fromLeft = i % 2 === 0;
+    
+    const startX = fromLeft ? 
+      5 + Math.random() * 10 :   // Gauche : 5% à 15%
+      85 + Math.random() * 10;   // Droite : 85% à 95%
+    const startY = 40 + Math.random() * 45; // Entre 40% et 85% de hauteur
+    
+    const enemy: Enemy = {
+      id: i + 1,
+      type: i < 4 ? 'mushroom' : 'treant', // Premiers ennemis = mushrooms, derniers = treants
+      x: startX,
+      y: startY,
+      direction: fromLeft ? 3 : 2, // 3 = droite, 2 = gauche
+      currentFrame: 0,
+      isAlive: true,
+      hp: i < 4 ? 3 : 5, // Mushrooms = 3 HP, Treants = 5 HP
+      maxHp: i < 4 ? 3 : 5,
+      isDying: false,
+      deathFrame: 0,
+      isAttacking: false,
+      attackFrame: 0,
+      lastAttackTime: 0,
+      spawnTime: i * 2000, // Spawn toutes les 2 secondes
+      hasSpawned: i === 0 // Seul le premier apparaît immédiatement
+    };
+    
+    enemies.push(enemy);
+  }
   
-  enemies.push(enemy);
   return enemies;
 };
 
 // Fonction pour créer les ennemis par défaut (autres niveaux)
 export const createDefaultEnemies = (): Enemy[] => {
-  const initialMushroom: Enemy = {
-    id: 1,
-    type: 'mushroom',
-    x: 20,
-    y: 70,
-    direction: 3,
-    currentFrame: 0,
-    isAlive: true,
-    hp: 3,
-    maxHp: 3,
-    isDying: false,
-    deathFrame: 0,
-    isAttacking: false,
-    attackFrame: 0,
-    lastAttackTime: 0,
-    spawnTime: 0,
-    hasSpawned: true
-  };
-  return [initialMushroom];
+  const enemies: Enemy[] = [];
+  
+  // Créer quelques ennemis par défaut
+  for (let i = 0; i < 5; i++) {
+    const fromLeft = i % 2 === 0;
+    
+    const startX = fromLeft ? 
+      5 + Math.random() * 10 :   // Gauche : 5% à 15%
+      85 + Math.random() * 10;   // Droite : 85% à 95%
+    const startY = 40 + Math.random() * 45; // Entre 40% et 85% de hauteur
+    
+    const enemy: Enemy = {
+      id: i + 1,
+      type: 'mushroom',
+      x: startX,
+      y: startY,
+      direction: fromLeft ? 3 : 2, // 3 = droite, 2 = gauche
+      currentFrame: 0,
+      isAlive: true,
+      hp: 3,
+      maxHp: 3,
+      isDying: false,
+      deathFrame: 0,
+      isAttacking: false,
+      attackFrame: 0,
+      lastAttackTime: 0,
+      spawnTime: i * 1500, // Spawn toutes les 1.5 secondes
+      hasSpawned: i === 0 // Seul le premier apparaît immédiatement
+    };
+    
+    enemies.push(enemy);
+  }
+  
+  return enemies;
 };
 
 // Fonction pour créer les ennemis selon le niveau

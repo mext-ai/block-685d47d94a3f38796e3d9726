@@ -37,7 +37,7 @@ export interface WindowSize {
   height: number;
 }
 
-export type GameState = 'menu' | 'levelSelect' | 'playing';
+export type GameState = 'menu' | 'levelSelect' | 'playing' | 'gameover' | 'victory';
 
 export interface EnemyDamageCooldowns {
   [key: number]: number;

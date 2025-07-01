@@ -40,6 +40,7 @@ export const ARROW_KEYS_IMAGE_URL = 'https://drive.google.com/thumbnail?id=1cijW
 export const RESTART_BUTTON_URL = 'https://drive.google.com/thumbnail?id=1bnG4kCEa3zVA8qmGz8YFfTwm6h6I4Wwk&sz=w500';
 export const BACK_TO_LEVELS_BUTTON_URL = 'https://drive.google.com/thumbnail?id=1WWuGFL37b7W3i49Jmh1W9px-ADLEDlBP&sz=w500';
 export const NEXT_LEVEL_BUTTON_URL = 'https://drive.google.com/thumbnail?id=1m-PKE9D-sZt0oU-qy93bM1qhpPrroHdl&sz=w500';
+export const GAME_OVER_BACKGROUND_URL = 'https://drive.google.com/thumbnail?id=1zCeociu3-dvf4F4krvf1qMUrRzyqOW56&sz=w1000';
 
 // URLs audio
 export const SOUND_ON_BUTTON_URL = 'https://drive.google.com/thumbnail?id=1AuGREbT8dOdws6XpMlBYLHeqtny2vy51&sz=w500';
@@ -73,4 +74,4 @@ export const RIGHT_LIMIT = 95;
 // Configuration du menu
 export const LEVEL1_BUTTON_POSITION = 40;
 export const LEVEL2_BUTTON_POSITION = 50;
-export const LEVEL3_BUTTON_POSITION = 75; 
+export const LEVEL3_BUTTON_POSITION = 75;   

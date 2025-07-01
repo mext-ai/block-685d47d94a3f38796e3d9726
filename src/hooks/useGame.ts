@@ -3,101 +3,42 @@ import { Position, GameState } from '../types';
 import { usePlayerMovement } from './usePlayerMovement';
 import { useEnemySystem } from './useEnemySystem';
 import { useBulletSystem } from './useBulletSystem';
-
-interface Enemy {
-  id: number;
-  x: number;
-  y: number;
-  hp: number;
-  isAlive: boolean;
-  isDying: boolean;
-  lastMoveTime: number;
-  direction: number;
-}
+import { useAttackSystem } from './useAttackSystem';
 
 export const useGame = () => {
-  // Configuration du jeu
-  const MAP_WIDTH = 800;
-  const MAP_HEIGHT = 600;
-  const PLAYER_SPEED = 5;
-
+    // Configuration du jeu
+  const [mapDimensions, setMapDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
+  const PLAYER_SPEED = 0.5; // Vitesse optimisée pour éviter les problèmes de collision
+  
+  // Fonction de collision entre deux entités
+  const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 3) => {
+    const deltaX = pos1.x - pos2.x;
+    const deltaY = pos1.y - pos2.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    return distance < minDistance;
+  };
+  
   // États du jeu
   const [gameState, setGameState] = useState<GameState>('menu');
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
-  const [playerHealth, setPlayerHealth] = useState(100);
-  const [enemies, setEnemies] = useState<Enemy[]>([]);
+  const [playerHealth, setPlayerHealth] = useState(10);
   const [gameTime, setGameTime] = useState(0);
-
-  // Références pour les hooks
-  const enemiesRef = useRef<Enemy[]>([]);
+  const [playerDirection, setPlayerDirection] = useState(0);
   
-  // Position initiale du joueur
+  // Position initiale du joueur (centre de l'écran en pourcentages)
   const initialPlayerPos: Position = { 
-    x: MAP_WIDTH / 2, 
-    y: MAP_HEIGHT / 2 
+    x: 50, // 50% de la largeur
+    y: 50  // 50% de la hauteur
   };
-
-  // Hook de mouvement du joueur
-  const { playerPosition, movePlayer, resetPlayer } = usePlayerMovement(
-    initialPlayerPos,
-    PLAYER_SPEED,
-    MAP_WIDTH,
-    MAP_HEIGHT,
-    gameState
-  );
-
-  // Hook du système d'ennemis
-  const { spawnEnemy, checkPlayerCollision } = useEnemySystem(
-    gameState,
-    playerPosition,
-    MAP_WIDTH,
-    MAP_HEIGHT,
-    enemies,
-    setEnemies,
-    enemiesRef
-  );
-
-  // Hook du système de balles
-  const { bullets, shootBullet } = useBulletSystem(
-    gameState,
-    MAP_WIDTH,
-    MAP_HEIGHT,
-    enemies,
-    setEnemies,
-    enemiesRef
-  );
-
-  // Démarrer le jeu
-  const startGame = useCallback(() => {
-    setGameState('playing');
-    setScore(0);
-    setLevel(1);
-    setPlayerHealth(100);
-    setEnemies([]);
-    setGameTime(0);
-    enemiesRef.current = [];
-    resetPlayer();
-  }, [resetPlayer]);
 
   // Terminer le jeu
   const endGame = useCallback(() => {
     setGameState('gameover');
   }, []);
-
-  // Retourner au menu
-  const backToMenu = useCallback(() => {
-    setGameState('menu');
-    setEnemies([]);
-    enemiesRef.current = [];
-  }, []);
-
-  // Tirer vers une position
-  const handleShoot = useCallback((targetPos: Position) => {
-    if (gameState === 'playing') {
-      shootBullet(playerPosition, targetPos);
-    }
-  }, [gameState, playerPosition, shootBullet]);
 
   // Gérer les dégâts au joueur
   const takeDamage = useCallback((damage: number) => {
@@ -110,46 +51,103 @@ export const useGame = () => {
     });
   }, [endGame]);
 
+  // Hook du système d'ennemis
+  const { enemies: enemySystemEnemies, setEnemies: setEnemySystemEnemies, enemiesRef: enemySystemRef, updatePlayerPosition } = useEnemySystem(
+    initialPlayerPos, // Utiliser la position initiale pour l'instant
+    gameState,
+    mapDimensions.width,
+    mapDimensions.height,
+    level,
+    () => takeDamage(1) // Dégât de base, les dégâts spécifiques sont gérés dans useEnemySystem
+  );
+
+  // Hook de mouvement du joueur
+  const { playerPosition, movePlayer, resetPlayer } = usePlayerMovement(
+    initialPlayerPos,
+    PLAYER_SPEED,
+    mapDimensions.width,
+    mapDimensions.height,
+    gameState,
+    enemySystemEnemies
+  );
+
+  // Mettre à jour la position du joueur dans le système d'ennemis
+  useEffect(() => {
+    updatePlayerPosition(playerPosition);
+  }, [playerPosition, updatePlayerPosition]);
+
+  // Hook du système de balles
+  const { bullets, shootBullet } = useBulletSystem(
+    gameState,
+    mapDimensions.width,
+    mapDimensions.height,
+    enemySystemEnemies,
+    setEnemySystemEnemies,
+    enemySystemRef
+  );
+
+  // Hook du système d'attaque
+  const { isAttacking, attackFrame, triggerAttack } = useAttackSystem(
+    gameState,
+    playerPosition,
+    playerDirection,
+    enemySystemEnemies,
+    setEnemySystemEnemies
+  );
+
+  // Démarrer le jeu
+  const startGame = useCallback(() => {
+    setGameState('playing');
+    setScore(0);
+    setLevel(1);
+    setPlayerHealth(10);
+    setGameTime(0);
+    resetPlayer();
+  }, [resetPlayer]);
+
+  // Retourner au menu
+  const backToMenu = useCallback(() => {
+    setGameState('menu');
+  }, []);
+
+  // Tirer vers une position
+  const handleShoot = useCallback((targetPos: Position) => {
+    if (gameState === 'playing') {
+      shootBullet(playerPosition, targetPos);
+    }
+  }, [gameState, playerPosition, shootBullet]);
+
   // Augmenter le score
   const addScore = useCallback((points: number) => {
     setScore(prev => prev + points);
   }, []);
 
-  // Vérifier les collisions avec le joueur
+  // Vérifier la victoire (tous les ennemis morts)
   useEffect(() => {
-    if (gameState !== 'playing') return;
-
-    const checkCollisions = () => {
-      const collision = checkPlayerCollision();
-      if (collision) {
-        takeDamage(10);
+    if (gameState === 'playing' && enemySystemEnemies.length > 0) {
+      const aliveEnemies = enemySystemEnemies.filter((enemy: any) => enemy.isAlive || enemy.isDying);
+      if (aliveEnemies.length === 0) {
+        // Niveau terminé !
+        setGameState('victory');
       }
-    };
+    }
+  }, [enemySystemEnemies, gameState]);
 
-    const interval = setInterval(checkCollisions, 50);
-    return () => clearInterval(interval);
-  }, [gameState, checkPlayerCollision, takeDamage]);
-
-  // Compter les ennemis tués pour le score
+  // Nettoyer les ennemis morts
   useEffect(() => {
-    const aliveEnemies = enemies.filter(enemy => enemy.isAlive).length;
-    const totalEnemies = enemies.length;
-    const killedEnemies = totalEnemies - aliveEnemies;
-    
-    // Nettoyer les ennemis morts depuis plus de 2 secondes
     const now = Date.now();
-    const filteredEnemies = enemies.filter(enemy => {
+    const filteredEnemies = enemySystemEnemies.filter((enemy: any) => {
       if (enemy.isDying && !enemy.isAlive) {
-        return now - enemy.lastMoveTime < 2000;
+        return now - (enemy.lastMoveTime || 0) < 2000;
       }
       return true;
     });
 
-    if (filteredEnemies.length !== enemies.length) {
-      setEnemies(filteredEnemies);
-      enemiesRef.current = filteredEnemies;
+    if (filteredEnemies.length !== enemySystemEnemies.length) {
+      setEnemySystemEnemies(filteredEnemies);
+      enemySystemRef.current = filteredEnemies;
     }
-  }, [enemies]);
+  }, [enemySystemEnemies, setEnemySystemEnemies, enemySystemRef]);
 
   // Timer du jeu
   useEffect(() => {
@@ -161,6 +159,19 @@ export const useGame = () => {
 
     return () => clearInterval(interval);
   }, [gameState]);
+
+  // Mettre à jour les dimensions de la carte quand la fenêtre change de taille
+  useEffect(() => {
+    const handleResize = () => {
+      setMapDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Augmenter la difficulté avec le temps
   useEffect(() => {
@@ -182,12 +193,12 @@ export const useGame = () => {
     
     // Entités du jeu
     playerPosition,
-    enemies,
+    enemies: enemySystemEnemies,
     bullets,
     
     // Configuration
-    mapWidth: MAP_WIDTH,
-    mapHeight: MAP_HEIGHT,
+    mapWidth: mapDimensions.width,
+    mapHeight: mapDimensions.height,
     
     // Actions du jeu
     startGame,
@@ -196,6 +207,12 @@ export const useGame = () => {
     movePlayer,
     handleShoot,
     addScore,
+    triggerAttack,
+    setPlayerDirection,
+    
+    // États d'attaque
+    isAttacking,
+    attackFrame,
     
     // Utilitaires
     takeDamage

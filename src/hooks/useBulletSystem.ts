@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Position } from '../types';
+import { Position, Enemy } from '../types';
 import { checkCollision } from '../utils/gameUtils';
 
 interface Bullet {
@@ -9,17 +9,6 @@ interface Bullet {
   velocityX: number;
   velocityY: number;
   createdAt: number;
-}
-
-interface Enemy {
-  id: number;
-  x: number;
-  y: number;
-  hp: number;
-  isAlive: boolean;
-  isDying: boolean;
-  lastMoveTime: number;
-  direction: number;
 }
 
 export const useBulletSystem = (
@@ -108,7 +97,7 @@ export const useBulletSystem = (
               ...enemiesToUpdate[enemyIndex],
               isAlive: false,
               isDying: true,
-              lastMoveTime: Date.now()
+              deathFrame: 0
             };
           }
         }

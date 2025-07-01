@@ -70,7 +70,7 @@ export const GameUI: React.FC<GameUIProps> = ({
         <p>🎯 Clic pour tirer</p>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .game-ui {
           position: absolute;
           top: 0;

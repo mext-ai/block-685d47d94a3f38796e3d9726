@@ -1,18 +1,20 @@
 import React from 'react';
 import {
-  GAME_OVER_BACKGROUND_URL,
+  DEFEAT_BACKGROUND_URL,
   BACK_TO_LEVELS_BUTTON_URL,
-  RESTART_BUTTON_URL
+  RESTART_LEVEL_BUTTON_URL
 } from '../constants';
 
 interface DefeatMenuProps {
   onBackToLevels: () => void;
-  onRestart: () => void;
+  onRestartLevel: () => void;
+  currentLevel: number;
 }
 
 const DefeatMenu: React.FC<DefeatMenuProps> = ({
   onBackToLevels,
-  onRestart
+  onRestartLevel,
+  currentLevel
 }) => {
   return (
     <div style={{
@@ -32,24 +34,28 @@ const DefeatMenu: React.FC<DefeatMenuProps> = ({
       <div style={{
         width: '40%',
         height: '40%',
-        backgroundImage: `url(${GAME_OVER_BACKGROUND_URL})`,
+        backgroundImage: `url(${DEFEAT_BACKGROUND_URL})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'flex-end',
+        justifyContent: 'center',
         alignItems: 'center',
-        gap: '15px',
-        paddingBottom: '12%'
+        position: 'relative'
       }}>
         
-        {/* Boutons */}
+        {/* Boutons - positionnés au centre de la modale */}
         <div style={{
           display: 'flex',
           flexDirection: 'row',
           gap: '15px',
-          alignItems: 'center'
+          alignItems: 'center',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          marginTop: '20px' // Léger décalage vers le bas pour éviter le texte de défaite
         }}>
           {/* Bouton Retour aux niveaux */}
           <div
@@ -75,12 +81,12 @@ const DefeatMenu: React.FC<DefeatMenuProps> = ({
             }}
           />
 
-          {/* Bouton Recommencer */}
+          {/* Bouton Recommencer le niveau */}
           <div
             style={{
               width: '150px',
               height: '67px',
-              backgroundImage: `url(${RESTART_BUTTON_URL})`,
+              backgroundImage: `url(${RESTART_LEVEL_BUTTON_URL})`,
               backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
@@ -88,7 +94,7 @@ const DefeatMenu: React.FC<DefeatMenuProps> = ({
               transition: 'all 0.2s ease',
               transform: 'scale(1)'
             }}
-            onClick={onRestart}
+            onClick={onRestartLevel}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.1)';
               e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.8))';
@@ -104,4 +110,4 @@ const DefeatMenu: React.FC<DefeatMenuProps> = ({
   );
 };
 
-export default DefeatMenu; 
+export default DefeatMenu;

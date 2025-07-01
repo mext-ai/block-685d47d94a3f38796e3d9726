@@ -23,7 +23,6 @@ const VictoryMenu: React.FC<VictoryMenuProps> = ({ onNextLevel, onBackToLevels, 
       left: 0,
       width: '100%',
       height: '100%',
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
@@ -44,28 +43,6 @@ const VictoryMenu: React.FC<VictoryMenuProps> = ({ onNextLevel, onBackToLevels, 
         flexDirection: 'column',
         alignItems: 'center',
       }}>
-        {/* Stars positioned at the top */}
-        <div style={{
-          position: 'absolute',
-          top: '25%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          gap: '10px',
-        }}>
-          {Array.from({ length: 3 }, (_, i) => (
-            <span
-              key={i}
-              style={{
-                fontSize: '3rem',
-                color: i < stars ? '#FFD700' : '#666',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-              }}
-            >
-              ★
-            </span>
-          ))}
-        </div>
 
         {/* Buttons positioned in the center, in a row */}
         <div style={{

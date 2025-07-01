@@ -283,8 +283,8 @@ const Block: React.FC<BlockProps> = () => {
   // Fonctions pour gérer les clics sur les boutons
   const handlePlayButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
-    // Pour l'instant, on va directement au niveau 1
-    game.startGame();
+    // Aller au menu de sélection des niveaux
+    game.goToLevelSelect();
   };
 
   const handleLevel1ButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {

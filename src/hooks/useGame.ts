@@ -110,6 +110,11 @@ export const useGame = () => {
     setGameState('menu');
   }, []);
 
+  // Aller au menu de sélection des niveaux
+  const goToLevelSelect = useCallback(() => {
+    setGameState('levelSelect');
+  }, []);
+
   // Tirer vers une position
   const handleShoot = useCallback((targetPos: Position) => {
     if (gameState === 'playing') {
@@ -204,6 +209,7 @@ export const useGame = () => {
     startGame,
     endGame,
     backToMenu,
+    goToLevelSelect,
     movePlayer,
     handleShoot,
     addScore,

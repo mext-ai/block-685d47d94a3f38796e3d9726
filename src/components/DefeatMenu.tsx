@@ -14,6 +14,7 @@ const DefeatMenu: React.FC<DefeatMenuProps> = ({ onRestart, onBackToLevels }) =>
       left: 0,
       width: '100vw',
       height: '100vh',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
@@ -29,10 +30,34 @@ const DefeatMenu: React.FC<DefeatMenuProps> = ({ onRestart, onBackToLevels }) =>
         backgroundRepeat: 'no-repeat',
         borderRadius: '15px',
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
       }}>
+        {/* Skulls decoration */}
+        <div style={{
+          position: 'absolute',
+          top: '15%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          gap: '20px',
+        }}>
+          {[...Array(3)].map((_, index) => (
+            <div
+              key={index}
+              style={{
+                width: '30px',
+                height: '30px',
+                background: '#8B0000',
+                borderRadius: '50%',
+                opacity: 0.8,
+              }}
+            />
+          ))}
+        </div>
+
         {/* Buttons container */}
         <div style={{
           position: 'absolute',

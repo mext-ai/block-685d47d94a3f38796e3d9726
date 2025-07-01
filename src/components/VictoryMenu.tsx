@@ -1,23 +1,21 @@
 import React from 'react';
-import {
-  VICTORY_BACKGROUND_URL,
-  BACK_TO_LEVELS_BUTTON_URL,
-  NEXT_LEVEL_BUTTON_URL
-} from '../constants';
+import { VICTORY_BACKGROUND_URL, NEXT_LEVEL_BUTTON_URL, BACK_TO_LEVELS_BUTTON_URL } from '../constants';
 
 interface VictoryMenuProps {
-  onBackToLevels: () => void;
   onNextLevel: () => void;
-  currentLevel: number;
-  stars: number;
+  onBackToLevels: () => void;
+  score: number;
 }
 
-const VictoryMenu: React.FC<VictoryMenuProps> = ({
-  onBackToLevels,
-  onNextLevel,
-  currentLevel,
-  stars
-}) => {
+const VictoryMenu: React.FC<VictoryMenuProps> = ({ onNextLevel, onBackToLevels, score }) => {
+  const getStars = () => {
+    if (score >= 90) return 3;
+    if (score >= 70) return 2;
+    return 1;
+  };
+
+  const stars = getStars();
+
   return (
     <div style={{
       position: 'fixed',
@@ -25,106 +23,109 @@ const VictoryMenu: React.FC<VictoryMenuProps> = ({
       left: 0,
       width: '100%',
       height: '100%',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
       display: 'flex',
-      flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 1000,
-      backgroundColor: 'transparent'
     }}>
-      {/* Modale de victoire */}
       <div style={{
-        width: '40%',
-        height: '40%',
+        width: '90%',
+        maxWidth: '600px',
+        height: '80%',
+        maxHeight: '500px',
         backgroundImage: `url(${VICTORY_BACKGROUND_URL})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
+        borderRadius: '20px',
+        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
         alignItems: 'center',
-        position: 'relative'
       }}>
-        
-        {/* Étoiles - positionnées dans le haut de la modale */}
+        {/* Stars positioned at the top */}
         <div style={{
-          display: 'flex',
-          gap: '10px',
           position: 'absolute',
           top: '25%',
           left: '50%',
-          transform: 'translateX(-50%)'
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          gap: '10px',
         }}>
-          {[1, 2, 3].map((starNum) => (
-            <div
-              key={starNum}
+          {Array.from({ length: 3 }, (_, i) => (
+            <span
+              key={i}
               style={{
-                width: '40px',
-                height: '40px',
-                fontSize: '30px',
-                color: starNum <= stars ? '#FFD700' : '#666',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                fontSize: '3rem',
+                color: i < stars ? '#FFD700' : '#666',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
               }}
             >
-              ⭐
-            </div>
+              ★
+            </span>
           ))}
         </div>
 
-        {/* Boutons - positionnés au centre de la modale */}
+        {/* Buttons positioned in the center, in a row */}
         <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-          gap: '15px',
-          alignItems: 'center',
           position: 'absolute',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          marginTop: '20px' // Léger décalage vers le bas pour éviter les étoiles
+          marginTop: '40px',
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '20px',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          width: '90%',
         }}>
-          {/* Bouton Retour aux niveaux */}
-          <div
+          <button
+            onClick={onNextLevel}
             style={{
-              width: '150px',
-              height: '67px',
-              backgroundImage: `url(${BACK_TO_LEVELS_BUTTON_URL})`,
-              backgroundSize: 'contain',
+              width: '180px',
+              height: '60px',
+              backgroundImage: `url(${NEXT_LEVEL_BUTTON_URL})`,
+              backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
+              border: 'none',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              transform: 'scale(1)'
+              backgroundColor: 'transparent',
+              transition: 'transform 0.2s, filter 0.2s',
+              minWidth: '150px',
+              flex: '0 0 auto',
             }}
-            onClick={onBackToLevels}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.8))';
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.filter = 'brightness(1.1)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.style.filter = 'brightness(1)';
             }}
           />
-
-          {/* Bouton Niveau suivant */}
-          <div
+          
+          <button
+            onClick={onBackToLevels}
             style={{
-              width: '150px',
-              height: '67px',
-              backgroundImage: `url(${NEXT_LEVEL_BUTTON_URL})`,
-              backgroundSize: 'contain',
+              width: '180px',
+              height: '60px',
+              backgroundImage: `url(${BACK_TO_LEVELS_BUTTON_URL})`,
+              backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
+              border: 'none',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              transform: 'scale(1)'
+              backgroundColor: 'transparent',
+              transition: 'transform 0.2s, filter 0.2s',
+              minWidth: '150px',
+              flex: '0 0 auto',
             }}
-            onClick={onNextLevel}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.8))';
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.filter = 'brightness(1.1)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';

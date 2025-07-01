@@ -9,12 +9,14 @@ interface VictoryMenuProps {
   onBackToLevels: () => void;
   onNextLevel: () => void;
   currentLevel: number;
+  stars: number;
 }
 
 const VictoryMenu: React.FC<VictoryMenuProps> = ({
   onBackToLevels,
   onNextLevel,
-  currentLevel
+  currentLevel,
+  stars
 }) => {
   return (
     <div style={{
@@ -45,6 +47,31 @@ const VictoryMenu: React.FC<VictoryMenuProps> = ({
         position: 'relative'
       }}>
         
+        {/* Étoiles - positionnées dans le haut de la modale */}
+        <div style={{
+          display: 'flex',
+          gap: '10px',
+          position: 'absolute',
+          top: '25%',
+          left: '50%',
+          transform: 'translateX(-50%)'
+        }}>
+          {[1, 2, 3].map((starNum) => (
+            <div
+              key={starNum}
+              style={{
+                width: '40px',
+                height: '40px',
+                fontSize: '30px',
+                color: starNum <= stars ? '#FFD700' : '#666',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+              }}
+            >
+              ⭐
+            </div>
+          ))}
+        </div>
+
         {/* Boutons - positionnés au centre de la modale */}
         <div style={{
           display: 'flex',
@@ -55,7 +82,7 @@ const VictoryMenu: React.FC<VictoryMenuProps> = ({
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          marginTop: '20px' // Léger décalage vers le bas pour éviter le texte de victoire
+          marginTop: '20px' // Léger décalage vers le bas pour éviter les étoiles
         }}>
           {/* Bouton Retour aux niveaux */}
           <div

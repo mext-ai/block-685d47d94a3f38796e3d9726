@@ -147,21 +147,20 @@ export const useGame = () => {
 
   // Démarrer le jeu
   const startGame = useCallback((levelNumber: number = 1) => {
+    console.log(`Starting game - Level: ${levelNumber}`); // Debug log
     setGameState('playing');
     setScore(0);
     setLevel(levelNumber);
     setPlayerHealth(10);
     setGameTime(0);
     resetPlayer();
-  }, [resetPlayer]);
-
-  // Démarrer le niveau suivant
-  const startNextLevel = useCallback(() => {
-    // Nettoyer les ennemis avant de redémarrer
+    // Nettoyer les ennemis avant de démarrer le nouveau niveau
     setEnemySystemEnemies([]);
     enemySystemRef.current = [];
-    startGame(2); // Toujours démarrer le niveau 2
-  }, [startGame, setEnemySystemEnemies, enemySystemRef]);
+  }, [resetPlayer, setEnemySystemEnemies, enemySystemRef]);
+
+  // CORRECTION: Supprimer la fonction startNextLevel qui causait le problème
+  // Elle n'est plus nécessaire car startGame gère déjà tout
 
   // Retourner au menu
   const backToMenu = useCallback(() => {
@@ -180,6 +179,7 @@ export const useGame = () => {
 
   // Débloquer un niveau
   const unlockLevel = useCallback((levelNumber: number) => {
+    console.log(`Unlocking level: ${levelNumber}`); // Debug log
     setUnlockedLevels(prev => {
       if (!prev.includes(levelNumber)) {
         return [...prev, levelNumber];
@@ -206,6 +206,7 @@ export const useGame = () => {
       const aliveEnemies = enemySystemEnemies.filter((enemy: any) => enemy.isAlive || enemy.isDying);
       if (aliveEnemies.length === 0) {
         // Niveau terminé !
+        console.log(`Level ${level} completed! Unlocking level ${level + 1}`); // Debug log
         setGameState('victory');
         // Débloquer le niveau suivant
         unlockLevel(level + 1);
@@ -275,7 +276,6 @@ export const useGame = () => {
     
     // Actions du jeu
     startGame,
-    startNextLevel,
     endGame,
     backToMenu,
     goToLevelSelect,

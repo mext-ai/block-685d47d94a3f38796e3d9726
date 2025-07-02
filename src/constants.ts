@@ -25,6 +25,10 @@ export const DEVIL_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail
 export const DEVIL_DEATH_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1B6-04idqC085361dVCgDFSSKlwGcHveJ&sz=w1000';
 export const DEVIL_PROJECTILE_URL = 'https://drive.google.com/thumbnail?id=1xf-kvQhzAqYWtT1RsS-tVVpwMPMvUJwp&sz=w500';
 
+// URLs des sprites goblins
+export const GOBLIN_WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1XmfrYPUPwhT3P9hrqIG1r6jGdptZRxru&sz=w1000';
+export const GOBLIN_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1Oe-jrOoABqb_8sDY-t08yS4AF6mM5Wyd&sz=w1000';
+
 // URLs des sprites UI
 export const HEART_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
 export const SKULL_IMAGE_URL = 'https://drive.google.com/thumbnail?id=1Dp4dPzMEZKN-cuMdcXU8c9WrdLpOWmjD&sz=w500';
@@ -80,6 +84,10 @@ export const DEVIL_WALK_FRAMES_PER_ROW = 6;
 export const DEVIL_ATTACK_FRAMES_PER_ROW = 6;
 export const DEVIL_DEATH_FRAMES_PER_ROW = 10;
 
+// Configuration des goblins
+export const GOBLIN_WALK_FRAMES_PER_ROW = 6;
+export const GOBLIN_ATTACK_FRAMES_PER_ROW = 6;
+
 // Limites du jeu
 export const TOP_LIMIT = 35;
 export const BOTTOM_LIMIT = 88;
@@ -89,4 +97,4 @@ export const RIGHT_LIMIT = 95;
 // Configuration du menu
 export const LEVEL1_BUTTON_POSITION = 40;
 export const LEVEL2_BUTTON_POSITION = 50;
-export const LEVEL3_BUTTON_POSITION = 75;   
+export const LEVEL3_BUTTON_POSITION = 75;

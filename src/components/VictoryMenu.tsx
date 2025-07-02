@@ -5,9 +5,10 @@ interface VictoryMenuProps {
   onNextLevel: () => void;
   onBackToLevels: () => void;
   score: number;
+  isLastLevel?: boolean;
 }
 
-const VictoryMenu: React.FC<VictoryMenuProps> = ({ onNextLevel, onBackToLevels, score }) => {
+const VictoryMenu: React.FC<VictoryMenuProps> = ({ onNextLevel, onBackToLevels, score, isLastLevel = false }) => {
   const getStars = () => {
     if (score >= 90) return 3;
     if (score >= 70) return 2;
@@ -47,31 +48,31 @@ const VictoryMenu: React.FC<VictoryMenuProps> = ({ onNextLevel, onBackToLevels, 
         {/* Buttons positioned in the center, in a row */}
         <div style={{
           position: 'absolute',
-          top: '50%',
+          top: '65%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          marginTop: '40px',
+          marginTop: '0px',
           display: 'flex',
           flexDirection: 'row',
-          gap: '20px',
+          gap: '0px',
           flexWrap: 'wrap',
           justifyContent: 'center',
-          width: '90%',
+          width: '70%',
         }}>
           <button
-            onClick={onNextLevel}
+            onClick={onBackToLevels}
             style={{
-              width: '180px',
-              height: '60px',
-              backgroundImage: `url(${NEXT_LEVEL_BUTTON_URL})`,
-              backgroundSize: 'cover',
+              width: 'clamp(130px, 16vw, 180px)',
+              height: 'clamp(62.5px, 7.8vh, 93.75px)',
+              backgroundImage: `url(${BACK_TO_LEVELS_BUTTON_URL})`,
+              backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
               border: 'none',
               cursor: 'pointer',
               backgroundColor: 'transparent',
               transition: 'transform 0.2s, filter 0.2s',
-              minWidth: '150px',
+              minWidth: 'clamp(110px, 13vw, 150px)',
               flex: '0 0 auto',
             }}
             onMouseEnter={(e) => {
@@ -84,31 +85,33 @@ const VictoryMenu: React.FC<VictoryMenuProps> = ({ onNextLevel, onBackToLevels, 
             }}
           />
           
-          <button
-            onClick={onBackToLevels}
-            style={{
-              width: '180px',
-              height: '60px',
-              backgroundImage: `url(${BACK_TO_LEVELS_BUTTON_URL})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: 'transparent',
-              transition: 'transform 0.2s, filter 0.2s',
-              minWidth: '150px',
-              flex: '0 0 auto',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
+          {!isLastLevel && (
+            <button
+              onClick={onNextLevel}
+              style={{
+                width: 'clamp(130px, 16vw, 180px)',
+                height: 'clamp(62.5px, 7.8vh, 93.75px)',
+                backgroundImage: `url(${NEXT_LEVEL_BUTTON_URL})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                border: 'none',
+                cursor: 'pointer',
+                backgroundColor: 'transparent',
+                transition: 'transform 0.2s, filter 0.2s',
+                minWidth: 'clamp(110px, 13vw, 150px)',
+                flex: '0 0 auto',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.filter = 'brightness(1.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.filter = 'brightness(1)';
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

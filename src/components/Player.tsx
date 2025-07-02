@@ -19,6 +19,7 @@ interface PlayerProps {
   isAttacking: boolean;
   attackFrame: number;
   isDead: boolean;
+  deathFrame: number;
   spriteScale: number;
 }
 
@@ -30,6 +31,7 @@ const Player: React.FC<PlayerProps> = ({
   isAttacking,
   attackFrame,
   isDead,
+  deathFrame,
   spriteScale
 }) => {
   let spriteUrl, framesPerRow, frame;
@@ -37,7 +39,7 @@ const Player: React.FC<PlayerProps> = ({
   if (isDead) {
     spriteUrl = PLAYER_DEATH_SPRITE_SHEET_URL;
     framesPerRow = PLAYER_DEATH_FRAMES_PER_ROW;
-    frame = 0; // Frame de mort fixe
+    frame = deathFrame; // Utiliser la frame d'animation de mort
   } else if (isAttacking) {
     spriteUrl = ATTACK_SPRITE_SHEET_URL;
     framesPerRow = ATTACK_FRAMES_PER_ROW;

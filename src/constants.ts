@@ -1,6 +1,7 @@
 // URLs des images de fond
-export const BACKGROUND_IMAGE_URL = 'https://drive.google.com/thumbnail?id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR&sz=w2000';
+export const BACKGROUND_IMAGE_URL = 'https://drive.google.com/thumbnail?id=1FchNV_VS_rRrB8y7224vog1-vfGYCg4C&sz=w2000';
 export const LEVEL2_BACKGROUND_URL = 'https://drive.google.com/thumbnail?id=14_KhsGR-XIyH3ctQekjjjQhIzE4LEs-k&sz=w2000';
+export const LEVEL3_BACKGROUND_URL = 'https://drive.google.com/thumbnail?id=1dG0VYnt0-H52bUAgk2ggO5A9OQQHbYMR&sz=w2000';
 
 // URLs des sprites du joueur
 export const WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1_Yp96n--W40rf5sQFA4L5MBpc0IBOYBW&sz=w1000';
@@ -21,6 +22,7 @@ export const TREANT_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnai
 // URLs des sprites diables
 export const DEVIL_WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1Etm94Zf8r4moSSM3jfPtmndXCfPdXhQ0&sz=w1000';
 export const DEVIL_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=17Y9qoz6HZsQQ0JXkiKH8--Fq5OXPmJxm&sz=w1000';
+export const DEVIL_DEATH_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1B6-04idqC085361dVCgDFSSKlwGcHveJ&sz=w1000';
 export const DEVIL_PROJECTILE_URL = 'https://drive.google.com/thumbnail?id=1xf-kvQhzAqYWtT1RsS-tVVpwMPMvUJwp&sz=w500';
 
 // URLs des sprites UI
@@ -76,10 +78,11 @@ export const TREANT_DEATH_FRAMES_PER_ROW = 6;
 // Configuration des diables
 export const DEVIL_WALK_FRAMES_PER_ROW = 6;
 export const DEVIL_ATTACK_FRAMES_PER_ROW = 6;
+export const DEVIL_DEATH_FRAMES_PER_ROW = 10;
 
 // Limites du jeu
 export const TOP_LIMIT = 35;
-export const BOTTOM_LIMIT = 90;
+export const BOTTOM_LIMIT = 88;
 export const LEFT_LIMIT = 5;
 export const RIGHT_LIMIT = 95;
 

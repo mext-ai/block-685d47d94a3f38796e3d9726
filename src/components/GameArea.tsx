@@ -1,5 +1,5 @@
 import React from 'react';
-import { BACKGROUND_IMAGE_URL, LEVEL2_BACKGROUND_URL } from '../constants';
+import { BACKGROUND_IMAGE_URL, LEVEL2_BACKGROUND_URL, LEVEL3_BACKGROUND_URL } from '../constants';
 import Player from './Player';
 import Enemy from './Enemy';
 import Projectile from './Projectile';
@@ -15,6 +15,7 @@ interface GameAreaProps {
   playerIsAttacking: boolean;
   playerAttackFrame: number;
   playerIsDead: boolean;
+  playerDeathFrame: number;
   playerHealth: number;
   enemies: EnemyType[];
   projectiles: ProjectileType[];
@@ -35,6 +36,7 @@ const GameArea: React.FC<GameAreaProps> = ({
   playerIsAttacking,
   playerAttackFrame,
   playerIsDead,
+  playerDeathFrame,
   playerHealth,
   enemies,
   projectiles,
@@ -45,7 +47,12 @@ const GameArea: React.FC<GameAreaProps> = ({
   isSoundEnabled,
   onToggleSound
 }) => {
-  const backgroundUrl = level === 1 ? BACKGROUND_IMAGE_URL : LEVEL2_BACKGROUND_URL;
+  const backgroundUrl = level === 1 ? BACKGROUND_IMAGE_URL : 
+                       level === 2 ? LEVEL2_BACKGROUND_URL : 
+                       LEVEL3_BACKGROUND_URL;
+  
+  // Debug temporaire
+  console.log('GameArea - Level:', level, 'Background URL:', backgroundUrl);
 
   return (
     <div style={{
@@ -66,6 +73,7 @@ const GameArea: React.FC<GameAreaProps> = ({
         isAttacking={playerIsAttacking}
         attackFrame={playerAttackFrame}
         isDead={playerIsDead}
+        deathFrame={playerDeathFrame}
         spriteScale={spriteScale}
       />
 

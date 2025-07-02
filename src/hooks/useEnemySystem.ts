@@ -160,7 +160,17 @@ export const useEnemySystem = (
         
         const nextFrame = enemy.deathFrame + 1;
         
-        if (nextFrame >= 4) {
+        // Déterminer le nombre maximum de frames selon le type d'ennemi
+        let maxDeathFrames;
+        if (enemy.type === 'devil') {
+          maxDeathFrames = 10; // 10 frames pour le diable
+        } else if (enemy.type === 'treant') {
+          maxDeathFrames = 6; // 6 frames pour le tréant
+        } else {
+          maxDeathFrames = 9; // 9 frames pour le champignon
+        }
+        
+        if (nextFrame >= maxDeathFrames) {
           return { ...enemy, isAlive: false, isDying: false };
         }
         

@@ -12,79 +12,91 @@ const DefeatMenu: React.FC<DefeatMenuProps> = ({ onRestart, onBackToLevels }) =>
       position: 'fixed',
       top: 0,
       left: 0,
-      width: '100vw',
-      height: '100vh',
+      width: '100%',
+      height: '100%',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 1000,
     }}>
       <div style={{
-        position: 'relative',
-        width: '400px',
-        height: '300px',
+        width: '90%',
+        maxWidth: '600px',
+        height: '80%',
+        maxHeight: '500px',
         backgroundImage: `url(${GAME_OVER_BACKGROUND_URL})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        borderRadius: '15px',
+        borderRadius: '20px',
+        position: 'relative',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
       }}>
         {/* Buttons container */}
         <div style={{
           position: 'absolute',
-          top: '50%',
+          top: '65%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          marginTop: '20px',
+          marginTop: '0px',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '15px',
-          alignItems: 'center',
+          flexDirection: 'row',
+          gap: '0px',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          width: '70%',
         }}>
           <button
-            onClick={onRestart}
+            onClick={onBackToLevels}
             style={{
-              width: '180px',
-              height: '50px',
-              backgroundImage: `url(${RESTART_BUTTON_URL})`,
-              backgroundSize: 'cover',
+              width: 'clamp(130px, 16vw, 180px)',
+              height: 'clamp(62.5px, 7.8vh, 93.75px)',
+              backgroundImage: `url(${BACK_TO_LEVELS_BUTTON_URL})`,
+              backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
               border: 'none',
               cursor: 'pointer',
-              transition: 'transform 0.2s',
               backgroundColor: 'transparent',
+              transition: 'transform 0.2s, filter 0.2s',
+              minWidth: 'clamp(110px, 13vw, 150px)',
+              flex: '0 0 auto',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.filter = 'brightness(1.1)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.filter = 'brightness(1)';
             }}
           />
           
           <button
-            onClick={onBackToLevels}
+            onClick={onRestart}
             style={{
-              width: '180px',
-              height: '50px',
-              backgroundImage: `url(${BACK_TO_LEVELS_BUTTON_URL})`,
-              backgroundSize: 'cover',
+              width: 'clamp(130px, 16vw, 180px)',
+              height: 'clamp(62.5px, 7.8vh, 93.75px)',
+              backgroundImage: `url(${RESTART_BUTTON_URL})`,
+              backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
               border: 'none',
               cursor: 'pointer',
-              transition: 'transform 0.2s',
               backgroundColor: 'transparent',
+              transition: 'transform 0.2s, filter 0.2s',
+              minWidth: 'clamp(110px, 13vw, 150px)',
+              flex: '0 0 auto',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.filter = 'brightness(1.1)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.filter = 'brightness(1)';
             }}
           />
         </div>

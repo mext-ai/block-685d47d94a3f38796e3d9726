@@ -49,9 +49,10 @@ const Block: React.FC<BlockProps> = () => {
   });
 
   // Animation du joueur
-  const { currentFrame } = usePlayerAnimation({
+  const { currentFrame, deathFrame } = usePlayerAnimation({
     gameState: game.gameState,
-    isWalking
+    isWalking,
+    isDead: game.playerHealth <= 0
   });
 
   // Musique de jeu
@@ -140,6 +141,7 @@ const Block: React.FC<BlockProps> = () => {
         playerIsAttacking={isAttacking}
         playerAttackFrame={attackFrame}
         playerIsDead={game.playerHealth <= 0}
+        playerDeathFrame={deathFrame}
         playerHealth={game.playerHealth}
         enemies={game.enemies}
         projectiles={game.projectiles}
@@ -166,6 +168,7 @@ const Block: React.FC<BlockProps> = () => {
         playerIsAttacking={isAttacking}
         playerAttackFrame={attackFrame}
         playerIsDead={game.playerHealth <= 0}
+        playerDeathFrame={deathFrame}
         playerHealth={game.playerHealth}
         enemies={game.enemies}
         projectiles={game.projectiles}
@@ -190,6 +193,7 @@ const Block: React.FC<BlockProps> = () => {
         <VictoryMenu
           onNextLevel={() => game.startGame(game.level + 1)}
           onBackToLevels={game.goToLevelSelect}
+          score={game.score}
           isLastLevel={game.level >= 3}
         />
       )}

@@ -190,7 +190,7 @@ export const useEnemySystem = (
     
     const enemyMovementInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
-        // Ne pas bouger les ennemis qui ne sont pas encore apparus
+        // Ne pas bouger les ennemis qui ne sont pas encore apparus, qui sont morts, mourants, OU EN TRAIN D'ATTAQUER
         if (!enemy.isAlive || enemy.isDying || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
         let newX = enemy.x;
@@ -211,6 +211,8 @@ export const useEnemySystem = (
           const collisionDistance = 3;
           const currentTime = Date.now();
           
+          // MODIFICATION CRITIQUE : Les ennemis attaquent même s'ils sont déjà en train d'attaquer
+          // L'important est de vérifier le cooldown d'attaque, pas si l'ennemi bouge
           if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 2000) {
             shouldAttack = true;
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
@@ -378,7 +380,7 @@ export const useEnemySystem = (
         }
       }
     } else {
-      // Logique originale pour les autres ennemis
+      // Logique originale pour les champignons et autres ennemis
       const attackRange = 6;
       if (distance <= attackRange) {
         const damage = 1;

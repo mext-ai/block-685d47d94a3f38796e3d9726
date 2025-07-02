@@ -31,8 +31,8 @@ export const createLevel1Enemies = (): Enemy[] => {
     
     const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
 
-    // 1 seul tréant à la position 6 (milieu du niveau), le reste sont des champignons
-    const isTreant = i === 6;
+    // 1 seul tréant à la position 12 (dernière position), le reste sont des champignons
+    const isTreant = i === 11; // Index 11 = 12ème position (dernière)
     const enemyType = isTreant ? 'treant' : 'mushroom';
     const enemyHp = isTreant ? 5 : 3;
     

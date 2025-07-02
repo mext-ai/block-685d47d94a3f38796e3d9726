@@ -308,7 +308,7 @@ export const useEnemySystem = (
     return () => clearInterval(enemyMovementInterval);
   }, [gameState]);
 
-  // Fonction pour vérifier les dégâts de l'ennemi au joueur
+  // Fonction améliorée pour vérifier les dégâts de l'ennemi au joueur avec hitbox directionnelle
   const checkEnemyAttackHit = (enemy: Enemy) => {
     const currentTime = Date.now();
     
@@ -321,17 +321,70 @@ export const useEnemySystem = (
     const deltaY = currentPlayerPos.y - enemy.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     
-    // Différentes portées selon le type d'ennemi
-    const attackRange = enemy.type === 'treant' ? 12 : 6;
-    if (distance <= attackRange) {
-      // Différents dégâts selon le type d'ennemi
-      const damage = enemy.type === 'treant' ? 2 : 1;
+    // Logique spécifique pour les tréants avec hitbox directionnelle
+    if (enemy.type === 'treant') {
+      // Paramètres de l'attaque du tréant
+      const maxAttackRange = 12; // Portée maximale de l'attaque
+      const attackWidth = 4; // Largeur de la zone d'attaque (angle)
       
-      // Appeler la fonction de dégâts avec le bon montant
-      onPlayerDamage(damage);
+      // Vérifier d'abord si le joueur est dans la portée
+      if (distance > maxAttackRange) return;
       
-      // Mettre à jour le cooldown pour cet ennemi spécifique
-      enemyDamageCooldowns.current[enemy.id] = currentTime;
+      // Calculer la direction de l'attaque basée sur la direction du tréant
+      let attackDirectionX = 0;
+      let attackDirectionY = 0;
+      
+      switch (enemy.direction) {
+        case 0: // Vers le bas
+          attackDirectionX = 0;
+          attackDirectionY = 1;
+          break;
+        case 1: // Vers le haut
+          attackDirectionX = 0;
+          attackDirectionY = -1;
+          break;
+        case 2: // Vers la gauche
+          attackDirectionX = -1;
+          attackDirectionY = 0;
+          break;
+        case 3: // Vers la droite
+          attackDirectionX = 1;
+          attackDirectionY = 0;
+          break;
+      }
+      
+      // Normaliser la direction vers le joueur
+      const directionToPlayer = {
+        x: deltaX / distance,
+        y: deltaY / distance
+      };
+      
+      // Calculer le produit scalaire pour vérifier l'alignement
+      const dotProduct = attackDirectionX * directionToPlayer.x + attackDirectionY * directionToPlayer.y;
+      
+      // Le joueur doit être devant le tréant (produit scalaire > 0.5 pour un cône de ~60°)
+      const minAlignment = 0.5; // Plus cette valeur est élevée, plus l'attaque est précise
+      
+      if (dotProduct > minAlignment) {
+        // Vérifier aussi la distance perpendiculaire pour la largeur de l'attaque
+        const perpendicularDistance = Math.abs(
+          -attackDirectionY * deltaX + attackDirectionX * deltaY
+        );
+        
+        if (perpendicularDistance <= attackWidth) {
+          // Le joueur est dans la zone d'attaque directionnelle
+          onPlayerDamage(2); // Dégâts du tréant
+          enemyDamageCooldowns.current[enemy.id] = currentTime;
+        }
+      }
+    } else {
+      // Logique originale pour les autres ennemis
+      const attackRange = 6;
+      if (distance <= attackRange) {
+        const damage = 1;
+        onPlayerDamage(damage);
+        enemyDamageCooldowns.current[enemy.id] = currentTime;
+      }
     }
   };
 

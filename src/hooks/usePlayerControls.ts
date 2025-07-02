@@ -22,6 +22,12 @@ export const usePlayerControls = ({
   const [isWalking, setIsWalking] = useState(false);
   const [direction, setDirection] = useState(0);
 
+  // Fonction pour réinitialiser toutes les touches
+  const resetAllKeys = () => {
+    setKeys({ up: false, down: false, left: false, right: false });
+    setIsWalking(false);
+  };
+
   // Gestion des touches pour l'attaque et les contrôles
   useEffect(() => {
     if (gameState !== 'playing' || playerHealth <= 0) return;
@@ -66,19 +72,64 @@ export const usePlayerControls = ({
       });
     };
 
+    // Gestionnaires pour détecter la perte de focus
     const handleWindowBlur = () => {
-      setKeys({ up: false, down: false, left: false, right: false });
-      setIsWalking(false);
+      resetAllKeys();
     };
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        resetAllKeys();
+      }
+    };
+
+    const handleMouseLeave = (event: MouseEvent) => {
+      // Si la souris quitte complètement la fenêtre
+      if (event.clientY <= 0 || event.clientX <= 0 || 
+          event.clientX >= window.innerWidth || event.clientY >= window.innerHeight) {
+        resetAllKeys();
+      }
+    };
+
+    const handleClick = (event: MouseEvent) => {
+      // Si l'utilisateur clique en dehors de la zone de jeu, réinitialiser les touches
+      const target = event.target as HTMLElement;
+      if (!target.closest('canvas') && !target.closest('[data-game-area]')) {
+        resetAllKeys();
+      }
+    };
+
+    // Gestionnaire pour détecter Alt+Tab ou Cmd+Tab
+    const handleFocusOut = () => {
+      resetAllKeys();
+    };
+
+    // Ajouter tous les gestionnaires d'événements
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('blur', handleWindowBlur);
+    window.addEventListener('focus', handleFocusOut); // Au retour de focus, s'assurer que tout est réinitialisé
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('click', handleClick);
+
+    // Gestionnaire spécial pour les touches Alt et Cmd (souvent utilisées pour Alt+Tab / Cmd+Tab)
+    const handleSpecialKeys = (event: KeyboardEvent) => {
+      if (event.altKey || event.metaKey) {
+        resetAllKeys();
+      }
+    };
+    window.addEventListener('keydown', handleSpecialKeys);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('blur', handleWindowBlur);
+      window.removeEventListener('focus', handleFocusOut);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('click', handleClick);
+      window.removeEventListener('keydown', handleSpecialKeys);
     };
   }, [gameState, playerHealth, isAttacking, triggerAttack, backToMenu]);
 

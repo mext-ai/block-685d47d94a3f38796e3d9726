@@ -61,26 +61,27 @@ export const createLevel1Enemies = (): Enemy[] => {
   return enemies;
 };
 
-// Fonction pour créer les ennemis du niveau 2 - 15 ennemis variés
+// Fonction pour créer les ennemis du niveau 2 - 15 ennemis : 11 champignons, 2 tréants, 2 diables
 export const createLevel2Enemies = (): Enemy[] => {
   const enemies: Enemy[] = [];
   
+  // Configuration avec apparitions simultanées : tréant+champignon et diable+champignon
   const enemySpawnTimes = [
-    0,     // Ennemi 1 : immédiat
-    2000,  // Ennemi 2 : après 2 secondes
-    4000,  // Ennemi 3 : après 4 secondes
-    6000,  // Ennemi 4 : après 6 secondes
-    8000,  // Ennemi 5 : après 8 secondes
-    10000, // Ennemi 6 : après 10 secondes
-    12000, // Ennemi 7 : après 12 secondes
-    14000, // Ennemi 8 : après 14 secondes
-    16000, // Ennemi 9 : après 16 secondes
-    18000, // Ennemi 10 : après 18 secondes
-    20000, // Ennemi 11 : après 20 secondes
-    22000, // Ennemi 12 : après 22 secondes
-    24000, // Ennemi 13 : après 24 secondes
-    26000, // Ennemi 14 : après 26 secondes
-    28000  // Ennemi 15 : après 28 secondes
+    0,     // Ennemi 1 : champignon immédiat
+    2000,  // Ennemi 2 : champignon après 2 secondes
+    4000,  // Ennemi 3 : champignon après 4 secondes
+    6000,  // Ennemi 4 : champignon après 6 secondes
+    8000,  // Ennemi 5 : tréant après 8 secondes
+    8000,  // Ennemi 6 : champignon après 8 secondes (EN MÊME TEMPS que le tréant)
+    10000, // Ennemi 7 : champignon après 10 secondes
+    12000, // Ennemi 8 : champignon après 12 secondes
+    14000, // Ennemi 9 : diable après 14 secondes
+    14000, // Ennemi 10 : champignon après 14 secondes (EN MÊME TEMPS que le diable)
+    16000, // Ennemi 11 : champignon après 16 secondes
+    18000, // Ennemi 12 : champignon après 18 secondes
+    20000, // Ennemi 13 : diable après 20 secondes
+    22000, // Ennemi 14 : champignon après 22 secondes
+    25000  // Ennemi 15 : tréant après 25 secondes (DERNIER - 2ème tréant)
   ];
 
   for (let i = 0; i < 15; i++) {
@@ -95,22 +96,22 @@ export const createLevel2Enemies = (): Enemy[] => {
     const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
 
     // Distribution des types d'ennemis :
-    // - 8 mushrooms (positions 0,1,2,3,8,9,10,11)
-    // - 4 treants (positions 4,5,12,13) 
-    // - 3 devils (positions 6,7,14)
+    // - 11 champignons (positions 0,1,2,3,5,6,7,9,10,11,13)
+    // - 2 tréants (positions 4,14 - le 2ème en dernière position)
+    // - 2 diables (positions 8,12)
     let enemyType: 'mushroom' | 'treant' | 'devil';
     let enemyHp: number;
     
-    if (i === 6 || i === 7 || i === 14) {
-      // 3 diables aux positions stratégiques
-      enemyType = 'devil';
-      enemyHp = 4;
-    } else if (i === 4 || i === 5 || i === 12 || i === 13) {
-      // 4 tréants
+    if (i === 4 || i === 14) {
+      // 2 tréants : position 5 et position 15 (dernière)
       enemyType = 'treant';
       enemyHp = 5;
+    } else if (i === 8 || i === 12) {
+      // 2 diables : positions 9 et 13
+      enemyType = 'devil';
+      enemyHp = 4;
     } else {
-      // 8 champignons (le reste)
+      // 11 champignons (le reste)
       enemyType = 'mushroom';
       enemyHp = 3;
     }

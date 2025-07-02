@@ -56,7 +56,6 @@ const MainMenu: React.FC<MainMenuProps> = ({
           opacity: isPlayButtonHovered ? 1 : 0.95,
         }}
         onClick={(e) => {
-          onForceStartMusic();
           onPlayButtonClick(e);
         }}
         onMouseEnter={onPlayButtonMouseEnter}

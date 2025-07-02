@@ -4,20 +4,23 @@ import { Enemy } from '../types';
 export const createLevel1Enemies = (): Enemy[] => {
   const enemies: Enemy[] = [];
   
+  // 12 ennemis avec des temps d'apparition, incluant 2 moments où 2 champignons apparaissent simultanément
   const enemySpawnTimes = [
-    0,    // Ennemi 1 : immédiat
-    3000, // Ennemi 2 : après 3 secondes
-    5000, // Ennemi 3 : après 5 secondes
-    8000, // Ennemi 4 : après 8 secondes
-    12000, // Ennemi 5 : après 12 secondes
-    15000, // Ennemi 6 : après 15 secondes
-    18000, // Ennemi 7 : après 18 secondes
-    22000, // Ennemi 8 : après 22 secondes
-    25000, // Ennemi 9 : après 25 secondes
-    30000  // Ennemi 10 : après 30 secondes
+    0,     // Ennemi 1 : immédiat
+    3000,  // Ennemi 2 : après 3 secondes
+    5000,  // Ennemi 3 : après 5 secondes
+    5000,  // Ennemi 4 : après 5 secondes (EN MÊME TEMPS que l'ennemi 3)
+    8000,  // Ennemi 5 : après 8 secondes
+    12000, // Ennemi 6 : après 12 secondes
+    15000, // Ennemi 7 : après 15 secondes
+    18000, // Ennemi 8 : après 18 secondes
+    18000, // Ennemi 9 : après 18 secondes (EN MÊME TEMPS que l'ennemi 8)
+    22000, // Ennemi 10 : après 22 secondes
+    25000, // Ennemi 11 : après 25 secondes
+    30000  // Ennemi 12 : après 30 secondes
   ];
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 12; i++) {
     const fromLeft = i % 2 === 0;
     
     const startX = fromLeft ? 
@@ -28,7 +31,8 @@ export const createLevel1Enemies = (): Enemy[] => {
     
     const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
 
-    const isTreant = i === 4 || i === 9;
+    // 1 seul tréant à la position 6 (milieu du niveau), le reste sont des champignons
+    const isTreant = i === 6;
     const enemyType = isTreant ? 'treant' : 'mushroom';
     const enemyHp = isTreant ? 5 : 3;
     

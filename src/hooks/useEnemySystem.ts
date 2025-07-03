@@ -70,13 +70,13 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' ? 6 : 3; // 6 frames de marche pour tréants et diables
+        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' || enemy.type === 'goblin' ? 6 : 3; // 6 frames de marche pour tréants, diables et goblins
         return {
           ...enemy,
           currentFrame: (enemy.currentFrame + 1) % maxFrames
         };
       }));
-    }, 200);
+    }, 250); // Ralenti à 250ms pour une animation plus fluide
 
     return () => clearInterval(enemyAnimationInterval);
   }, [gameState]);
@@ -116,8 +116,15 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : 4; // Différents nombres de frames selon le type
-        const nextFrame = enemy.attackFrame + 1;
+        const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : enemy.type === 'goblin' ? 6 : 4; // Différents nombres de frames selon le type
+        
+        // Vitesse d'animation différente selon le type d'ennemi
+        let frameIncrement = 1;
+        if (enemy.type === 'goblin') {
+          frameIncrement = 0.2; // Les goblins ont une animation d'attaque très lente
+        }
+        
+        const nextFrame = enemy.attackFrame + frameIncrement;
         
         if (nextFrame >= maxAttackFrames) {
           return {
@@ -129,8 +136,8 @@ export const useEnemySystem = (
         }
         
         // Infliger des dégâts seulement à la frame d'impact spécifique
-        const impactFrame = enemy.type === 'treant' ? 4 : enemy.type === 'devil' ? 3 : 3; // Frame d'impact pour chaque type
-        if (nextFrame === impactFrame) {
+        const impactFrame = enemy.type === 'treant' ? 4 : enemy.type === 'devil' ? 3 : enemy.type === 'goblin' ? 3 : 3; // Frame d'impact pour chaque type
+        if (Math.floor(nextFrame) === impactFrame) {
           if (enemy.type === 'devil') {
             // Créer un projectile pour les diables
             createProjectile(enemy);
@@ -145,7 +152,7 @@ export const useEnemySystem = (
           attackFrame: nextFrame
         };
       }));
-    }, 100);
+    }, 200); // Ralenti à 200ms pour une animation plus fluide
 
     return () => clearInterval(enemyAttackAnimationInterval);
   }, [gameState]);
@@ -166,6 +173,8 @@ export const useEnemySystem = (
           maxDeathFrames = 10; // 10 frames pour le diable
         } else if (enemy.type === 'treant') {
           maxDeathFrames = 6; // 6 frames pour le tréant
+        } else if (enemy.type === 'goblin') {
+          maxDeathFrames = 6; // 6 frames pour le goblin
         } else {
           maxDeathFrames = 9; // 9 frames pour le champignon
         }
@@ -197,7 +206,15 @@ export const useEnemySystem = (
         let newY = enemy.y;
         let newDirection = enemy.direction;
         let shouldAttack = false;
-        const speed = 0.25; // Même vitesse pour tous les ennemis (comme dans l'original)
+        // Vitesse différente selon le type d'ennemi
+        let speed = 0.25; // Vitesse de base pour les champignons
+        if (enemy.type === 'goblin') {
+          speed = 0.375; // Les goblins sont 1.5x plus rapides que les champignons
+        } else if (enemy.type === 'treant') {
+          speed = 0.15; // Les tréants sont plus lents
+        } else if (enemy.type === 'devil') {
+          speed = 0.3; // Les diables sont moyennement rapides
+        }
         
         if (enemy.type === 'mushroom' || enemy.type === 'treant') {
           const currentPlayerPos = playerPositionRef.current;
@@ -206,14 +223,23 @@ export const useEnemySystem = (
           const deltaY = currentPlayerPos.y - enemy.y;
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
-          // Tréants ont une plus longue portée d'attaque
-          const attackDistance = enemy.type === 'treant' ? 12 : 4;
+          // Portée d'attaque selon le type d'ennemi
+          let attackDistance = 4; // Portée de base pour les champignons
+          if (enemy.type === 'treant') {
+            attackDistance = 12; // Tréants ont une plus longue portée d'attaque
+          }
           const collisionDistance = 3;
           const currentTime = Date.now();
           
+          // Cooldown d'attaque selon le type d'ennemi
+          let attackCooldown = 2000; // Cooldown de base pour les champignons
+          if (enemy.type === 'treant') {
+            attackCooldown = 3000; // Les tréants attaquent moins fréquemment
+          }
+          
           // MODIFICATION CRITIQUE : Les ennemis attaquent même s'ils sont déjà en train d'attaquer
           // L'important est de vérifier le cooldown d'attaque, pas si l'ennemi bouge
-          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 2000) {
+          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > attackCooldown) {
             shouldAttack = true;
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
               newDirection = deltaX > 0 ? 3 : 2;
@@ -242,6 +268,47 @@ export const useEnemySystem = (
               } else {
                 newDirection = deltaY > 0 ? 0 : 1;
               }
+            }
+          }
+        } else if (enemy.type === 'goblin') {
+          const currentPlayerPos = playerPositionRef.current;
+          
+          const deltaX = currentPlayerPos.x - enemy.x;
+          const deltaY = currentPlayerPos.y - enemy.y;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          
+          // Goblin ont une portée d'attaque moyenne et s'arrêtent pour attaquer
+          const attackDistance = 5; // Portée d'attaque
+          const stopDistance = 5; // Distance à laquelle ils s'arrêtent pour attaquer
+          const currentTime = Date.now();
+          
+          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 1500) {
+            shouldAttack = true;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          } else if (distance > stopDistance && !shouldAttack) {
+            const moveX = (deltaX / distance) * speed;
+            const moveY = (deltaY / distance) * speed;
+            
+            // Limites de mouvement en pourcentages
+            const topLimit = 35;
+            const bottomLimit = 90;
+            const leftLimit = 5;
+            const rightLimit = 95;
+            
+            const potentialX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
+            const potentialY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
+            
+            newX = potentialX;
+            newY = potentialY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
             }
           }
         } else if (enemy.type === 'devil') {
@@ -378,6 +445,14 @@ export const useEnemySystem = (
           onPlayerDamage(2); // Dégâts du tréant
           enemyDamageCooldowns.current[enemy.id] = currentTime;
         }
+      }
+    } else if (enemy.type === 'goblin') {
+      // Logique pour les goblins
+      const attackRange = 5; // Cohérent avec la portée d'attaque définie plus haut
+      if (distance <= attackRange) {
+        const damage = 1;
+        onPlayerDamage(damage);
+        enemyDamageCooldowns.current[enemy.id] = currentTime;
       }
     } else {
       // Logique originale pour les champignons et autres ennemis

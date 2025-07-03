@@ -28,6 +28,7 @@ export const DEVIL_PROJECTILE_URL = 'https://drive.google.com/thumbnail?id=1xf-k
 // URLs des sprites goblins
 export const GOBLIN_WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1XmfrYPUPwhT3P9hrqIG1r6jGdptZRxru&sz=w1000';
 export const GOBLIN_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1Oe-jrOoABqb_8sDY-t08yS4AF6mM5Wyd&sz=w1000';
+export const GOBLIN_DEATH_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1lClE7dhMuy3iuc9Y7K1mOkQeD5BHk5V-&sz=w1000';
 
 // URLs des sprites UI
 export const HEART_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
@@ -73,6 +74,8 @@ export const ATTACK_FRAMES_PER_ROW = 8;
 export const DEATH_FRAMES_PER_ROW = 9;
 export const PLAYER_DEATH_FRAMES_PER_ROW = 8;
 
+
+
 // Configuration des tréants
 export const TREANT_WALK_FRAMES_PER_ROW = 6;
 export const TREANT_IDLE_FRAMES_PER_ROW = 4;
@@ -86,7 +89,8 @@ export const DEVIL_DEATH_FRAMES_PER_ROW = 10;
 
 // Configuration des goblins
 export const GOBLIN_WALK_FRAMES_PER_ROW = 6;
-export const GOBLIN_ATTACK_FRAMES_PER_ROW = 6;
+export const GOBLIN_ATTACK_FRAMES_PER_ROW = 6; // Retour à 6 frames
+export const GOBLIN_DEATH_FRAMES_PER_ROW = 6;
 
 // Limites du jeu
 export const TOP_LIMIT = 35;

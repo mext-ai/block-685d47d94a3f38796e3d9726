@@ -4,23 +4,26 @@ import { Enemy } from '../types';
 export const createLevel1Enemies = (): Enemy[] => {
   const enemies: Enemy[] = [];
   
-  // 12 ennemis avec des temps d'apparition, incluant 2 moments où 2 champignons apparaissent simultanément
+  // 15 ennemis avec des temps d'apparition, incluant des goblins rapides
   const enemySpawnTimes = [
-    0,     // Ennemi 1 : immédiat
-    3000,  // Ennemi 2 : après 3 secondes
-    5000,  // Ennemi 3 : après 5 secondes
-    5000,  // Ennemi 4 : après 5 secondes (EN MÊME TEMPS que l'ennemi 3)
-    8000,  // Ennemi 5 : après 8 secondes
-    12000, // Ennemi 6 : après 12 secondes
-    15000, // Ennemi 7 : après 15 secondes
-    18000, // Ennemi 8 : après 18 secondes
-    18000, // Ennemi 9 : après 18 secondes (EN MÊME TEMPS que l'ennemi 8)
-    22000, // Ennemi 10 : après 22 secondes
-    25000, // Ennemi 11 : après 25 secondes
-    30000  // Ennemi 12 : après 30 secondes
+    0,     // Ennemi 1 : goblin immédiat
+    2000,  // Ennemi 2 : champignon après 2 secondes
+    4000,  // Ennemi 3 : goblin après 4 secondes
+    6000,  // Ennemi 4 : champignon après 6 secondes
+    8000,  // Ennemi 5 : goblin après 8 secondes
+    10000, // Ennemi 6 : champignon après 10 secondes
+    12000, // Ennemi 7 : goblin après 12 secondes
+    14000, // Ennemi 8 : champignon après 14 secondes
+    16000, // Ennemi 9 : goblin après 16 secondes
+    18000, // Ennemi 10 : champignon après 18 secondes
+    20000, // Ennemi 11 : goblin après 20 secondes
+    22000, // Ennemi 12 : champignon après 22 secondes
+    24000, // Ennemi 13 : goblin après 24 secondes
+    26000, // Ennemi 14 : champignon après 26 secondes
+    28000  // Ennemi 15 : tréant après 28 secondes (boss final)
   ];
 
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 15; i++) {
     const fromLeft = i % 2 === 0;
     
     const startX = fromLeft ? 
@@ -31,10 +34,23 @@ export const createLevel1Enemies = (): Enemy[] => {
     
     const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
 
-    // 1 seul tréant à la position 12 (dernière position), le reste sont des champignons
-    const isTreant = i === 11; // Index 11 = 12ème position (dernière)
-    const enemyType = isTreant ? 'treant' : 'mushroom';
-    const enemyHp = isTreant ? 5 : 3;
+    // Distribution des types d'ennemis pour le niveau 1
+    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin';
+    let enemyHp: number;
+    
+    if (i === 14) {
+      // 1 tréant en dernière position (boss final)
+      enemyType = 'treant';
+      enemyHp = 5;
+    } else if (i % 2 === 0) {
+      // Les positions paires sont des goblins (0, 2, 4, 6, 8, 10, 12)
+      enemyType = 'goblin';
+      enemyHp = 1; // Les goblins n'ont qu'un seul HP
+    } else {
+      // Les positions impaires sont des champignons (1, 3, 5, 7, 9, 11, 13)
+      enemyType = 'mushroom';
+      enemyHp = 3;
+    }
     
     const enemy: Enemy = {
       id: i + 1,
@@ -61,30 +77,33 @@ export const createLevel1Enemies = (): Enemy[] => {
   return enemies;
 };
 
-// Fonction pour créer les ennemis du niveau 2 - 15 ennemis : 11 champignons, 2 tréants, 2 diables
+// Fonction pour créer les ennemis du niveau 2 - 18 ennemis : 8 champignons, 2 tréants, 2 diables, 6 goblins
 export const createLevel2Enemies = (): Enemy[] => {
   const enemies: Enemy[] = [];
   
-  // Configuration avec apparitions simultanées : tréant+champignon et diable+champignon
+  // Configuration avec apparitions incluant des goblins rapides
   const enemySpawnTimes = [
-    0,     // Ennemi 1 : champignon immédiat
-    2000,  // Ennemi 2 : champignon après 2 secondes
-    4000,  // Ennemi 3 : champignon après 4 secondes
-    6000,  // Ennemi 4 : champignon après 6 secondes
-    8000,  // Ennemi 5 : tréant après 8 secondes
-    8000,  // Ennemi 6 : champignon après 8 secondes (EN MÊME TEMPS que le tréant)
-    10000, // Ennemi 7 : champignon après 10 secondes
-    12000, // Ennemi 8 : champignon après 12 secondes
-    14000, // Ennemi 9 : diable après 14 secondes
-    14000, // Ennemi 10 : champignon après 14 secondes (EN MÊME TEMPS que le diable)
-    16000, // Ennemi 11 : champignon après 16 secondes
-    18000, // Ennemi 12 : champignon après 18 secondes
-    20000, // Ennemi 13 : diable après 20 secondes
-    22000, // Ennemi 14 : champignon après 22 secondes
-    25000  // Ennemi 15 : tréant après 25 secondes (DERNIER - 2ème tréant)
+    0,     // Ennemi 1 : goblin immédiat
+    1500,  // Ennemi 2 : champignon après 1.5 secondes
+    3000,  // Ennemi 3 : goblin après 3 secondes
+    4500,  // Ennemi 4 : champignon après 4.5 secondes
+    6000,  // Ennemi 5 : goblin après 6 secondes
+    7500,  // Ennemi 6 : champignon après 7.5 secondes
+    9000,  // Ennemi 7 : tréant après 9 secondes
+    9000,  // Ennemi 8 : goblin après 9 secondes (EN MÊME TEMPS que le tréant)
+    11000, // Ennemi 9 : champignon après 11 secondes
+    12500, // Ennemi 10 : goblin après 12.5 secondes
+    14000, // Ennemi 11 : diable après 14 secondes
+    14000, // Ennemi 12 : goblin après 14 secondes (EN MÊME TEMPS que le diable)
+    16000, // Ennemi 13 : champignon après 16 secondes
+    17500, // Ennemi 14 : goblin après 17.5 secondes
+    19000, // Ennemi 15 : diable après 19 secondes
+    20500, // Ennemi 16 : champignon après 20.5 secondes
+    22000, // Ennemi 17 : goblin après 22 secondes
+    25000  // Ennemi 18 : tréant après 25 secondes (DERNIER - 2ème tréant)
   ];
 
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 18; i++) {
     const fromLeft = i % 2 === 0;
     
     const startX = fromLeft ? 
@@ -95,23 +114,28 @@ export const createLevel2Enemies = (): Enemy[] => {
     
     const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
 
-    // Distribution des types d'ennemis :
-    // - 11 champignons (positions 0,1,2,3,5,6,7,9,10,11,13)
-    // - 2 tréants (positions 4,14 - le 2ème en dernière position)
-    // - 2 diables (positions 8,12)
-    let enemyType: 'mushroom' | 'treant' | 'devil';
+    // Distribution des types d'ennemis pour le niveau 2 :
+    // - 8 champignons (positions 1,3,5,8,12,15)
+    // - 2 tréants (positions 6,17 - le 2ème en dernière position)
+    // - 2 diables (positions 10,14)
+    // - 6 goblins (positions 0,2,4,7,9,11,13,16)
+    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin';
     let enemyHp: number;
     
-    if (i === 4 || i === 14) {
-      // 2 tréants : position 5 et position 15 (dernière)
+    if (i === 6 || i === 17) {
+      // 2 tréants : position 7 et position 18 (dernière)
       enemyType = 'treant';
       enemyHp = 5;
-    } else if (i === 8 || i === 12) {
-      // 2 diables : positions 9 et 13
+    } else if (i === 10 || i === 14) {
+      // 2 diables : positions 11 et 15
       enemyType = 'devil';
       enemyHp = 4;
+    } else if (i === 0 || i === 2 || i === 4 || i === 7 || i === 9 || i === 11 || i === 13 || i === 16) {
+      // 8 goblins : positions 1,3,5,8,10,12,14,17
+      enemyType = 'goblin';
+      enemyHp = 1; // Les goblins n'ont qu'un seul HP
     } else {
-      // 11 champignons (le reste)
+      // 6 champignons (le reste)
       enemyType = 'mushroom';
       enemyHp = 3;
     }

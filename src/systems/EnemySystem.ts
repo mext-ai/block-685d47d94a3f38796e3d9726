@@ -2,7 +2,7 @@ import { Position } from '../types';
 
 export interface Enemy {
   id: string;
-  type: 'mushroom' | 'treant' | 'devil';
+  type: 'mushroom' | 'treant' | 'devil' | 'goblin';
   position: Position;
   isAlive: boolean;
   isDying: boolean;
@@ -17,8 +17,8 @@ export interface Enemy {
   hasDamageBeenDealt: boolean; // Flag pour empêcher les dégâts multiples
 }
 
-export const createEnemy = (id: string, type: 'mushroom' | 'treant' | 'devil', position: Position): Enemy => {
-  const maxHealth = type === 'treant' ? 3 : type === 'devil' ? 2 : 1;
+export const createEnemy = (id: string, type: 'mushroom' | 'treant' | 'devil' | 'goblin', position: Position): Enemy => {
+  const maxHealth = type === 'treant' ? 3 : type === 'devil' ? 2 : type === 'goblin' ? 1 : 1;
   
   return {
     id,
@@ -117,6 +117,9 @@ export const updateEnemyAttack = (enemy: Enemy, deltaTime: number): Enemy => {
       totalFrames = 7;
       break;
     case 'devil':
+      totalFrames = 6;
+      break;
+    case 'goblin':
       totalFrames = 6;
       break;
   }

@@ -108,7 +108,7 @@ export const useEnemySystem = (
     }
   };
 
-  // Animation d'attaque des ennemis
+  // Animation d'attaque des ennemis - CORRECTION POUR LE GOBLIN
   useEffect(() => {
     if (gameState !== 'playing') return;
     
@@ -119,8 +119,8 @@ export const useEnemySystem = (
         // Utiliser les mêmes valeurs que les constantes pour la cohérence
         const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : enemy.type === 'goblin' ? 6 : 4;
         
-        // Incrémenter la frame d'attaque de façon entière pour éviter les problèmes de positionnement
-        const nextFrame = enemy.attackFrame + 1;
+        // CORRECTION CRITIQUE : S'assurer que attackFrame est toujours un entier pour éviter le glissement
+        const nextFrame = Math.floor(enemy.attackFrame) + 1;
         
         if (nextFrame >= maxAttackFrames) {
           return {
@@ -357,7 +357,7 @@ export const useEnemySystem = (
             y: newY,
             direction: newDirection,
             isAttacking: true,
-            attackFrame: 0,
+            attackFrame: 0, // CORRECTION : Toujours commencer à la frame 0
             lastAttackTime: Date.now()
           };
         }

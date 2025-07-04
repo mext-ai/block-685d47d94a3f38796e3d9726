@@ -89,7 +89,7 @@ export const DEVIL_DEATH_FRAMES_PER_ROW = 10;
 
 // Configuration des goblins
 export const GOBLIN_WALK_FRAMES_PER_ROW = 6;
-export const GOBLIN_ATTACK_FRAMES_PER_ROW = 3; // Correction: 3 frames au lieu de 6
+export const GOBLIN_ATTACK_FRAMES_PER_ROW = 6;
 export const GOBLIN_DEATH_FRAMES_PER_ROW = 6;
 
 // Limites du jeu

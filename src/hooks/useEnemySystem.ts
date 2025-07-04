@@ -195,7 +195,7 @@ export const useEnemySystem = (
     
     const enemyMovementInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
-        // Ne pas bouger les ennemis qui ne sont pas encore apparus, qui sont morts, mourants, OU EN TRAIN D'ATTAQUER
+        // CORRECTION CRITIQUE : Ne pas bouger les ennemis qui ne sont pas encore apparus, qui sont morts, mourants, OU EN TRAIN D'ATTAQUER
         if (!enemy.isAlive || enemy.isDying || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
         let newX = enemy.x;
@@ -233,8 +233,7 @@ export const useEnemySystem = (
             attackCooldown = 3000; // Les tréants attaquent moins fréquemment
           }
           
-          // MODIFICATION CRITIQUE : Les ennemis attaquent même s'ils sont déjà en train d'attaquer
-          // L'important est de vérifier le cooldown d'attaque, pas si l'ennemi bouge
+          // Vérifier si l'ennemi peut attaquer
           if (distance <= attackDistance && currentTime - enemy.lastAttackTime > attackCooldown) {
             shouldAttack = true;
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
@@ -242,7 +241,7 @@ export const useEnemySystem = (
             } else {
               newDirection = deltaY > 0 ? 0 : 1;
             }
-          } else if (distance > collisionDistance && !shouldAttack) {
+          } else if (distance > collisionDistance) {
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
@@ -285,7 +284,7 @@ export const useEnemySystem = (
             } else {
               newDirection = deltaY > 0 ? 0 : 1;
             }
-          } else if (distance > stopDistance && !shouldAttack) {
+          } else if (distance > stopDistance) {
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
@@ -326,7 +325,7 @@ export const useEnemySystem = (
             } else {
               newDirection = deltaY > 0 ? 0 : 1;
             }
-          } else if (distance > stopDistance && !shouldAttack) {
+          } else if (distance > stopDistance) {
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
@@ -350,14 +349,14 @@ export const useEnemySystem = (
           }
         }
         
+        // CORRECTION CRITIQUE : Quand l'ennemi attaque, il ne doit PAS changer de position
         if (shouldAttack) {
           return {
             ...enemy,
-            x: newX,
-            y: newY,
+            // NE PAS MODIFIER LA POSITION (x, y) pendant l'attaque
             direction: newDirection,
             isAttacking: true,
-            attackFrame: 0, // CORRECTION : Toujours commencer à la frame 0
+            attackFrame: 0,
             lastAttackTime: Date.now()
           };
         }

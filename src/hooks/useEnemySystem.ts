@@ -120,9 +120,6 @@ export const useEnemySystem = (
         
         // Vitesse d'animation différente selon le type d'ennemi
         let frameIncrement = 1;
-        if (enemy.type === 'goblin') {
-          frameIncrement = 0.2; // Les goblins ont une animation d'attaque très lente
-        }
         
         const nextFrame = enemy.attackFrame + frameIncrement;
         
@@ -152,7 +149,7 @@ export const useEnemySystem = (
           attackFrame: nextFrame
         };
       }));
-    }, 200); // Ralenti à 200ms pour une animation plus fluide
+    }, 120); // Plus lent pour une animation plus fluide
 
     return () => clearInterval(enemyAttackAnimationInterval);
   }, [gameState]);
@@ -361,7 +358,8 @@ export const useEnemySystem = (
             y: newY,
             direction: newDirection,
             isAttacking: true,
-            attackFrame: 0
+            attackFrame: 0,
+            lastAttackTime: Date.now()
           };
         }
         

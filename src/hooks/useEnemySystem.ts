@@ -116,12 +116,11 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : enemy.type === 'goblin' ? 6 : 4; // Différents nombres de frames selon le type
+        // Utiliser les mêmes valeurs que les constantes pour la cohérence
+        const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : enemy.type === 'goblin' ? 6 : 4;
         
-        // Vitesse d'animation différente selon le type d'ennemi
-        let frameIncrement = 1;
-        
-        const nextFrame = enemy.attackFrame + frameIncrement;
+        // Incrémenter la frame d'attaque de façon entière pour éviter les problèmes de positionnement
+        const nextFrame = enemy.attackFrame + 1;
         
         if (nextFrame >= maxAttackFrames) {
           return {
@@ -134,7 +133,7 @@ export const useEnemySystem = (
         
         // Infliger des dégâts seulement à la frame d'impact spécifique
         const impactFrame = enemy.type === 'treant' ? 4 : enemy.type === 'devil' ? 3 : enemy.type === 'goblin' ? 3 : 3; // Frame d'impact pour chaque type
-        if (Math.floor(nextFrame) === impactFrame) {
+        if (nextFrame === impactFrame) {
           if (enemy.type === 'devil') {
             // Créer un projectile pour les diables
             createProjectile(enemy);

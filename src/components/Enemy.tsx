@@ -80,8 +80,8 @@ const Enemy: React.FC<EnemyProps> = ({
       spriteUrl = MUSHROOM_ATTACK_SPRITE_SHEET_URL;
       framesPerRow = ATTACK_FRAMES_PER_ROW;
     }
-    // Arrondir la frame pour éviter les problèmes d'affichage avec les valeurs décimales
-    currentFrame = Math.floor(enemy.attackFrame);
+    // S'assurer que attackFrame est un entier valide
+    currentFrame = Math.max(0, Math.min(framesPerRow - 1, enemy.attackFrame || 0));
   } else {
     if (isTreant) {
       spriteUrl = TREANT_WALK_SPRITE_SHEET_URL;
@@ -158,4 +158,4 @@ const Enemy: React.FC<EnemyProps> = ({
   );
 };
 
-export default Enemy; 
+export default Enemy;

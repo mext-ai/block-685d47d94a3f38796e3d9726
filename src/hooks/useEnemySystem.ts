@@ -16,10 +16,10 @@ export const useEnemySystem = (
   const enemiesRef = useRef<Enemy[]>([]);
   const projectilesRef = useRef<Projectile[]>([]);
   const gameStartTime = useRef<number>(0);
-  const enemyDamageCooldowns = useRef<{[key: number]: number}>({}); // Cooldown par ennemi
-  const playerPositionRef = useRef<Position>(playerPosition); // Référence à la position du joueur
+  const enemyDamageCooldowns = useRef<{[key: number]: number}>({});
+  const playerPositionRef = useRef<Position>(playerPosition);
 
-  // Fonction de collision entre deux entités (comme dans l'original)
+  // Fonction de collision entre deux entités
   const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 3) => {
     const deltaX = pos1.x - pos2.x;
     const deltaY = pos1.y - pos2.y;
@@ -70,13 +70,13 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' || enemy.type === 'goblin' ? 6 : 3; // 6 frames de marche pour tréants, diables et goblins
+        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' || enemy.type === 'goblin' ? 6 : 3;
         return {
           ...enemy,
           currentFrame: (enemy.currentFrame + 1) % maxFrames
         };
       }));
-    }, 250); // Ralenti à 250ms pour une animation plus fluide
+    }, 250);
 
     return () => clearInterval(enemyAnimationInterval);
   }, [gameState]);
@@ -98,7 +98,7 @@ export const useEnemySystem = (
         y: enemy.y,
         directionX,
         directionY,
-        speed: 0.4, // Vitesse réduite comme demandé
+        speed: 0.4,
         damage: 1,
         spawnTime: Date.now()
       };
@@ -108,7 +108,7 @@ export const useEnemySystem = (
     }
   };
 
-  // Animation d'attaque des ennemis - CORRECTION POUR LE GOBLIN
+  // CORRECTION : Animation d'attaque avec direction fixée
   useEffect(() => {
     if (gameState !== 'playing') return;
     
@@ -116,10 +116,9 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        // Utiliser les mêmes valeurs que les constantes pour la cohérence
         const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : enemy.type === 'goblin' ? 6 : 4;
         
-        // CORRECTION CRITIQUE : S'assurer que attackFrame est toujours un entier pour éviter le glissement
+        // CORRECTION CRITIQUE : Toujours utiliser un entier pour éviter le glissement
         const nextFrame = Math.floor(enemy.attackFrame) + 1;
         
         if (nextFrame >= maxAttackFrames) {
@@ -132,13 +131,11 @@ export const useEnemySystem = (
         }
         
         // Infliger des dégâts seulement à la frame d'impact spécifique
-        const impactFrame = enemy.type === 'treant' ? 4 : enemy.type === 'devil' ? 3 : enemy.type === 'goblin' ? 3 : 3; // Frame d'impact pour chaque type
+        const impactFrame = enemy.type === 'treant' ? 4 : enemy.type === 'devil' ? 3 : enemy.type === 'goblin' ? 3 : 3;
         if (nextFrame === impactFrame) {
           if (enemy.type === 'devil') {
-            // Créer un projectile pour les diables
             createProjectile(enemy);
           } else {
-            // Vérifier les dégâts pour les autres types
             checkEnemyAttackHit(enemy);
           }
         }
@@ -148,7 +145,7 @@ export const useEnemySystem = (
           attackFrame: nextFrame
         };
       }));
-    }, 120); // Plus lent pour une animation plus fluide
+    }, 120);
 
     return () => clearInterval(enemyAttackAnimationInterval);
   }, [gameState]);
@@ -163,16 +160,15 @@ export const useEnemySystem = (
         
         const nextFrame = enemy.deathFrame + 1;
         
-        // Déterminer le nombre maximum de frames selon le type d'ennemi
         let maxDeathFrames;
         if (enemy.type === 'devil') {
-          maxDeathFrames = 10; // 10 frames pour le diable
+          maxDeathFrames = 10;
         } else if (enemy.type === 'treant') {
-          maxDeathFrames = 6; // 6 frames pour le tréant
+          maxDeathFrames = 6;
         } else if (enemy.type === 'goblin') {
-          maxDeathFrames = 6; // 6 frames pour le goblin
+          maxDeathFrames = 6;
         } else {
-          maxDeathFrames = 9; // 9 frames pour le champignon
+          maxDeathFrames = 9;
         }
         
         if (nextFrame >= maxDeathFrames) {
@@ -189,63 +185,55 @@ export const useEnemySystem = (
     return () => clearInterval(enemyDeathAnimationInterval);
   }, [gameState]);
 
-  // Mouvement des ennemis avec collision et IA d'attaque
+  // CORRECTION : Mouvement des ennemis avec direction correcte lors de l'attaque
   useEffect(() => {
     if (gameState !== 'playing') return;
     
     const enemyMovementInterval = setInterval(() => {
       setEnemies(prev => prev.map(enemy => {
-        // CORRECTION CRITIQUE : Ne pas bouger les ennemis qui ne sont pas encore apparus, qui sont morts, mourants, OU EN TRAIN D'ATTAQUER
         if (!enemy.isAlive || enemy.isDying || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
         let newX = enemy.x;
         let newY = enemy.y;
         let newDirection = enemy.direction;
         let shouldAttack = false;
-        // Vitesse différente selon le type d'ennemi
-        let speed = 0.25; // Vitesse de base pour les champignons
+        
+        let speed = 0.25;
         if (enemy.type === 'goblin') {
-          speed = 0.375; // Les goblins sont 1.5x plus rapides que les champignons
+          speed = 0.375;
         } else if (enemy.type === 'treant') {
-          speed = 0.15; // Les tréants sont plus lents
+          speed = 0.15;
         } else if (enemy.type === 'devil') {
-          speed = 0.3; // Les diables sont moyennement rapides
+          speed = 0.3;
         }
         
-        if (enemy.type === 'mushroom' || enemy.type === 'treant') {
-          const currentPlayerPos = playerPositionRef.current;
-          
-          const deltaX = currentPlayerPos.x - enemy.x;
-          const deltaY = currentPlayerPos.y - enemy.y;
-          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-          
-          // Portée d'attaque selon le type d'ennemi
-          let attackDistance = 4; // Portée de base pour les champignons
-          if (enemy.type === 'treant') {
-            attackDistance = 12; // Tréants ont une plus longue portée d'attaque
+        const currentPlayerPos = playerPositionRef.current;
+        const deltaX = currentPlayerPos.x - enemy.x;
+        const deltaY = currentPlayerPos.y - enemy.y;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        // CORRECTION : Fonction pour calculer la direction correcte vers le joueur
+        const calculateDirectionToPlayer = (dx: number, dy: number) => {
+          if (Math.abs(dx) > Math.abs(dy)) {
+            return dx > 0 ? 3 : 2; // Droite ou gauche
+          } else {
+            return dy > 0 ? 0 : 1; // Bas ou haut
           }
+        };
+        
+        if (enemy.type === 'mushroom' || enemy.type === 'treant') {
+          const attackDistance = enemy.type === 'treant' ? 12 : 4;
           const collisionDistance = 3;
           const currentTime = Date.now();
+          const attackCooldown = enemy.type === 'treant' ? 3000 : 2000;
           
-          // Cooldown d'attaque selon le type d'ennemi
-          let attackCooldown = 2000; // Cooldown de base pour les champignons
-          if (enemy.type === 'treant') {
-            attackCooldown = 3000; // Les tréants attaquent moins fréquemment
-          }
-          
-          // Vérifier si l'ennemi peut attaquer
           if (distance <= attackDistance && currentTime - enemy.lastAttackTime > attackCooldown) {
             shouldAttack = true;
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-              newDirection = deltaX > 0 ? 3 : 2;
-            } else {
-              newDirection = deltaY > 0 ? 0 : 1;
-            }
+            newDirection = calculateDirectionToPlayer(deltaX, deltaY);
           } else if (distance > collisionDistance) {
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
-            // Limites de mouvement en pourcentages (comme dans l'original)
             const topLimit = 35;
             const bottomLimit = 90;
             const leftLimit = 5;
@@ -257,38 +245,22 @@ export const useEnemySystem = (
             if (!checkCollision({x: potentialX, y: potentialY}, currentPlayerPos, collisionDistance)) {
               newX = potentialX;
               newY = potentialY;
-              
-              if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                newDirection = deltaX > 0 ? 3 : 2;
-              } else {
-                newDirection = deltaY > 0 ? 0 : 1;
-              }
+              newDirection = calculateDirectionToPlayer(deltaX, deltaY);
             }
           }
         } else if (enemy.type === 'goblin') {
-          const currentPlayerPos = playerPositionRef.current;
-          
-          const deltaX = currentPlayerPos.x - enemy.x;
-          const deltaY = currentPlayerPos.y - enemy.y;
-          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-          
-          // Goblin ont une portée d'attaque moyenne et s'arrêtent pour attaquer
-          const attackDistance = 5; // Portée d'attaque
-          const stopDistance = 5; // Distance à laquelle ils s'arrêtent pour attaquer
+          const attackDistance = 5;
+          const stopDistance = 5;
           const currentTime = Date.now();
           
           if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 1500) {
             shouldAttack = true;
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-              newDirection = deltaX > 0 ? 3 : 2;
-            } else {
-              newDirection = deltaY > 0 ? 0 : 1;
-            }
+            // CORRECTION CRITIQUE : Bien s'orienter vers le joueur lors de l'attaque
+            newDirection = calculateDirectionToPlayer(deltaX, deltaY);
           } else if (distance > stopDistance) {
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
-            // Limites de mouvement en pourcentages
             const topLimit = 35;
             const bottomLimit = 90;
             const leftLimit = 5;
@@ -299,37 +271,20 @@ export const useEnemySystem = (
             
             newX = potentialX;
             newY = potentialY;
-            
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-              newDirection = deltaX > 0 ? 3 : 2;
-            } else {
-              newDirection = deltaY > 0 ? 0 : 1;
-            }
+            newDirection = calculateDirectionToPlayer(deltaX, deltaY);
           }
         } else if (enemy.type === 'devil') {
-          const currentPlayerPos = playerPositionRef.current;
-          
-          const deltaX = currentPlayerPos.x - enemy.x;
-          const deltaY = currentPlayerPos.y - enemy.y;
-          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-          
-          // Diables ont une portée d'attaque moyenne et s'arrêtent pour tirer
-          const attackDistance = 30; // Portée d'attaque
-          const stopDistance = 30; // Distance à laquelle ils s'arrêtent pour tirer
+          const attackDistance = 30;
+          const stopDistance = 30;
           const currentTime = Date.now();
           
           if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 3000) {
             shouldAttack = true;
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-              newDirection = deltaX > 0 ? 3 : 2;
-            } else {
-              newDirection = deltaY > 0 ? 0 : 1;
-            }
+            newDirection = calculateDirectionToPlayer(deltaX, deltaY);
           } else if (distance > stopDistance) {
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
-            // Limites de mouvement en pourcentages
             const topLimit = 35;
             const bottomLimit = 90;
             const leftLimit = 5;
@@ -340,23 +295,17 @@ export const useEnemySystem = (
             
             newX = potentialX;
             newY = potentialY;
-            
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-              newDirection = deltaX > 0 ? 3 : 2;
-            } else {
-              newDirection = deltaY > 0 ? 0 : 1;
-            }
+            newDirection = calculateDirectionToPlayer(deltaX, deltaY);
           }
         }
         
-        // CORRECTION CRITIQUE : Quand l'ennemi attaque, il ne doit PAS changer de position
+        // CORRECTION : Quand l'ennemi attaque, il garde sa position mais se tourne vers le joueur
         if (shouldAttack) {
           return {
             ...enemy,
-            // NE PAS MODIFIER LA POSITION (x, y) pendant l'attaque
-            direction: newDirection,
+            direction: newDirection, // Direction mise à jour pour l'attaque
             isAttacking: true,
-            attackFrame: 0,
+            attackFrame: 0, // CORRECTION : Commencer à 0 pour éviter le glissement
             lastAttackTime: Date.now()
           };
         }
@@ -373,29 +322,24 @@ export const useEnemySystem = (
     return () => clearInterval(enemyMovementInterval);
   }, [gameState]);
 
-  // Fonction améliorée pour vérifier les dégâts de l'ennemi au joueur avec hitbox directionnelle
+  // Fonction pour vérifier les dégâts de l'ennemi au joueur
   const checkEnemyAttackHit = (enemy: Enemy) => {
     const currentTime = Date.now();
     
-    // Vérifier le cooldown spécifique à cet ennemi
     const lastDamageFromThisEnemy = enemyDamageCooldowns.current[enemy.id] || 0;
-    if (currentTime - lastDamageFromThisEnemy < 1000) return; // 1 seconde de cooldown par ennemi
+    if (currentTime - lastDamageFromThisEnemy < 1000) return;
     
     const currentPlayerPos = playerPositionRef.current;
     const deltaX = currentPlayerPos.x - enemy.x;
     const deltaY = currentPlayerPos.y - enemy.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     
-    // Logique spécifique pour les tréants avec hitbox directionnelle
     if (enemy.type === 'treant') {
-      // Paramètres de l'attaque du tréant
-      const maxAttackRange = 12; // Portée maximale de l'attaque
-      const attackWidth = 4; // Largeur de la zone d'attaque (angle)
+      const maxAttackRange = 12;
+      const attackWidth = 4;
       
-      // Vérifier d'abord si le joueur est dans la portée
       if (distance > maxAttackRange) return;
       
-      // Calculer la direction de l'attaque basée sur la direction du tréant
       let attackDirectionX = 0;
       let attackDirectionY = 0;
       
@@ -418,40 +362,32 @@ export const useEnemySystem = (
           break;
       }
       
-      // Normaliser la direction vers le joueur
       const directionToPlayer = {
         x: deltaX / distance,
         y: deltaY / distance
       };
       
-      // Calculer le produit scalaire pour vérifier l'alignement
       const dotProduct = attackDirectionX * directionToPlayer.x + attackDirectionY * directionToPlayer.y;
-      
-      // Le joueur doit être devant le tréant (produit scalaire > 0.5 pour un cône de ~60°)
-      const minAlignment = 0.5; // Plus cette valeur est élevée, plus l'attaque est précise
+      const minAlignment = 0.5;
       
       if (dotProduct > minAlignment) {
-        // Vérifier aussi la distance perpendiculaire pour la largeur de l'attaque
         const perpendicularDistance = Math.abs(
           -attackDirectionY * deltaX + attackDirectionX * deltaY
         );
         
         if (perpendicularDistance <= attackWidth) {
-          // Le joueur est dans la zone d'attaque directionnelle
-          onPlayerDamage(2); // Dégâts du tréant
+          onPlayerDamage(2);
           enemyDamageCooldowns.current[enemy.id] = currentTime;
         }
       }
     } else if (enemy.type === 'goblin') {
-      // Logique pour les goblins
-      const attackRange = 5; // Cohérent avec la portée d'attaque définie plus haut
+      const attackRange = 5;
       if (distance <= attackRange) {
         const damage = 1;
         onPlayerDamage(damage);
         enemyDamageCooldowns.current[enemy.id] = currentTime;
       }
     } else {
-      // Logique originale pour les champignons et autres ennemis
       const attackRange = 6;
       if (distance <= attackRange) {
         const damage = 1;
@@ -469,30 +405,25 @@ export const useEnemySystem = (
       setProjectiles(prev => {
         const currentTime = Date.now();
         const updatedProjectiles = prev.map(projectile => {
-          // Mouvement du projectile
           const newX = projectile.x + projectile.directionX * projectile.speed;
           const newY = projectile.y + projectile.directionY * projectile.speed;
           
-          // Vérifier collision avec le joueur
           const currentPlayerPos = playerPositionRef.current;
           const deltaX = currentPlayerPos.x - newX;
           const deltaY = currentPlayerPos.y - newY;
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
           if (distance < 3) {
-            // Projectile touche le joueur
-            onPlayerDamage(projectile.damage); // Utiliser les dégâts du projectile
-            return null; // Supprimer le projectile
+            onPlayerDamage(projectile.damage);
+            return null;
           }
           
-          // Vérifier si le projectile est sorti de l'écran
           if (newX < 0 || newX > 100 || newY < 0 || newY > 100) {
-            return null; // Supprimer le projectile
+            return null;
           }
           
-          // Vérifier la durée de vie du projectile (10 secondes)
           if (currentTime - projectile.spawnTime > 10000) {
-            return null; // Supprimer le projectile
+            return null;
           }
           
           return {
@@ -505,7 +436,7 @@ export const useEnemySystem = (
         projectilesRef.current = updatedProjectiles;
         return updatedProjectiles;
       });
-    }, 8); // Fréquence doublée pour un mouvement plus fluide
+    }, 8);
 
     return () => clearInterval(projectileInterval);
   }, [gameState, onPlayerDamage]);

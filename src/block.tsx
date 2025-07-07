@@ -20,7 +20,7 @@ const Block: React.FC<BlockProps> = () => {
   // Hooks personnalisés
   const audio = useAudio();
   const game = useGame();
-  const { spriteScale, enemySpriteScale, treantSpriteScale, devilSpriteScale, goblinSpriteScale } = useResponsiveScales();
+  const { spriteScale, enemySpriteScale, treantSpriteScale, devilSpriteScale, goblinSpriteScale, golemSpriteScale } = useResponsiveScales();
   
   // Utiliser le système d'attaque du hook useGame
   const { isAttacking, attackFrame, triggerAttack, setPlayerDirection } = game;
@@ -135,6 +135,7 @@ const Block: React.FC<BlockProps> = () => {
         treantSpriteScale={treantSpriteScale}
         devilSpriteScale={devilSpriteScale}
         goblinSpriteScale={goblinSpriteScale}
+        golemSpriteScale={golemSpriteScale}
         isSoundEnabled={audio.isSoundEnabled}
         onToggleSound={audio.toggleSound}
       />
@@ -163,6 +164,7 @@ const Block: React.FC<BlockProps> = () => {
         treantSpriteScale={treantSpriteScale}
         devilSpriteScale={devilSpriteScale}
         goblinSpriteScale={goblinSpriteScale}
+        golemSpriteScale={golemSpriteScale}
         isSoundEnabled={audio.isSoundEnabled}
         onToggleSound={audio.toggleSound}
       />

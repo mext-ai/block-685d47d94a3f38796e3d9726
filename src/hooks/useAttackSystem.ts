@@ -38,7 +38,7 @@ export const useAttackSystem = (
 
   // Fonction pour vérifier si l'attaque touche un ennemi
   const checkAttackHit = () => {
-    const attackRange = 8;
+    const attackRange = 6;
     
     setEnemies((prev: any[]) => prev.map((enemy: any) => {
       if (!enemy.isAlive || enemy.isDying || !enemy.hasSpawned) return enemy;

@@ -2,7 +2,7 @@ export interface BlockProps {}
 
 export interface Enemy {
   id: number;
-  type: 'mushroom' | 'treant' | 'devil' | 'goblin';
+  type: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem';
   x: number;
   y: number;
   direction: number;

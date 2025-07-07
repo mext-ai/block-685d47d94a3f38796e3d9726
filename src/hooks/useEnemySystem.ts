@@ -116,7 +116,7 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : enemy.type === 'goblin' ? 6 : 4; // Différents nombres de frames selon le type
+        const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : enemy.type === 'goblin' ? 6 : enemy.type === 'golem' ? 9 : 4; // Différents nombres de frames selon le type
         const nextFrame = enemy.attackFrame + 1;
         
         if (nextFrame >= maxAttackFrames) {
@@ -129,7 +129,7 @@ export const useEnemySystem = (
         }
         
         // Infliger des dégâts seulement à la frame d'impact spécifique
-        const impactFrame = enemy.type === 'treant' ? 6 : enemy.type === 'devil' ? 5 : enemy.type === 'goblin' ? 5 : 3; // Dernière frame pour rendre les attaques esquivables (champignon: frame 3 sur 4)
+        const impactFrame = enemy.type === 'treant' ? 6 : enemy.type === 'devil' ? 5 : enemy.type === 'goblin' ? 5 : enemy.type === 'golem' ? 8 : 3; // Dernière frame pour rendre les attaques esquivables
         if (nextFrame === impactFrame) {
           if (enemy.type === 'devil') {
             // Créer un projectile pour les diables
@@ -168,6 +168,8 @@ export const useEnemySystem = (
           maxDeathFrames = 6; // 6 frames pour le tréant
         } else if (enemy.type === 'goblin') {
           maxDeathFrames = 6; // 6 frames pour le goblin
+        } else if (enemy.type === 'golem') {
+          maxDeathFrames = 8; // 8 frames pour le golem
         } else {
           maxDeathFrames = 9; // 9 frames pour le champignon
         }
@@ -207,6 +209,8 @@ export const useEnemySystem = (
           speed = 0.15; // Les tréants sont plus lents
         } else if (enemy.type === 'devil') {
           speed = 0.3; // Les diables sont moyennement rapides
+        } else if (enemy.type === 'golem') {
+          speed = 0.2; // Les golems sont lents mais puissants
         }
         
         if (enemy.type === 'mushroom' || enemy.type === 'treant') {
@@ -336,6 +340,44 @@ export const useEnemySystem = (
               newDirection = deltaY > 0 ? 0 : 1;
             }
           }
+        } else if (enemy.type === 'golem') {
+          const currentPlayerPos = playerPositionRef.current;
+          
+          const deltaX = currentPlayerPos.x - enemy.x;
+          const deltaY = currentPlayerPos.y - enemy.y;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          
+          // Golems ont une portée d'attaque circulaire et s'arrêtent pour attaquer
+          const attackDistance = 8; // Portée d'attaque circulaire
+          const stopDistance = 8; // Distance à laquelle ils s'arrêtent pour attaquer
+          const currentTime = Date.now();
+          
+          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 2500) {
+            shouldAttack = true;
+            // Les golems n'ont pas besoin de direction spécifique car ils attaquent tout autour
+            newDirection = enemy.direction; // Garder la direction actuelle
+          } else if (distance > stopDistance && !shouldAttack) {
+            const moveX = (deltaX / distance) * speed;
+            const moveY = (deltaY / distance) * speed;
+            
+            // Limites de mouvement en pourcentages
+            const topLimit = 35;
+            const bottomLimit = 90;
+            const leftLimit = 5;
+            const rightLimit = 95;
+            
+            const potentialX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
+            const potentialY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
+            
+            newX = potentialX;
+            newY = potentialY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          }
         }
         
         if (shouldAttack) {
@@ -429,6 +471,14 @@ export const useEnemySystem = (
           onPlayerDamage(2); // Dégâts du tréant
           enemyDamageCooldowns.current[enemy.id] = currentTime;
         }
+      }
+    } else if (enemy.type === 'golem') {
+      // Logique pour les golems : attaque circulaire
+      const attackRange = 8;
+      if (distance <= attackRange) {
+        const damage = 3; // Les golems infligent 3 dégâts
+        onPlayerDamage(damage);
+        enemyDamageCooldowns.current[enemy.id] = currentTime;
       }
     } else {
       // Logique originale pour les champignons et autres ennemis

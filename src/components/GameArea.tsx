@@ -34,6 +34,7 @@ interface GameAreaProps {
   treantSpriteScale: number;
   devilSpriteScale: number;
   goblinSpriteScale: number;
+  golemSpriteScale: number;
   isSoundEnabled: boolean;
   onToggleSound: () => void;
 }
@@ -56,6 +57,7 @@ const GameArea: React.FC<GameAreaProps> = ({
   treantSpriteScale,
   devilSpriteScale,
   goblinSpriteScale,
+  golemSpriteScale,
   isSoundEnabled,
   onToggleSound
 }) => {
@@ -105,6 +107,7 @@ const GameArea: React.FC<GameAreaProps> = ({
           treantSpriteScale={treantSpriteScale}
           devilSpriteScale={devilSpriteScale}
           goblinSpriteScale={goblinSpriteScale}
+          golemSpriteScale={golemSpriteScale}
         />
       ))}
 

@@ -32,7 +32,7 @@ export const createLevel1Enemies = (): Enemy[] => {
     const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
 
     // Distribution des types d'ennemis pour le niveau 1
-    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin';
+    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem';
     let enemyHp: number;
     
     if (i === 11) {
@@ -112,7 +112,7 @@ export const createLevel2Enemies = (): Enemy[] => {
     // - 11 champignons (positions 0,1,2,3,5,6,7,9,10,11,13)
     // - 2 tréants (positions 4,14 - le 2ème en dernière position)
     // - 2 diables (positions 8,12)
-    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin';
+    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem';
     let enemyHp: number;
     
     if (i === 4 || i === 14) {
@@ -230,6 +230,68 @@ export const createDefaultEnemies = (): Enemy[] => {
   return enemies;
 };
 
+// Fonction pour créer les ennemis du niveau 4
+export const createLevel4Enemies = (): Enemy[] => {
+  const enemies: Enemy[] = [];
+  
+  // Créer 4 ennemis de montagne + 1 golem final
+  for (let i = 0; i < 5; i++) {
+    const fromLeft = i % 2 === 0;
+    
+    const startX = fromLeft ? 
+      5 + Math.random() * 10 :   // Gauche : 5% à 15%
+      85 + Math.random() * 10;   // Droite : 85% à 95%
+    const startY = 40 + Math.random() * 45; // Entre 40% et 85% de hauteur
+    
+    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem';
+    let enemyHp: number;
+    
+    if (i === 4) {
+      // Le dernier ennemi est un golem (boss final)
+      enemyType = 'golem';
+      enemyHp = 8;
+    } else {
+      // Les 4 premiers sont des ennemis de montagne (mélange de types)
+      if (i === 0) {
+        enemyType = 'treant';
+        enemyHp = 5;
+      } else if (i === 1) {
+        enemyType = 'devil';
+        enemyHp = 4;
+      } else if (i === 2) {
+        enemyType = 'treant';
+        enemyHp = 5;
+      } else {
+        enemyType = 'devil';
+        enemyHp = 4;
+      }
+    }
+    
+    const enemy: Enemy = {
+      id: i + 1,
+      type: enemyType,
+      x: startX,
+      y: startY,
+      direction: fromLeft ? 3 : 2, // 3 = droite, 2 = gauche
+      currentFrame: 0,
+      isAlive: true,
+      hp: enemyHp,
+      maxHp: enemyHp,
+      isDying: false,
+      deathFrame: 0,
+      isAttacking: false,
+      attackFrame: 0,
+      lastAttackTime: 0,
+      spawnTime: i * 2000, // Spawn toutes les 2 secondes
+      hasSpawned: i === 0 // Seul le premier apparaît immédiatement
+    };
+    
+    enemies.push(enemy);
+  }
+  
+  return enemies;
+};
+
 // Fonction pour créer les ennemis selon le niveau
 export const createEnemiesForLevel = (level: number): Enemy[] => {
   switch (level) {
@@ -239,6 +301,8 @@ export const createEnemiesForLevel = (level: number): Enemy[] => {
       return createLevel2Enemies();
     case 3:
       return createLevel3Enemies();
+    case 4:
+      return createLevel4Enemies();
     default:
       return createDefaultEnemies();
   }

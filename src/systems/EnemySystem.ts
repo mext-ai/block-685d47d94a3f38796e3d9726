@@ -2,7 +2,7 @@ import { Position } from '../types';
 
 export interface Enemy {
   id: string;
-  type: 'mushroom' | 'treant' | 'devil';
+  type: 'mushroom' | 'treant' | 'devil' | 'golem';
   position: Position;
   isAlive: boolean;
   isDying: boolean;
@@ -17,8 +17,8 @@ export interface Enemy {
   hasDamageBeenDealt: boolean; // Flag pour empêcher les dégâts multiples
 }
 
-export const createEnemy = (id: string, type: 'mushroom' | 'treant' | 'devil', position: Position): Enemy => {
-  const maxHealth = type === 'treant' ? 3 : type === 'devil' ? 2 : 1;
+export const createEnemy = (id: string, type: 'mushroom' | 'treant' | 'devil' | 'golem', position: Position): Enemy => {
+  const maxHealth = type === 'treant' ? 3 : type === 'devil' ? 2 : type === 'golem' ? 8 : 1;
   
   return {
     id,
@@ -119,6 +119,9 @@ export const updateEnemyAttack = (enemy: Enemy, deltaTime: number): Enemy => {
     case 'devil':
       totalFrames = 6;
       break;
+    case 'golem':
+      totalFrames = 9;
+      break;
   }
 
   // Si l'animation est terminée
@@ -181,6 +184,11 @@ export const checkEnemyAttackHit = (enemy: Enemy, playerPosition: Position): boo
     const perpDistance = Math.abs(-directionVector.y * dx + directionVector.x * dy);
     
     return perpDistance <= attackWidth / 2;
+  }
+
+  // Pour les golems, utiliser une attaque circulaire (tout autour)
+  if (enemy.type === 'golem') {
+    return distance <= 8; // Portée d'attaque circulaire pour les golems
   }
 
   // Pour les autres ennemis (champignons, diables), utiliser une hitbox circulaire simple

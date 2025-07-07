@@ -36,6 +36,11 @@ export const GOBLIN_WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?
 export const GOBLIN_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1Oe-jrOoABqb_8sDY-t08yS4AF6mM5Wyd&sz=w1000';
 export const GOBLIN_DEATH_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1lClE7dhMuy3iuc9Y7K1mOkQeD5BHk5V-&sz=w1000';
 
+// URLs des sprites golems
+export const GOLEM_WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1Aq5hFtgi5TWY-GPDzOBHha1jYAPv12pL&sz=w1000';
+export const GOLEM_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1tkN3K8fltcgZ12y5XYbHO8yPQvZfXKYP&sz=w1000';
+export const GOLEM_DEATH_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1l7B9RWgYyunly65cAxtYpqP2d_JgDdYF&sz=w1000';
+
 // URLs des sprites UI
 export const HEART_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
 export const SKULL_IMAGE_URL = 'https://drive.google.com/thumbnail?id=1Dp4dPzMEZKN-cuMdcXU8c9WrdLpOWmjD&sz=w500';
@@ -114,6 +119,11 @@ export const DEVIL_DEATH_FRAMES_PER_ROW = 10;
 export const GOBLIN_WALK_FRAMES_PER_ROW = 6;
 export const GOBLIN_ATTACK_FRAMES_PER_ROW = 5;
 export const GOBLIN_DEATH_FRAMES_PER_ROW = 6;
+
+// Configuration des golems
+export const GOLEM_WALK_FRAMES_PER_ROW = 8;
+export const GOLEM_ATTACK_FRAMES_PER_ROW = 9;
+export const GOLEM_DEATH_FRAMES_PER_ROW = 8;
 
 // Limites du jeu
 export const TOP_LIMIT = 35;

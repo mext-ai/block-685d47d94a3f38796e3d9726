@@ -2,7 +2,7 @@ export interface BlockProps {}
 
 export interface Enemy {
   id: number;
-  type: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem';
+  type: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem' | 'observer';
   x: number;
   y: number;
   direction: number;
@@ -28,6 +28,7 @@ export interface Projectile {
   speed: number;
   damage: number;
   spawnTime: number;
+  sourceType?: 'devil' | 'observer';
 }
 
 export interface Position {

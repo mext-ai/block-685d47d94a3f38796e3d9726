@@ -70,7 +70,7 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' || enemy.type === 'goblin' ? 6 : 3; // 6 frames de marche pour tréants, diables et goblins
+        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' || enemy.type === 'goblin' || enemy.type === 'observer' ? 6 : 3; // 6 frames de marche pour tréants, diables, goblins et observateurs
         return {
           ...enemy,
           currentFrame: (enemy.currentFrame + 1) % maxFrames
@@ -100,7 +100,8 @@ export const useEnemySystem = (
         directionY,
         speed: 0.4, // Vitesse réduite comme demandé
         damage: 1,
-        spawnTime: Date.now()
+        spawnTime: Date.now(),
+        sourceType: enemy.type === 'devil' ? 'devil' : enemy.type === 'observer' ? 'observer' : undefined
       };
       
       setProjectiles(prev => [...prev, newProjectile]);
@@ -116,7 +117,22 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : enemy.type === 'goblin' ? 6 : enemy.type === 'golem' ? 9 : 4; // Différents nombres de frames selon le type
+        // Déterminer le nombre maximum de frames selon le type d'ennemi
+        let maxAttackFrames;
+        if (enemy.type === 'treant') {
+          maxAttackFrames = 7;
+        } else if (enemy.type === 'devil') {
+          maxAttackFrames = 6;
+        } else if (enemy.type === 'observer') {
+          maxAttackFrames = 5; // Seulement les 5 premières frames pour l'Observateur
+        } else if (enemy.type === 'goblin') {
+          maxAttackFrames = 6;
+        } else if (enemy.type === 'golem') {
+          maxAttackFrames = 9;
+        } else {
+          maxAttackFrames = 4;
+        }
+        
         const nextFrame = enemy.attackFrame + 1;
         
         if (nextFrame >= maxAttackFrames) {
@@ -129,10 +145,10 @@ export const useEnemySystem = (
         }
         
         // Infliger des dégâts seulement à la frame d'impact spécifique
-        const impactFrame = enemy.type === 'treant' ? 6 : enemy.type === 'devil' ? 5 : enemy.type === 'goblin' ? 5 : enemy.type === 'golem' ? 8 : 3; // Dernière frame pour rendre les attaques esquivables
+        const impactFrame = enemy.type === 'treant' ? 6 : enemy.type === 'devil' ? 5 : enemy.type === 'observer' ? 4 : enemy.type === 'goblin' ? 5 : enemy.type === 'golem' ? 8 : 3; // Dernière frame pour rendre les attaques esquivables
         if (nextFrame === impactFrame) {
-          if (enemy.type === 'devil') {
-            // Créer un projectile pour les diables
+          if (enemy.type === 'devil' || enemy.type === 'observer') {
+            // Créer un projectile pour les diables et observateurs
             createProjectile(enemy);
           } else {
             // Vérifier les dégâts pour les autres types
@@ -170,6 +186,8 @@ export const useEnemySystem = (
           maxDeathFrames = 6; // 6 frames pour le goblin
         } else if (enemy.type === 'golem') {
           maxDeathFrames = 8; // 8 frames pour le golem
+        } else if (enemy.type === 'observer') {
+          maxDeathFrames = 9; // 9 frames pour l'observateur
         } else {
           maxDeathFrames = 9; // 9 frames pour le champignon
         }
@@ -209,6 +227,8 @@ export const useEnemySystem = (
           speed = 0.15; // Les tréants sont plus lents
         } else if (enemy.type === 'devil') {
           speed = 0.3; // Les diables sont moyennement rapides
+        } else if (enemy.type === 'observer') {
+          speed = 0.35; // Les observateurs sont légèrement plus rapides que les diables
         } else if (enemy.type === 'golem') {
           speed = 0.2; // Les golems sont lents mais puissants
         }
@@ -312,6 +332,47 @@ export const useEnemySystem = (
           const currentTime = Date.now();
           
           if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 3000) {
+            shouldAttack = true;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          } else if (distance > stopDistance && !shouldAttack) {
+            const moveX = (deltaX / distance) * speed;
+            const moveY = (deltaY / distance) * speed;
+            
+            // Limites de mouvement en pourcentages
+            const topLimit = 35;
+            const bottomLimit = 90;
+            const leftLimit = 5;
+            const rightLimit = 95;
+            
+            const potentialX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
+            const potentialY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
+            
+            newX = potentialX;
+            newY = potentialY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          }
+        } else if (enemy.type === 'observer') {
+          const currentPlayerPos = playerPositionRef.current;
+          
+          const deltaX = currentPlayerPos.x - enemy.x;
+          const deltaY = currentPlayerPos.y - enemy.y;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          
+          // Observateurs ont une portée d'attaque moyenne et s'arrêtent pour tirer
+          const attackDistance = 25; // Portée d'attaque légèrement plus courte que les diables
+          const stopDistance = 25; // Distance à laquelle ils s'arrêtent pour tirer
+          const currentTime = Date.now();
+          
+          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 2500) {
             shouldAttack = true;
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
               newDirection = deltaX > 0 ? 3 : 2;

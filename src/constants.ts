@@ -31,6 +31,12 @@ export const DEVIL_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail
 export const DEVIL_DEATH_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1B6-04idqC085361dVCgDFSSKlwGcHveJ&sz=w1000';
 export const DEVIL_PROJECTILE_URL = 'https://drive.google.com/thumbnail?id=1xf-kvQhzAqYWtT1RsS-tVVpwMPMvUJwp&sz=w500';
 
+// URLs des sprites observateurs
+export const OBSERVER_WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1uE5FYeuY1cOoUAOUy1yRoQuoR5aJYw0i&sz=w1000';
+export const OBSERVER_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=15l2KdloxPsLSCz0Ssc7u3xQtf2SDi0xI&sz=w1000';
+export const OBSERVER_DEATH_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1PrILqKLJwoM7p703rqQxDgc3DMiyimMm&sz=w1000';
+export const OBSERVER_PROJECTILE_URL = 'https://drive.google.com/thumbnail?id=1Hslmx1Piby0ZeLKLUYwxj1Eyc2qFJ9sT&sz=w500';
+
 // URLs des sprites goblins
 export const GOBLIN_WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1XmfrYPUPwhT3P9hrqIG1r6jGdptZRxru&sz=w1000';
 export const GOBLIN_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1Oe-jrOoABqb_8sDY-t08yS4AF6mM5Wyd&sz=w1000';
@@ -114,6 +120,11 @@ export const TREANT_DEATH_FRAMES_PER_ROW = 6;
 export const DEVIL_WALK_FRAMES_PER_ROW = 6;
 export const DEVIL_ATTACK_FRAMES_PER_ROW = 6;
 export const DEVIL_DEATH_FRAMES_PER_ROW = 10;
+
+// Configuration des observateurs
+export const OBSERVER_WALK_FRAMES_PER_ROW = 8;
+export const OBSERVER_ATTACK_FRAMES_PER_ROW = 12; // 12 frames par ligne dans le sprite sheet
+export const OBSERVER_DEATH_FRAMES_PER_ROW = 9;
 
 // Configuration des goblins
 export const GOBLIN_WALK_FRAMES_PER_ROW = 6;

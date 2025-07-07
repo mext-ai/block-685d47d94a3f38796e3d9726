@@ -372,7 +372,8 @@ export const useEnemySystem = (
           const stopDistance = 25; // Distance à laquelle ils s'arrêtent pour tirer
           const currentTime = Date.now();
           
-          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 2500) {
+          // Cooldown d'attaque réduit de 2500ms à 1667ms (1.5x plus rapide)
+          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 1667) {
             shouldAttack = true;
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
               newDirection = deltaX > 0 ? 3 : 2;

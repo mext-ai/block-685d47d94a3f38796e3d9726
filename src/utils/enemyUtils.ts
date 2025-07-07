@@ -120,9 +120,9 @@ export const createLevel2Enemies = (): Enemy[] => {
       enemyType = 'treant';
       enemyHp = 5;
     } else if (i === 9) {
-      // 1 observateur : position 10
+      // 1 observateur : position 10 - HP réduit de 4 à 2
       enemyType = 'observer';
-      enemyHp = 4;
+      enemyHp = 2;
     } else if (i === 0 || i === 2 || i === 4 || i === 7 || i === 11) {
       // 5 goblins : positions 1, 3, 5, 8, 12
       enemyType = 'goblin';
@@ -206,9 +206,9 @@ export const createLevel3Enemies = (): Enemy[] => {
       enemyType = 'treant';
       enemyHp = 5;
     } else if (i === 5 || i === 9 || i === 12) {
-      // 3 observateurs : positions 6, 10, 13
+      // 3 observateurs : positions 6, 10, 13 - HP réduit de 4 à 2
       enemyType = 'observer';
-      enemyHp = 4;
+      enemyHp = 2;
     } else if (i === 0 || i === 2 || i === 6 || i === 10) {
       // 4 goblins : positions 1, 3, 7, 11
       enemyType = 'goblin';

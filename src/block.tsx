@@ -16,14 +16,11 @@ import VictoryMenu from './components/VictoryMenu';
 const Block: React.FC<BlockProps> = () => {
   // États pour les boutons hover
   const [isPlayButtonHovered, setIsPlayButtonHovered] = useState(false);
-  const [isLevel1ButtonHovered, setIsLevel1ButtonHovered] = useState(false);
-  const [isLevel2ButtonHovered, setIsLevel2ButtonHovered] = useState(false);
-  const [isLevel3ButtonHovered, setIsLevel3ButtonHovered] = useState(false);
 
   // Hooks personnalisés
   const audio = useAudio();
   const game = useGame();
-  const { spriteScale, enemySpriteScale, treantSpriteScale, devilSpriteScale } = useResponsiveScales();
+  const { spriteScale, enemySpriteScale, treantSpriteScale, devilSpriteScale, goblinSpriteScale } = useResponsiveScales();
   
   // Utiliser le système d'attaque du hook useGame
   const { isAttacking, attackFrame, triggerAttack, setPlayerDirection } = game;
@@ -76,19 +73,18 @@ const Block: React.FC<BlockProps> = () => {
     game.goToLevelSelect();
   };
 
-  const handleLevel1ButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    game.startGame(1);
+  const handleLevelClick = (level: number) => {
+    game.startGame(level);
   };
 
-  const handleLevel2ButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    game.startGame(2);
-  };
-
-  const handleLevel3ButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    game.startGame(3);
+  // Calculer le niveau maximum débloqué
+  const getMaxUnlockedLevel = () => {
+    for (let i = 9; i >= 1; i--) {
+      if (game.isLevelUnlocked(i)) {
+        return i;
+      }
+    }
+    return 1;
   };
 
   // Rendu conditionnel selon l'état du jeu
@@ -110,20 +106,9 @@ const Block: React.FC<BlockProps> = () => {
     return (
       <LevelSelect
         windowSize={{ width: window.innerWidth, height: window.innerHeight }}
-        isLevel1ButtonHovered={isLevel1ButtonHovered}
-        isLevel2ButtonHovered={isLevel2ButtonHovered}
-        isLevel3ButtonHovered={isLevel3ButtonHovered}
         isSoundEnabled={audio.isSoundEnabled}
-        isLevelUnlocked={game.isLevelUnlocked}
-        onLevel1ButtonClick={handleLevel1ButtonClick}
-        onLevel2ButtonClick={handleLevel2ButtonClick}
-        onLevel3ButtonClick={handleLevel3ButtonClick}
-        onLevel1ButtonMouseEnter={() => setIsLevel1ButtonHovered(true)}
-        onLevel1ButtonMouseLeave={() => setIsLevel1ButtonHovered(false)}
-        onLevel2ButtonMouseEnter={() => setIsLevel2ButtonHovered(true)}
-        onLevel2ButtonMouseLeave={() => setIsLevel2ButtonHovered(false)}
-        onLevel3ButtonMouseEnter={() => setIsLevel3ButtonHovered(true)}
-        onLevel3ButtonMouseLeave={() => setIsLevel3ButtonHovered(false)}
+        maxUnlockedLevel={getMaxUnlockedLevel()}
+        onLevelClick={handleLevelClick}
         onReturnToMenu={game.backToMenu}
         onToggleSound={audio.toggleSound}
       />
@@ -149,6 +134,7 @@ const Block: React.FC<BlockProps> = () => {
         spriteScale={spriteScale}
         treantSpriteScale={treantSpriteScale}
         devilSpriteScale={devilSpriteScale}
+        goblinSpriteScale={goblinSpriteScale}
         isSoundEnabled={audio.isSoundEnabled}
         onToggleSound={audio.toggleSound}
       />
@@ -176,6 +162,7 @@ const Block: React.FC<BlockProps> = () => {
         spriteScale={spriteScale}
         treantSpriteScale={treantSpriteScale}
         devilSpriteScale={devilSpriteScale}
+        goblinSpriteScale={goblinSpriteScale}
         isSoundEnabled={audio.isSoundEnabled}
         onToggleSound={audio.toggleSound}
       />
@@ -194,7 +181,7 @@ const Block: React.FC<BlockProps> = () => {
           onNextLevel={() => game.startGame(game.level + 1)}
           onBackToLevels={game.goToLevelSelect}
           score={game.score}
-          isLastLevel={game.level >= 3}
+          isLastLevel={game.level >= 9}
         />
       )}
     </>

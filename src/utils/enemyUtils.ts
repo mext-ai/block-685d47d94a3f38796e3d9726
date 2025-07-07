@@ -31,10 +31,23 @@ export const createLevel1Enemies = (): Enemy[] => {
     
     const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
 
-    // 1 seul tréant à la position 12 (dernière position), le reste sont des champignons
-    const isTreant = i === 11; // Index 11 = 12ème position (dernière)
-    const enemyType = isTreant ? 'treant' : 'mushroom';
-    const enemyHp = isTreant ? 5 : 3;
+    // Distribution des types d'ennemis pour le niveau 1
+    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin';
+    let enemyHp: number;
+    
+    if (i === 11) {
+      // 1 tréant en dernière position (boss final)
+      enemyType = 'treant';
+      enemyHp = 5;
+    } else if (i % 2 === 0) {
+      // Les positions paires sont des goblins (0, 2, 4, 6, 8, 10)
+      enemyType = 'goblin';
+      enemyHp = 1; // Les goblins n'ont qu'un seul HP
+    } else {
+      // Les positions impaires sont des champignons (1, 3, 5, 7, 9)
+      enemyType = 'mushroom';
+      enemyHp = 3;
+    }
     
     const enemy: Enemy = {
       id: i + 1,
@@ -99,7 +112,7 @@ export const createLevel2Enemies = (): Enemy[] => {
     // - 11 champignons (positions 0,1,2,3,5,6,7,9,10,11,13)
     // - 2 tréants (positions 4,14 - le 2ème en dernière position)
     // - 2 diables (positions 8,12)
-    let enemyType: 'mushroom' | 'treant' | 'devil';
+    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin';
     let enemyHp: number;
     
     if (i === 4 || i === 14) {

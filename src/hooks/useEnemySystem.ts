@@ -70,7 +70,7 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' ? 6 : 3; // 6 frames de marche pour tréants et diables
+        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' || enemy.type === 'goblin' ? 6 : 3; // 6 frames de marche pour tréants, diables et goblins
         return {
           ...enemy,
           currentFrame: (enemy.currentFrame + 1) % maxFrames
@@ -116,7 +116,7 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : 4; // Différents nombres de frames selon le type
+        const maxAttackFrames = enemy.type === 'treant' ? 7 : enemy.type === 'devil' ? 6 : enemy.type === 'goblin' ? 6 : 4; // Différents nombres de frames selon le type
         const nextFrame = enemy.attackFrame + 1;
         
         if (nextFrame >= maxAttackFrames) {
@@ -129,7 +129,7 @@ export const useEnemySystem = (
         }
         
         // Infliger des dégâts seulement à la frame d'impact spécifique
-        const impactFrame = enemy.type === 'treant' ? 4 : enemy.type === 'devil' ? 3 : 3; // Frame d'impact pour chaque type
+        const impactFrame = enemy.type === 'treant' ? 6 : enemy.type === 'devil' ? 5 : enemy.type === 'goblin' ? 5 : 3; // Dernière frame pour rendre les attaques esquivables (champignon: frame 3 sur 4)
         if (nextFrame === impactFrame) {
           if (enemy.type === 'devil') {
             // Créer un projectile pour les diables
@@ -145,7 +145,7 @@ export const useEnemySystem = (
           attackFrame: nextFrame
         };
       }));
-    }, 100);
+    }, 125); // Intervalle optimisé pour l'esquive
 
     return () => clearInterval(enemyAttackAnimationInterval);
   }, [gameState]);
@@ -166,6 +166,8 @@ export const useEnemySystem = (
           maxDeathFrames = 10; // 10 frames pour le diable
         } else if (enemy.type === 'treant') {
           maxDeathFrames = 6; // 6 frames pour le tréant
+        } else if (enemy.type === 'goblin') {
+          maxDeathFrames = 6; // 6 frames pour le goblin
         } else {
           maxDeathFrames = 9; // 9 frames pour le champignon
         }
@@ -197,7 +199,15 @@ export const useEnemySystem = (
         let newY = enemy.y;
         let newDirection = enemy.direction;
         let shouldAttack = false;
-        const speed = 0.25; // Même vitesse pour tous les ennemis (comme dans l'original)
+        // Vitesse différente selon le type d'ennemi
+        let speed = 0.25; // Vitesse de base pour les champignons
+        if (enemy.type === 'goblin') {
+          speed = 0.375; // Les goblins sont 1.5x plus rapides que les champignons
+        } else if (enemy.type === 'treant') {
+          speed = 0.15; // Les tréants sont plus lents
+        } else if (enemy.type === 'devil') {
+          speed = 0.3; // Les diables sont moyennement rapides
+        }
         
         if (enemy.type === 'mushroom' || enemy.type === 'treant') {
           const currentPlayerPos = playerPositionRef.current;
@@ -242,6 +252,47 @@ export const useEnemySystem = (
               } else {
                 newDirection = deltaY > 0 ? 0 : 1;
               }
+            }
+          }
+        } else if (enemy.type === 'goblin') {
+          const currentPlayerPos = playerPositionRef.current;
+          
+          const deltaX = currentPlayerPos.x - enemy.x;
+          const deltaY = currentPlayerPos.y - enemy.y;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          
+          // Goblin ont une portée d'attaque moyenne et s'arrêtent pour attaquer
+          const attackDistance = 5; // Portée d'attaque
+          const stopDistance = 5; // Distance à laquelle ils s'arrêtent pour attaquer
+          const currentTime = Date.now();
+          
+          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 1500) {
+            shouldAttack = true;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          } else if (distance > stopDistance && !shouldAttack) {
+            const moveX = (deltaX / distance) * speed;
+            const moveY = (deltaY / distance) * speed;
+            
+            // Limites de mouvement en pourcentages
+            const topLimit = 35;
+            const bottomLimit = 90;
+            const leftLimit = 5;
+            const rightLimit = 95;
+            
+            const potentialX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
+            const potentialY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
+            
+            newX = potentialX;
+            newY = potentialY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
             }
           }
         } else if (enemy.type === 'devil') {

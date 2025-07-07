@@ -1,5 +1,15 @@
 import React from 'react';
-import { BACKGROUND_IMAGE_URL, LEVEL2_BACKGROUND_URL, LEVEL3_BACKGROUND_URL } from '../constants';
+import { 
+  BACKGROUND_IMAGE_URL, 
+  LEVEL2_BACKGROUND_URL, 
+  LEVEL3_BACKGROUND_URL,
+  LEVEL4_BACKGROUND_URL,
+  LEVEL5_BACKGROUND_URL,
+  LEVEL6_BACKGROUND_URL,
+  LEVEL7_BACKGROUND_URL,
+  LEVEL8_BACKGROUND_URL,
+  LEVEL9_BACKGROUND_URL
+} from '../constants';
 import Player from './Player';
 import Enemy from './Enemy';
 import Projectile from './Projectile';
@@ -23,6 +33,7 @@ interface GameAreaProps {
   spriteScale: number;
   treantSpriteScale: number;
   devilSpriteScale: number;
+  goblinSpriteScale: number;
   isSoundEnabled: boolean;
   onToggleSound: () => void;
 }
@@ -44,12 +55,20 @@ const GameArea: React.FC<GameAreaProps> = ({
   spriteScale,
   treantSpriteScale,
   devilSpriteScale,
+  goblinSpriteScale,
   isSoundEnabled,
   onToggleSound
 }) => {
   const backgroundUrl = level === 1 ? BACKGROUND_IMAGE_URL : 
                        level === 2 ? LEVEL2_BACKGROUND_URL : 
-                       LEVEL3_BACKGROUND_URL;
+                       level === 3 ? LEVEL3_BACKGROUND_URL :
+                       level === 4 ? LEVEL4_BACKGROUND_URL :
+                       level === 5 ? LEVEL5_BACKGROUND_URL :
+                       level === 6 ? LEVEL6_BACKGROUND_URL :
+                       level === 7 ? LEVEL7_BACKGROUND_URL :
+                       level === 8 ? LEVEL8_BACKGROUND_URL :
+                       level === 9 ? LEVEL9_BACKGROUND_URL :
+                       BACKGROUND_IMAGE_URL; // fallback
   
   // Debug temporaire
   console.log('GameArea - Level:', level, 'Background URL:', backgroundUrl);
@@ -85,6 +104,7 @@ const GameArea: React.FC<GameAreaProps> = ({
           spriteScale={spriteScale}
           treantSpriteScale={treantSpriteScale}
           devilSpriteScale={devilSpriteScale}
+          goblinSpriteScale={goblinSpriteScale}
         />
       ))}
 

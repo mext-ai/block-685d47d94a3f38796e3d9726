@@ -2,7 +2,7 @@ export interface BlockProps {}
 
 export interface Enemy {
   id: number;
-  type: 'mushroom' | 'treant' | 'devil';
+  type: 'mushroom' | 'treant' | 'devil' | 'goblin';
   x: number;
   y: number;
   direction: number;
@@ -52,4 +52,27 @@ export type GameState = 'menu' | 'levelSelect' | 'playing' | 'gameover' | 'victo
 
 export interface EnemyDamageCooldowns {
   [key: number]: number;
+}
+
+export interface LevelTheme {
+  id: string;
+  name: string;
+  description: string;
+  backgroundColor: string;
+  backgroundGradient: string;
+  backgroundImage: string;
+  iconUrl?: string;
+  levels: number[];
+}
+
+export interface LevelGroup {
+  theme: LevelTheme;
+  levels: number[];
+  isUnlocked: boolean;
+}
+
+export interface CarouselState {
+  currentThemeIndex: number;
+  isTransitioning: boolean;
+  direction: 'left' | 'right' | null;
 } 

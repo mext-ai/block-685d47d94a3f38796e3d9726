@@ -6,6 +6,7 @@ export const useResponsiveScales = () => {
   const [enemySpriteScale, setEnemySpriteScale] = useState(4.5);
   const [treantSpriteScale, setTreantSpriteScale] = useState(9);
   const [devilSpriteScale, setDevilSpriteScale] = useState(6);
+  const [goblinSpriteScale, setGoblinSpriteScale] = useState(4);
 
   // Recalculer les échelles quand la taille de fenêtre change
   useEffect(() => {
@@ -15,6 +16,7 @@ export const useResponsiveScales = () => {
       setEnemySpriteScale(scales.enemyScale);
       setTreantSpriteScale(scales.treantScale);
       setDevilSpriteScale(scales.enemyScale * 1.3); // Diables légèrement plus grands que les champignons
+      setGoblinSpriteScale(scales.enemyScale * 0.9); // Gobelins légèrement plus petits que les champignons
     };
 
     updateScales();
@@ -27,6 +29,7 @@ export const useResponsiveScales = () => {
     spriteScale,
     enemySpriteScale,
     treantSpriteScale,
-    devilSpriteScale
+    devilSpriteScale,
+    goblinSpriteScale
   };
 }; 

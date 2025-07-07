@@ -1,58 +1,91 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   MENU_BACKGROUND_URL,
   LEVEL_MENU_BACKGROUND_URL,
+  SOUND_ON_BUTTON_URL,
+  SOUND_OFF_BUTTON_URL,
+  PREVIOUS_ARROW_URL,
+  NEXT_ARROW_URL,
   LEVEL1_BUTTON_URL,
   LEVEL2_BUTTON_LOCKED_URL,
   LEVEL2_BUTTON_UNLOCKED_URL,
   LEVEL3_BUTTON_LOCKED_URL,
-  LEVEL3_BUTTON_URL,
   LEVEL3_BUTTON_UNLOCKED_URL,
-  SOUND_ON_BUTTON_URL,
-  SOUND_OFF_BUTTON_URL
+  LEVEL4_BUTTON_LOCKED_URL,
+  LEVEL4_BUTTON_UNLOCKED_URL,
+  LEVEL5_BUTTON_LOCKED_URL,
+  LEVEL5_BUTTON_UNLOCKED_URL,
+  LEVEL6_BUTTON_LOCKED_URL,
+  LEVEL6_BUTTON_UNLOCKED_URL,
+  LEVEL7_BUTTON_LOCKED_URL,
+  LEVEL7_BUTTON_UNLOCKED_URL,
+  LEVEL8_BUTTON_LOCKED_URL,
+  LEVEL8_BUTTON_UNLOCKED_URL,
+  LEVEL9_BUTTON_LOCKED_URL,
+  LEVEL9_BUTTON_UNLOCKED_URL,
+  LEVEL_THEMES
 } from '../constants';
+import { useLevelCarousel } from '../hooks/useLevelCarousel';
+import LevelButton from './LevelButton';
 
 interface LevelSelectProps {
   windowSize: { width: number; height: number };
-  isLevel1ButtonHovered: boolean;
-  isLevel2ButtonHovered: boolean;
-  isLevel3ButtonHovered: boolean;
   isSoundEnabled: boolean;
-  isLevelUnlocked: (level: number) => boolean;
-  onLevel1ButtonClick: (e: React.MouseEvent<HTMLDivElement>) => void;
-  onLevel2ButtonClick: (e: React.MouseEvent<HTMLDivElement>) => void;
-  onLevel3ButtonClick: (e: React.MouseEvent<HTMLDivElement>) => void;
-  onLevel1ButtonMouseEnter: () => void;
-  onLevel1ButtonMouseLeave: () => void;
-  onLevel2ButtonMouseEnter: () => void;
-  onLevel2ButtonMouseLeave: () => void;
-  onLevel3ButtonMouseEnter: () => void;
-  onLevel3ButtonMouseLeave: () => void;
+  maxUnlockedLevel: number;
+  onLevelClick: (level: number) => void;
   onReturnToMenu: () => void;
   onToggleSound: () => void;
 }
 
 const LevelSelect: React.FC<LevelSelectProps> = ({
   windowSize,
-  isLevel1ButtonHovered,
-  isLevel2ButtonHovered,
-  isLevel3ButtonHovered,
   isSoundEnabled,
-  isLevelUnlocked,
-  onLevel1ButtonClick,
-  onLevel2ButtonClick,
-  onLevel3ButtonClick,
-  onLevel1ButtonMouseEnter,
-  onLevel1ButtonMouseLeave,
-  onLevel2ButtonMouseEnter,
-  onLevel2ButtonMouseLeave,
-  onLevel3ButtonMouseEnter,
-  onLevel3ButtonMouseLeave,
+  maxUnlockedLevel,
+  onLevelClick,
   onReturnToMenu,
   onToggleSound
 }) => {
-  const MENU_BACKGROUND_HEIGHT = Math.min(windowSize.height * 0.3, 250);
-  const MENU_BACKGROUND_WIDTH = Math.min(windowSize.width * 0.5, MENU_BACKGROUND_HEIGHT * 3);
+  const {
+    carouselState,
+    currentTheme,
+    unlockedThemes,
+    hoveredLevels,
+    goToPreviousTheme,
+    goToNextTheme,
+    goToTheme,
+    handleLevelHover,
+    isLevelUnlocked,
+    setCarouselState
+  } = useLevelCarousel(maxUnlockedLevel);
+
+  // Fonction pour obtenir l'URL du bouton selon le niveau et son état
+  const getButtonUrl = useCallback((level: number, isUnlocked: boolean): string => {
+    const buttonUrls: { [key: number]: { locked: string; unlocked: string } } = {
+      1: { locked: LEVEL1_BUTTON_URL, unlocked: LEVEL1_BUTTON_URL },
+      2: { locked: LEVEL2_BUTTON_LOCKED_URL, unlocked: LEVEL2_BUTTON_UNLOCKED_URL },
+      3: { locked: LEVEL3_BUTTON_LOCKED_URL, unlocked: LEVEL3_BUTTON_UNLOCKED_URL },
+      4: { locked: LEVEL4_BUTTON_LOCKED_URL, unlocked: LEVEL4_BUTTON_UNLOCKED_URL },
+      5: { locked: LEVEL5_BUTTON_LOCKED_URL, unlocked: LEVEL5_BUTTON_UNLOCKED_URL },
+      6: { locked: LEVEL6_BUTTON_LOCKED_URL, unlocked: LEVEL6_BUTTON_UNLOCKED_URL },
+      7: { locked: LEVEL7_BUTTON_LOCKED_URL, unlocked: LEVEL7_BUTTON_UNLOCKED_URL },
+      8: { locked: LEVEL8_BUTTON_LOCKED_URL, unlocked: LEVEL8_BUTTON_UNLOCKED_URL },
+      9: { locked: LEVEL9_BUTTON_LOCKED_URL, unlocked: LEVEL9_BUTTON_UNLOCKED_URL }
+    };
+
+    return isUnlocked ? buttonUrls[level]?.unlocked || LEVEL1_BUTTON_URL : buttonUrls[level]?.locked || LEVEL1_BUTTON_URL;
+  }, []);
+
+  // Gestion du clic sur un niveau
+  const handleLevelClick = useCallback((level: number) => {
+    if (isLevelUnlocked(level)) {
+      onLevelClick(level);
+    }
+  }, [isLevelUnlocked, onLevelClick]);
+
+  // Calcul des dimensions
+  const carouselWidth = Math.min(windowSize.width * 0.9, 900);
+  const carouselHeight = Math.min(windowSize.height * 0.7, 500);
+  const buttonSize = Math.min(carouselWidth * 0.12, 80);
 
   return (
     <div 
@@ -68,147 +101,166 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
         overflow: 'hidden',
         backgroundColor: '#1a1a1a',
         display: 'flex',
+        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center'
       }}
     >
-      {/* Rectangle background du menu des niveaux */}
+      {/* Carrousel principal avec cadre de menu */}
       <div
         style={{
+          width: `${carouselWidth}px`,
+          height: `${carouselHeight}px`,
           position: 'relative',
-          width: `${MENU_BACKGROUND_WIDTH}px`,
-          height: `${MENU_BACKGROUND_HEIGHT}px`,
-          backgroundImage: `url(${LEVEL_MENU_BACKGROUND_URL})`,
-          backgroundSize: '75% 100%',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          zIndex: 5,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '0'
+          overflow: 'hidden'
         }}
       >
-        {/* Conteneur des boutons */}
+        {/* Bouton de navigation gauche */}
+        <button
+          onClick={goToPreviousTheme}
+          disabled={carouselState.isTransitioning}
+          style={{
+            position: 'absolute',
+            left: '45px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            border: 'none',
+            backgroundColor: 'transparent',
+            backgroundImage: `url(${PREVIOUS_ARROW_URL})`,
+            backgroundSize: '60%',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            cursor: carouselState.isTransitioning ? 'not-allowed' : 'pointer',
+            transition: 'all 0.3s ease',
+            zIndex: 50
+          }}
+          onMouseEnter={(e) => {
+            if (!carouselState.isTransitioning) {
+              e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+          }}
+        />
+
+        {/* Cadre de menu avec image de thème à l'intérieur */}
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '70%',
+            width: '100%',
             height: '100%',
+            backgroundImage: `url(${LEVEL_MENU_BACKGROUND_URL})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
             position: 'relative',
-            gap: '36px'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            transform: carouselState.isTransitioning ? 
+              `translateX(${carouselState.direction === 'left' ? '-100%' : '100%'})` : 
+              'translateX(0)',
+            zIndex: 10
           }}
         >
-          {/* Bouton Niveau 1 */}
+          {/* Image de fond du thème à l'intérieur du cadre */}
           <div
             style={{
-              width: `${MENU_BACKGROUND_WIDTH * 0.12}px`,
-              height: `${MENU_BACKGROUND_WIDTH * 0.12 * 2}px`,
-              backgroundImage: `url(${LEVEL1_BUTTON_URL})`,
-              backgroundSize: 'contain',
+              position: 'absolute',
+              top: '27.6%',
+              left: '28%',
+              right: '28%',
+              bottom: '27.2%',
+              backgroundImage: `url(${currentTheme.backgroundImage})`,
+              backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              filter: isLevel1ButtonHovered ? 
-                'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
-                'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
-              transform: `scale(${isLevel1ButtonHovered ? 1.1 : 1})`,
-              zIndex: 10
+              borderRadius: '15px',
+              opacity: 1,
+              zIndex: 1
             }}
-            onClick={onLevel1ButtonClick}
-            onMouseEnter={onLevel1ButtonMouseEnter}
-            onMouseLeave={onLevel1ButtonMouseLeave}
           />
 
-          {/* Bouton Niveau 2 */}
+          {/* Contenu du thème */}
           <div
             style={{
-              width: `${MENU_BACKGROUND_WIDTH * 0.12}px`,
-              height: `${MENU_BACKGROUND_WIDTH * 0.12 * 2}px`,
-              backgroundImage: `url(${isLevelUnlocked(2) ? LEVEL2_BUTTON_UNLOCKED_URL : LEVEL2_BUTTON_LOCKED_URL})`,
-              backgroundSize: 'contain',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              cursor: isLevelUnlocked(2) ? 'pointer' : 'not-allowed',
-              transition: 'all 0.2s ease',
-              filter: isLevelUnlocked(2) ? 
-                (isLevel2ButtonHovered ? 
-                  'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
-                  'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))') :
-                (isLevel2ButtonHovered ? 
-                  'brightness(0.7) grayscale(60%) drop-shadow(0 0 10px rgba(255,255,255,0.3))' :
-                  'brightness(0.5) grayscale(80%) drop-shadow(0 0 3px rgba(0,0,0,0.3))'),
-              transform: `scale(${isLevel2ButtonHovered && isLevelUnlocked(2) ? 1.1 : 1})`,
-              zIndex: 10,
-              opacity: isLevelUnlocked(2) ? 1 : 0.8
+              position: 'relative',
+              zIndex: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+              padding: '40px'
             }}
-            onClick={isLevelUnlocked(2) ? onLevel2ButtonClick : undefined}
-            onMouseEnter={isLevelUnlocked(2) ? onLevel2ButtonMouseEnter : undefined}
-            onMouseLeave={isLevelUnlocked(2) ? onLevel2ButtonMouseLeave : undefined}
-          />
-
-          {/* Bouton Niveau 3 */}
-          <div
-            style={{
-              width: `${MENU_BACKGROUND_WIDTH * 0.12}px`,
-              height: `${MENU_BACKGROUND_WIDTH * 0.12 * 2}px`,
-              backgroundImage: `url(${isLevelUnlocked(3) ? LEVEL3_BUTTON_UNLOCKED_URL : LEVEL3_BUTTON_LOCKED_URL})`,
-              backgroundSize: 'contain',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              cursor: isLevelUnlocked(3) ? 'pointer' : 'not-allowed',
-              transition: 'all 0.2s ease',
-              filter: isLevelUnlocked(3) ? 
-                (isLevel3ButtonHovered ? 
-                  'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
-                  'brightness(1) drop-shadow(0 0 3px rgba(0,0,0,0.3))') :
-                (isLevel3ButtonHovered ? 
-                  'brightness(0.7) grayscale(60%) drop-shadow(0 0 10px rgba(255,255,255,0.3))' :
-                  'brightness(0.5) grayscale(80%) drop-shadow(0 0 3px rgba(0,0,0,0.3))'),
-              transform: `scale(${isLevel3ButtonHovered && isLevelUnlocked(3) ? 1.1 : 1})`,
-              zIndex: 10,
-              opacity: isLevelUnlocked(3) ? 1 : 0.8
-            }}
-            onClick={isLevelUnlocked(3) ? onLevel3ButtonClick : undefined}
-            onMouseEnter={isLevelUnlocked(3) ? onLevel3ButtonMouseEnter : undefined}
-            onMouseLeave={isLevelUnlocked(3) ? onLevel3ButtonMouseLeave : undefined}
-          />
+          >
+            {/* Conteneur des boutons de niveau */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '60px',
+                flexWrap: 'wrap',
+                maxWidth: '100%'
+              }}
+            >
+              {currentTheme.levels.map((level) => (
+                <LevelButton
+                  key={level}
+                  level={level}
+                  isUnlocked={isLevelUnlocked(level)}
+                  isHovered={hoveredLevels[level] || false}
+                  buttonSize={buttonSize}
+                  onClick={() => handleLevelClick(level)}
+                  onMouseEnter={() => handleLevelHover(level, true)}
+                  onMouseLeave={() => handleLevelHover(level, false)}
+                  getButtonUrl={getButtonUrl}
+                />
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Bouton Retour */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '30px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          padding: `${Math.max(8, windowSize.height * 0.01)}px ${Math.max(16, windowSize.width * 0.015)}px`,
-          backgroundColor: '#f44336',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontSize: `${Math.max(12, windowSize.width * 0.012)}px`,
-          fontWeight: 'bold',
-          fontFamily: 'Arial, sans-serif',
-          transition: 'all 0.2s ease',
-          zIndex: 100
-        }}
-        onClick={onReturnToMenu}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#d32f2f';
-          e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#f44336';
-          e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
-        }}
-      >
-        ← RETOUR
+        {/* Bouton de navigation droite */}
+        <button
+          onClick={goToNextTheme}
+          disabled={carouselState.isTransitioning}
+          style={{
+            position: 'absolute',
+            right: '45px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            border: 'none',
+            backgroundColor: 'transparent',
+            backgroundImage: `url(${NEXT_ARROW_URL})`,
+            backgroundSize: '60%',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            cursor: carouselState.isTransitioning ? 'not-allowed' : 'pointer',
+            transition: 'all 0.3s ease',
+            zIndex: 50
+          }}
+          onMouseEnter={(e) => {
+            if (!carouselState.isTransitioning) {
+              e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+          }}
+        />
       </div>
 
       {/* Bouton Son */}
@@ -225,22 +277,26 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
           backgroundRepeat: 'no-repeat',
           cursor: 'pointer',
           zIndex: 1000,
-          transition: 'all 0.2s ease',
+          transition: 'all 0.3s ease',
           filter: isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)',
-          transform: 'scale(1)'
+          transform: 'scale(1)',
+          borderRadius: '50%',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
         }}
         onClick={onToggleSound}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'scale(1.1)';
           e.currentTarget.style.filter = isSoundEnabled ? 
-            'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
-            'brightness(0.7) grayscale(100%) drop-shadow(0 0 10px rgba(255,255,255,0.6))';
+            'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.8))' : 
+            'brightness(0.7) grayscale(100%) drop-shadow(0 0 15px rgba(255,255,255,0.8))';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)';
           e.currentTarget.style.filter = isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)';
         }}
       />
+
+
     </div>
   );
 };

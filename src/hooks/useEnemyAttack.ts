@@ -10,8 +10,8 @@ export const useEnemyAttack = () => {
     onPlayerHit: (damage: number) => void
   ): Enemy[] => {
     return enemies.map(enemy => {
-      // Vérifier si l'ennemi est en train d'attaquer et si c'est le bon moment pour infliger les dégâts
-      if (enemy.isAttacking && !enemy.hasDamageBeenDealt) {
+      // Vérifier si l'ennemi est en train d'attaquer, n'a pas encore infligé de dégâts, et est encore vivant
+      if (enemy.isAttacking && !enemy.hasDamageBeenDealt && enemy.isAlive && !enemy.isDying) {
         // Déterminer à quelle frame les dégâts doivent être infligés (avant-dernière frame)
         let damageFrame = 0;
         let totalFrames = 0;
@@ -29,10 +29,18 @@ export const useEnemyAttack = () => {
             totalFrames = 6;
             damageFrame = 5; // Avant-dernière frame
             break;
+          case 'goblin':
+            totalFrames = 5;
+            damageFrame = 4; // Avant-dernière frame
+            break;
+          case 'golem':
+            totalFrames = 9;
+            damageFrame = 8; // Avant-dernière frame
+            break;
         }
         
         // Vérifier si nous sommes à la frame de dégâts
-        if (enemy.attackFrame === damageFrame) {
+        if (enemy.attackFrame >= damageFrame) {
           // Vérifier si cette attaque touche le joueur
           if (checkEnemyAttackHit(enemy, playerPosition)) {
             // Déterminer les dégâts selon le type d'ennemi
@@ -46,6 +54,12 @@ export const useEnemyAttack = () => {
                 break;
               case 'devil':
                 damage = 1;
+                break;
+              case 'goblin':
+                damage = 1;
+                break;
+              case 'golem':
+                damage = 3;
                 break;
             }
             

@@ -19,6 +19,9 @@ import {
   GOLEM_WALK_SPRITE_SHEET_URL,
   GOLEM_ATTACK_SPRITE_SHEET_URL,
   GOLEM_DEATH_SPRITE_SHEET_URL,
+  GNOLL_WALK_SPRITE_SHEET_URL,
+  GNOLL_ATTACK_SPRITE_SHEET_URL,
+  GNOLL_DEATH_SPRITE_SHEET_URL,
   SPRITE_WIDTH,
   SPRITE_HEIGHT,
   WALK_FRAMES_PER_ROW,
@@ -38,7 +41,10 @@ import {
   GOBLIN_DEATH_FRAMES_PER_ROW,
   GOLEM_WALK_FRAMES_PER_ROW,
   GOLEM_ATTACK_FRAMES_PER_ROW,
-  GOLEM_DEATH_FRAMES_PER_ROW
+  GOLEM_DEATH_FRAMES_PER_ROW,
+  GNOLL_WALK_FRAMES_PER_ROW,
+  GNOLL_ATTACK_FRAMES_PER_ROW,
+  GNOLL_DEATH_FRAMES_PER_ROW
 } from '../constants';
 
 interface EnemyProps {
@@ -67,6 +73,7 @@ const Enemy: React.FC<EnemyProps> = ({
   const isObserver = enemy.type === 'observer';
   const isGoblin = enemy.type === 'goblin';
   const isGolem = enemy.type === 'golem';
+  const isGnoll = enemy.type === 'gnoll';
   let spriteUrl, framesPerRow, currentFrame;
   
   if (enemy.isDying) {
@@ -85,6 +92,9 @@ const Enemy: React.FC<EnemyProps> = ({
     } else if (isGolem) {
       spriteUrl = GOLEM_DEATH_SPRITE_SHEET_URL;
       framesPerRow = GOLEM_DEATH_FRAMES_PER_ROW;
+    } else if (isGnoll) {
+      spriteUrl = GNOLL_DEATH_SPRITE_SHEET_URL;
+      framesPerRow = GNOLL_DEATH_FRAMES_PER_ROW;
     } else {
       spriteUrl = MUSHROOM_DEATH_SPRITE_SHEET_URL;
       framesPerRow = DEATH_FRAMES_PER_ROW;
@@ -106,6 +116,9 @@ const Enemy: React.FC<EnemyProps> = ({
     } else if (isGolem) {
       spriteUrl = GOLEM_ATTACK_SPRITE_SHEET_URL;
       framesPerRow = GOLEM_ATTACK_FRAMES_PER_ROW;
+    } else if (isGnoll) {
+      spriteUrl = GNOLL_ATTACK_SPRITE_SHEET_URL;
+      framesPerRow = GNOLL_ATTACK_FRAMES_PER_ROW;
     } else {
       spriteUrl = MUSHROOM_ATTACK_SPRITE_SHEET_URL;
       framesPerRow = ATTACK_FRAMES_PER_ROW;
@@ -127,6 +140,9 @@ const Enemy: React.FC<EnemyProps> = ({
     } else if (isGolem) {
       spriteUrl = GOLEM_WALK_SPRITE_SHEET_URL;
       framesPerRow = GOLEM_WALK_FRAMES_PER_ROW;
+    } else if (isGnoll) {
+      spriteUrl = GNOLL_WALK_SPRITE_SHEET_URL;
+      framesPerRow = GNOLL_WALK_FRAMES_PER_ROW;
     } else {
       spriteUrl = MUSHROOM_SPRITE_SHEET_URL;
       framesPerRow = WALK_FRAMES_PER_ROW;
@@ -169,6 +185,7 @@ const Enemy: React.FC<EnemyProps> = ({
               isObserver ? Math.max(6, 3.5 + (observerSpriteScale / 2)) :
               isGoblin ? Math.max(5, 3 + (goblinSpriteScale / 2)) :
               isGolem ? Math.max(8, 5 + (golemSpriteScale / 2)) :
+              isGnoll ? Math.max(5, 3 + (spriteScale / 2)) :
               Math.max(5, 3 + (spriteScale / 2)))}%`,
             transform: 'translateX(-50%)',
             width: `${(isTreant ? 40 : isDevil ? 50 : isObserver ? 50 : isGoblin ? 45 : isGolem ? 55 : 60) * ((isTreant ? treantSpriteScale : isDevil ? devilSpriteScale : isObserver ? observerSpriteScale : isGoblin ? goblinSpriteScale : isGolem ? golemSpriteScale : spriteScale) / 3)}px`,

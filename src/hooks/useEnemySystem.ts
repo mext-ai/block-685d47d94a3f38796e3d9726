@@ -70,7 +70,7 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' || enemy.type === 'goblin' || enemy.type === 'observer' ? 6 : 3; // 6 frames de marche pour tréants, diables, goblins et observateurs
+        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' || enemy.type === 'goblin' || enemy.type === 'observer' || enemy.type === 'gnoll' ? 6 : 3; // 6 frames de marche pour tréants, diables, goblins, observateurs et gnolls
         return {
           ...enemy,
           currentFrame: (enemy.currentFrame + 1) % maxFrames
@@ -83,6 +83,11 @@ export const useEnemySystem = (
 
   // Fonction pour créer un projectile
   const createProjectile = (enemy: Enemy) => {
+    // Vérifier que l'ennemi est vivant et pas en train de mourir
+    if (!enemy.isAlive || enemy.isDying || !enemy.hasSpawned) {
+      return; // Ne pas créer de projectile si l'ennemi est mort ou en train de mourir
+    }
+    
     const currentPlayerPos = playerPositionRef.current;
     const deltaX = currentPlayerPos.x - enemy.x;
     const deltaY = currentPlayerPos.y - enemy.y;
@@ -117,6 +122,15 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (!enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
+        // Arrêter l'attaque si l'ennemi est mort ou en train de mourir
+        if (!enemy.isAlive || enemy.isDying) {
+          return {
+            ...enemy,
+            isAttacking: false,
+            attackFrame: 0
+          };
+        }
+        
         // Déterminer le nombre maximum de frames selon le type d'ennemi
         let maxAttackFrames;
         if (enemy.type === 'treant') {
@@ -129,6 +143,8 @@ export const useEnemySystem = (
           maxAttackFrames = 6;
         } else if (enemy.type === 'golem') {
           maxAttackFrames = 9;
+        } else if (enemy.type === 'gnoll') {
+          maxAttackFrames = 10; // 10 frames pour les gnolls (attaque plus rapide)
         } else {
           maxAttackFrames = 4;
         }
@@ -150,10 +166,15 @@ export const useEnemySystem = (
           if (enemy.type === 'devil' || enemy.type === 'observer') {
             // Créer un projectile pour les diables et observateurs
             createProjectile(enemy);
-          } else {
+          } else if (enemy.type !== 'gnoll') { // Exclure les gnolls de cette logique
             // Vérifier les dégâts pour les autres types
             checkEnemyAttackHit(enemy);
           }
+        }
+        
+        // Attaque double spéciale pour les gnolls
+        if (enemy.type === 'gnoll' && (nextFrame === 5 || nextFrame === 9)) {
+          checkEnemyAttackHit(enemy);
         }
         
         return {
@@ -161,7 +182,7 @@ export const useEnemySystem = (
           attackFrame: nextFrame
         };
       }));
-    }, 125); // Intervalle optimisé pour l'esquive
+    }, 125);
 
     return () => clearInterval(enemyAttackAnimationInterval);
   }, [gameState]);
@@ -188,6 +209,8 @@ export const useEnemySystem = (
           maxDeathFrames = 8; // 8 frames pour le golem
         } else if (enemy.type === 'observer') {
           maxDeathFrames = 9; // 9 frames pour l'observateur
+        } else if (enemy.type === 'gnoll') {
+          maxDeathFrames = 6; // 6 frames pour les gnolls
         } else {
           maxDeathFrames = 9; // 9 frames pour le champignon
         }
@@ -231,6 +254,8 @@ export const useEnemySystem = (
           speed = 0.35; // Les observateurs sont légèrement plus rapides que les diables
         } else if (enemy.type === 'golem') {
           speed = 0.2; // Les golems sont lents mais puissants
+        } else if (enemy.type === 'gnoll') {
+          speed = 0.3; // Les gnolls ont une vitesse entre champignon et goblin
         }
         
         if (enemy.type === 'mushroom' || enemy.type === 'treant') {
@@ -440,6 +465,48 @@ export const useEnemySystem = (
               newDirection = deltaY > 0 ? 0 : 1;
             }
           }
+        } else if (enemy.type === 'gnoll') {
+          const currentPlayerPos = playerPositionRef.current;
+          
+          const deltaX = currentPlayerPos.x - enemy.x;
+          const deltaY = currentPlayerPos.y - enemy.y;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          
+          // Gnolls ont une portée d'attaque moyenne et s'arrêtent pour attaquer
+          const attackDistance = 6; // Portée d'attaque
+          const stopDistance = 6; // Distance à laquelle ils s'arrêtent pour attaquer
+          const currentTime = Date.now();
+          
+          // Cooldown d'attaque plus rapide pour les gnolls (1200ms au lieu de 1500ms)
+          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 1200) {
+            shouldAttack = true;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          } else if (distance > stopDistance && !shouldAttack) {
+            const moveX = (deltaX / distance) * speed;
+            const moveY = (deltaY / distance) * speed;
+            
+            // Limites de mouvement en pourcentages
+            const topLimit = 35;
+            const bottomLimit = 90;
+            const leftLimit = 5;
+            const rightLimit = 95;
+            
+            const potentialX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
+            const potentialY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
+            
+            newX = potentialX;
+            newY = potentialY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          }
         }
         
         if (shouldAttack) {
@@ -467,6 +534,11 @@ export const useEnemySystem = (
 
   // Fonction améliorée pour vérifier les dégâts de l'ennemi au joueur avec hitbox directionnelle
   const checkEnemyAttackHit = (enemy: Enemy) => {
+    // Vérifier que l'ennemi est vivant et pas en train de mourir
+    if (!enemy.isAlive || enemy.isDying || !enemy.hasSpawned) {
+      return; // Ne pas infliger de dégâts si l'ennemi est mort ou en train de mourir
+    }
+    
     const currentTime = Date.now();
     
     // Vérifier le cooldown spécifique à cet ennemi

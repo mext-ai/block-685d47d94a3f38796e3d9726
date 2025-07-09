@@ -7,15 +7,20 @@ import { usePlayerMovement } from './hooks/usePlayerMovement';
 import { usePlayerAnimation } from './hooks/usePlayerAnimation';
 import { useResponsiveScales } from './hooks/useResponsiveScales';
 import { useGameMusic } from './hooks/useGameMusic';
+import { useAssetLoader } from './hooks/useAssetLoader';
 import MainMenu from './components/MainMenu';
 import LevelSelect from './components/LevelSelect';
 import GameArea from './components/GameArea';
 import DefeatMenu from './components/DefeatMenu';
 import VictoryMenu from './components/VictoryMenu';
+import LoadingScreen from './components/LoadingScreen';
 
 const Block: React.FC<BlockProps> = () => {
   // États pour les boutons hover
   const [isPlayButtonHovered, setIsPlayButtonHovered] = useState(false);
+
+  // Hook de chargement des assets
+  const assetLoader = useAssetLoader();
 
   // Hooks personnalisés
   const audio = useAudio();
@@ -86,6 +91,18 @@ const Block: React.FC<BlockProps> = () => {
     }
     return 1;
   };
+
+  // Afficher l'écran de chargement si les assets ne sont pas encore chargés
+  if (assetLoader.isLoading) {
+    return (
+      <LoadingScreen
+        progress={assetLoader.progress}
+        totalAssets={assetLoader.totalAssets}
+        loadedAssets={assetLoader.loadedAssets}
+        error={assetLoader.error}
+      />
+    );
+  }
 
   // Rendu conditionnel selon l'état du jeu
   if (game.gameState === 'menu') {

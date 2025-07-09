@@ -38,19 +38,30 @@ export const usePlayerMovement = ({
           let newY = prev.y;
           const speed = 0.5;
           
-          // Mouvement vertical - les deux directions peuvent être traitées indépendamment
-          if (keys.up && !keys.down) {
-            newY = Math.max(TOP_LIMIT, prev.y - speed);
-          } else if (keys.down && !keys.up) {
-            newY = Math.min(BOTTOM_LIMIT, prev.y + speed);
+          // Calculer le vecteur de mouvement
+          let moveX = 0;
+          let moveY = 0;
+          
+          if (keys.up && !keys.down) moveY -= 1;
+          if (keys.down && !keys.up) moveY += 1;
+          if (keys.left && !keys.right) moveX -= 1;
+          if (keys.right && !keys.left) moveX += 1;
+          
+          // Normaliser le vecteur pour maintenir une vitesse constante en diagonale
+          if (moveX !== 0 && moveY !== 0) {
+            // Mouvement diagonal : normaliser à √2 pour maintenir la vitesse
+            const magnitude = Math.sqrt(moveX * moveX + moveY * moveY);
+            moveX = (moveX / magnitude) * speed;
+            moveY = (moveY / magnitude) * speed;
+          } else {
+            // Mouvement horizontal ou vertical uniquement
+            moveX *= speed;
+            moveY *= speed;
           }
           
-          // Mouvement horizontal - traité indépendamment du vertical
-          if (keys.left && !keys.right) {
-            newX = Math.max(LEFT_LIMIT, prev.x - speed);
-          } else if (keys.right && !keys.left) {
-            newX = Math.min(RIGHT_LIMIT, prev.x + speed);
-          }
+          // Appliquer le mouvement
+          newX = Math.max(LEFT_LIMIT, Math.min(RIGHT_LIMIT, prev.x + moveX));
+          newY = Math.max(TOP_LIMIT, Math.min(BOTTOM_LIMIT, prev.y + moveY));
 
           const potentialPos = { x: newX, y: newY };
           const collisionDistance = 3;

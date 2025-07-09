@@ -33,7 +33,7 @@ export const usePlayerAnimation = ({
     
     const deathAnimationInterval = setInterval(() => {
       setDeathFrame(prev => {
-        if (prev < 3) { // 4 frames d'animation de mort (0-3)
+        if (prev < 7) { // 8 frames d'animation de mort (0-7)
           return prev + 1;
         }
         return prev;

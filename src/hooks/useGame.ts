@@ -46,7 +46,10 @@ export const useGame = () => {
     setPlayerHealth(prev => {
       const newHealth = Math.max(0, prev - damage);
       if (newHealth <= 0) {
-        endGame();
+        // Laisser le temps à l'animation de mort de se jouer avant de passer à gameover
+        setTimeout(() => {
+          endGame();
+        }, 1500); // 1,5 seconde (à ajuster selon la durée de l'animation)
       }
       return newHealth;
     });

@@ -47,7 +47,8 @@ const Block: React.FC<BlockProps> = () => {
     keys,
     position: game.playerPosition,
     enemies: game.enemies,
-    setPosition: game.setPlayerPosition
+    setPosition: game.setPlayerPosition,
+    setEnemies: game.setEnemies
   });
 
   // Animation du joueur

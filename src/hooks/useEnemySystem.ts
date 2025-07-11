@@ -20,7 +20,7 @@ export const useEnemySystem = (
   const playerPositionRef = useRef<Position>(playerPosition); // Référence à la position du joueur
 
   // Fonction de collision entre deux entités (comme dans l'original)
-  const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 3) => {
+  const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 5) => {
     const deltaX = pos1.x - pos2.x;
     const deltaY = pos1.y - pos2.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -267,7 +267,7 @@ export const useEnemySystem = (
           
           // Tréants ont une plus longue portée d'attaque
           const attackDistance = enemy.type === 'treant' ? 12 : 4;
-          const collisionDistance = 3;
+          const collisionDistance = 5;
           const currentTime = Date.now();
           
           // MODIFICATION CRITIQUE : Les ennemis attaquent même s'ils sont déjà en train d'attaquer

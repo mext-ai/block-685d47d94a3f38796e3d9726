@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface UseGameMusicProps {
   gameState: string;
@@ -17,12 +17,15 @@ export const useGameMusic = ({
   gameMusic,
   setGameMusic
 }: UseGameMusicProps) => {
+  const hasStartedMusic = useRef(false);
+
   // Contrôler la musique selon l'état du jeu
   useEffect(() => {
     if (!backgroundMusic) return;
 
     const playMusic = async () => {
-      if ((gameState === 'menu' || gameState === 'levelSelect') && isSoundEnabled) {
+      // Ne démarrer la musique que si on a déjà cliqué sur Play (gameState n'est plus 'menu')
+      if (hasStartedMusic.current && (gameState === 'menu' || gameState === 'levelSelect') && isSoundEnabled) {
         try {
           if (backgroundMusic) {
             backgroundMusic.currentTime = 0;
@@ -40,6 +43,13 @@ export const useGameMusic = ({
 
     playMusic();
   }, [gameState, isSoundEnabled, backgroundMusic]);
+
+  // Marquer que la musique peut démarrer quand on quitte le menu principal
+  useEffect(() => {
+    if (gameState !== 'menu') {
+      hasStartedMusic.current = true;
+    }
+  }, [gameState]);
 
   // Gestion de la musique de jeu pour le niveau 1
   useEffect(() => {

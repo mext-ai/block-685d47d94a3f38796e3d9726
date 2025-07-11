@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Position, Enemy } from '../types';
 import { TOP_LIMIT, BOTTOM_LIMIT, LEFT_LIMIT, RIGHT_LIMIT } from '../constants';
-import { checkCollision } from '../utils/gameUtils';
+import { checkCollision, handlePlayerPushEnemies } from '../utils/gameUtils';
 
 interface UsePlayerMovementProps {
   gameState: string;
@@ -11,6 +11,7 @@ interface UsePlayerMovementProps {
   position: Position;
   enemies: Enemy[];
   setPosition: (position: Position | ((prev: Position) => Position)) => void;
+  setEnemies: (enemies: Enemy[] | ((prev: Enemy[]) => Enemy[])) => void;
 }
 
 export const usePlayerMovement = ({
@@ -20,12 +21,13 @@ export const usePlayerMovement = ({
   keys,
   position,
   enemies,
-  setPosition
+  setPosition,
+  setEnemies
 }: UsePlayerMovementProps) => {
   const enemiesRef = useRef(enemies);
   enemiesRef.current = enemies;
 
-  // Gestion du mouvement avec limites et collision avec les ennemis
+  // Gestion du mouvement avec limites et système de poussée des ennemis
   useEffect(() => {
     if (gameState !== 'playing' || playerHealth <= 0) return;
     
@@ -64,21 +66,27 @@ export const usePlayerMovement = ({
           newY = Math.max(TOP_LIMIT, Math.min(BOTTOM_LIMIT, prev.y + moveY));
 
           const potentialPos = { x: newX, y: newY };
-          const collisionDistance = 3;
           
-          // Vérification des collisions avec les ennemis
-          for (const enemy of enemiesRef.current) {
-            if (enemy.isAlive && !enemy.isDying && enemy.hasSpawned && 
-                checkCollision(potentialPos, { x: enemy.x, y: enemy.y }, collisionDistance)) {
-              return prev; // Pas de mouvement si collision
-            }
+          // Utiliser le système de poussée au lieu de bloquer complètement
+          const { newPlayerPos, updatedEnemies } = handlePlayerPushEnemies(
+            prev, // Position actuelle du joueur
+            potentialPos, // Position désirée du joueur
+            enemiesRef.current, 
+            0.6 // Force de poussée augmentée pour être plus efficace
+          );
+          
+          // Mettre à jour les positions des ennemis si nécessaire
+          if (updatedEnemies.some((enemy, index) => 
+              enemy.x !== enemiesRef.current[index]?.x || 
+              enemy.y !== enemiesRef.current[index]?.y)) {
+            setEnemies(updatedEnemies);
           }
-
-          return potentialPos;
+          
+          return newPlayerPos;
         });
       }
     }, 16);
 
     return () => clearInterval(moveInterval);
-  }, [keys, isAttacking, gameState, playerHealth, setPosition]);
+  }, [keys, isAttacking, gameState, playerHealth, setPosition, setEnemies]);
 }; 

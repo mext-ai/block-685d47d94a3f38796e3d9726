@@ -14,7 +14,7 @@ export const useGame = () => {
   const PLAYER_SPEED = 0.5; // Vitesse optimisée pour éviter les problèmes de collision
   
   // Fonction de collision entre deux entités
-  const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 3) => {
+  const checkCollision = (pos1: {x: number, y: number}, pos2: {x: number, y: number}, minDistance: number = 5) => {
     const deltaX = pos1.x - pos2.x;
     const deltaY = pos1.y - pos2.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -76,7 +76,7 @@ export const useGame = () => {
   // Position du joueur
   const [playerPosition, setPlayerPosition] = useState<Position>(initialPlayerPos);
 
-  // Fonction pour déplacer le joueur
+  // Fonction pour déplacer le joueur (maintenant gérée par usePlayerMovement avec système de poussée)
   const movePlayer = useCallback((dx: number, dy: number) => {
     if (gameState !== 'playing') return;
     
@@ -99,20 +99,9 @@ export const useGame = () => {
         newX = Math.min(98, prev.x + speed);
       }
 
-      const potentialPos = { x: newX, y: newY };
-      const collisionDistance = 3;
-      
-      // Vérification des collisions avec les ennemis
-      for (const enemy of enemySystemEnemies) {
-        if (enemy.isAlive && !enemy.isDying && enemy.hasSpawned && 
-            checkCollision(potentialPos, { x: enemy.x, y: enemy.y }, collisionDistance)) {
-          return prev; // Pas de mouvement si collision
-        }
-      }
-
-      return potentialPos;
+      return { x: newX, y: newY };
     });
-  }, [gameState, enemySystemEnemies]);
+  }, [gameState]);
 
   // Fonction pour réinitialiser la position du joueur
   const resetPlayer = useCallback(() => {
@@ -296,6 +285,9 @@ export const useGame = () => {
     attackFrame,
     
     // Utilitaires
-    takeDamage
+    takeDamage,
+    
+    // Fonctions de mise à jour des entités
+    setEnemies: setEnemySystemEnemies
   };
 };

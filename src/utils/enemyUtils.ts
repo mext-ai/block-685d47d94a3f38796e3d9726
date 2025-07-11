@@ -40,9 +40,9 @@ export const createLevel1Enemies = (): Enemy[] => {
       enemyType = 'treant';
       enemyHp = 5;
     } else if (i === 6) {
-      // 1 gnoll pour les tests (position 7)
-      enemyType = 'gnoll';
-      enemyHp = 4;
+      // 1 champignon (position 7) - remplace le gnoll
+      enemyType = 'mushroom';
+      enemyHp = 3;
     } else if (i % 2 === 0) {
       // Les positions paires sont des goblins (0, 2, 4, 8, 10)
       enemyType = 'goblin';

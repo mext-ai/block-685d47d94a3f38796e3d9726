@@ -9,14 +9,14 @@ export const checkCollision = (pos1: Position, pos2: Position, minDistance: numb
   return distance < minDistance;
 };
 
-// Fonction pour gérer la poussée des ennemis par le joueur
+// Fonction pour gérer la déviation des ennemis par le joueur
 export const handlePlayerPushEnemies = (
   playerPos: Position,
   desiredPos: Position,
   enemies: Enemy[],
   pushForce: number = 0.3
 ): { newPlayerPos: Position; updatedEnemies: Enemy[] } => {
-  const collisionDistance = 6; // Distance de détection de collision
+  const collisionDistance = 4; // Distance de détection de collision
   const pushDistance = pushForce;
   const updatedEnemies = [...enemies];
   let hasCollision = false;
@@ -46,15 +46,31 @@ export const handlePlayerPushEnemies = (
     return { newPlayerPos: desiredPos, updatedEnemies };
   }
 
-  // Deuxième passe : pousser les ennemis et calculer le mouvement du joueur
-  let canPushAll = true;
+  // Deuxième passe : dévier tous les ennemis en collision de manière plus agressive
   let pushedEnemies = 0;
-  let totalPushResistance = 0;
   
+  // Calculer la direction de déviation une seule fois pour tous les ennemis
+  const playerMoveX = desiredPos.x - playerPos.x;
+  const playerMoveY = desiredPos.y - playerPos.y;
+  const playerMoveLength = Math.sqrt(playerMoveX * playerMoveX + playerMoveY * playerMoveY);
+  
+  let perpendicularX = 0;
+  let perpendicularY = 0;
+  
+  if (playerMoveLength > 0) {
+    // Normaliser le mouvement du joueur
+    const normalizedMoveX = playerMoveX / playerMoveLength;
+    const normalizedMoveY = playerMoveY / playerMoveLength;
+    
+    // Calculer la direction perpendiculaire (rotation de 90 degrés)
+    perpendicularX = -normalizedMoveY;
+    perpendicularY = normalizedMoveX;
+  }
+  
+  // Première tentative : déviation normale
   for (let i = 0; i < updatedEnemies.length; i++) {
     const enemy = updatedEnemies[i];
     
-    // Vérifier si l'ennemi est vivant et peut être poussé
     if (!enemy.isAlive || enemy.isDying || !enemy.hasSpawned || enemy.isAttacking) {
       continue;
     }
@@ -63,21 +79,21 @@ export const handlePlayerPushEnemies = (
     const deltaY = desiredPos.y - enemy.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-    // Si collision détectée
-    if (distance < collisionDistance && distance > 0) {
-      // Calculer la direction de poussée (du joueur vers l'ennemi)
-      const pushDirectionX = deltaX / distance;
-      const pushDirectionY = deltaY / distance;
+    if (distance < collisionDistance && distance > 0 && playerMoveLength > 0) {
+      // Déterminer de quel côté dévier l'ennemi
+      const centerX = 50;
+      const centerY = 50;
+      const enemyToCenterX = centerX - enemy.x;
+      const enemyToCenterY = centerY - enemy.y;
+      
+      const dotProduct = perpendicularX * enemyToCenterX + perpendicularY * enemyToCenterY;
+      const deviationDirection = dotProduct > 0 ? 1 : -1;
+      
+      // Déviation normale
+      let newEnemyX = enemy.x + perpendicularX * pushDistance * deviationDirection;
+      let newEnemyY = enemy.y + perpendicularY * pushDistance * deviationDirection;
 
-      // Force de poussée basée sur la proximité
-      const proximityFactor = Math.max(0.3, 1 - (distance / collisionDistance));
-      const adjustedPushDistance = pushDistance * proximityFactor * 1.5;
-
-      // Calculer la nouvelle position de l'ennemi
-      let newEnemyX = enemy.x + pushDirectionX * adjustedPushDistance;
-      let newEnemyY = enemy.y + pushDirectionY * adjustedPushDistance;
-
-      // Appliquer les limites de mouvement pour l'ennemi
+      // Limites de mouvement
       const topLimit = 35;
       const bottomLimit = 90;
       const leftLimit = 5;
@@ -86,7 +102,7 @@ export const handlePlayerPushEnemies = (
       newEnemyX = Math.max(leftLimit, Math.min(rightLimit, newEnemyX));
       newEnemyY = Math.max(topLimit, Math.min(bottomLimit, newEnemyY));
 
-      // Vérifier que la nouvelle position de l'ennemi ne crée pas de collision avec d'autres ennemis
+      // Vérifier collision avec autres ennemis (distance réduite pour permettre plus de mouvement)
       let enemyCanMove = true;
       for (let j = 0; j < updatedEnemies.length; j++) {
         if (i === j) continue;
@@ -98,13 +114,12 @@ export const handlePlayerPushEnemies = (
         const enemyDeltaY = newEnemyY - otherEnemy.y;
         const enemyDistance = Math.sqrt(enemyDeltaX * enemyDeltaX + enemyDeltaY * enemyDeltaY);
 
-        if (enemyDistance < 3) { // Distance minimale entre ennemis
+        if (enemyDistance < 1.5) { // Distance minimale très réduite
           enemyCanMove = false;
           break;
         }
       }
 
-      // Si l'ennemi peut être déplacé, mettre à jour sa position
       if (enemyCanMove) {
         updatedEnemies[i] = {
           ...enemy,
@@ -112,11 +127,75 @@ export const handlePlayerPushEnemies = (
           y: newEnemyY
         };
         pushedEnemies++;
-        totalPushResistance += proximityFactor;
-      } else {
-        // Si l'ennemi ne peut pas être poussé, ajouter de la résistance
-        canPushAll = false;
-        totalPushResistance += 1.5; // Plus de résistance si l'ennemi ne peut pas bouger
+      }
+    }
+  }
+
+  // Deuxième tentative : déviation plus agressive pour les ennemis non déviés
+  for (let i = 0; i < updatedEnemies.length; i++) {
+    const enemy = updatedEnemies[i];
+    
+    if (!enemy.isAlive || enemy.isDying || !enemy.hasSpawned || enemy.isAttacking) {
+      continue;
+    }
+
+    const deltaX = desiredPos.x - enemy.x;
+    const deltaY = desiredPos.y - enemy.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    if (distance < collisionDistance && distance > 0 && playerMoveLength > 0) {
+      // Vérifier si cet ennemi a déjà été dévié
+      const alreadyMoved = updatedEnemies[i].x !== enemy.x || updatedEnemies[i].y !== enemy.y;
+      
+      if (!alreadyMoved) {
+        // Déviation plus agressive
+        const centerX = 50;
+        const centerY = 50;
+        const enemyToCenterX = centerX - enemy.x;
+        const enemyToCenterY = centerY - enemy.y;
+        
+        const dotProduct = perpendicularX * enemyToCenterX + perpendicularY * enemyToCenterY;
+        const deviationDirection = dotProduct > 0 ? 1 : -1;
+        
+        // Déviation plus forte
+        let newEnemyX = enemy.x + perpendicularX * pushDistance * 1.5 * deviationDirection;
+        let newEnemyY = enemy.y + perpendicularY * pushDistance * 1.5 * deviationDirection;
+
+        // Limites de mouvement
+        const topLimit = 35;
+        const bottomLimit = 90;
+        const leftLimit = 5;
+        const rightLimit = 95;
+
+        newEnemyX = Math.max(leftLimit, Math.min(rightLimit, newEnemyX));
+        newEnemyY = Math.max(topLimit, Math.min(bottomLimit, newEnemyY));
+
+        // Vérifier collision avec autres ennemis (distance encore plus réduite)
+        let enemyCanMove = true;
+        for (let j = 0; j < updatedEnemies.length; j++) {
+          if (i === j) continue;
+          
+          const otherEnemy = updatedEnemies[j];
+          if (!otherEnemy.isAlive || otherEnemy.isDying || !otherEnemy.hasSpawned) continue;
+
+          const enemyDeltaX = newEnemyX - otherEnemy.x;
+          const enemyDeltaY = newEnemyY - otherEnemy.y;
+          const enemyDistance = Math.sqrt(enemyDeltaX * enemyDeltaX + enemyDeltaY * enemyDeltaY);
+
+          if (enemyDistance < 1.0) { // Distance minimale très réduite
+            enemyCanMove = false;
+            break;
+          }
+        }
+
+        if (enemyCanMove) {
+          updatedEnemies[i] = {
+            ...enemy,
+            x: newEnemyX,
+            y: newEnemyY
+          };
+          pushedEnemies++;
+        }
       }
     }
   }
@@ -125,9 +204,8 @@ export const handlePlayerPushEnemies = (
   let finalPlayerPos = desiredPos;
   
   if (pushedEnemies > 0) {
-    // Si on peut pousser au moins un ennemi, permettre un mouvement partiel
-    const averageResistance = totalPushResistance / Math.max(1, pushedEnemies);
-    const movementFactor = Math.max(0.2, 1 - (averageResistance * 0.3)); // Entre 20% et 100%
+    // Si on peut dévier au moins un ennemi, permettre un mouvement partiel
+    const movementFactor = Math.max(0.5, 1 - (pushedEnemies * 0.1)); // Entre 50% et 100%
     
     const deltaX = desiredPos.x - playerPos.x;
     const deltaY = desiredPos.y - playerPos.y;
@@ -136,11 +214,11 @@ export const handlePlayerPushEnemies = (
       x: playerPos.x + deltaX * movementFactor,
       y: playerPos.y + deltaY * movementFactor
     };
-  } else if (!canPushAll) {
-    // Si on ne peut pousser aucun ennemi, mouvement minimal
+  } else {
+    // Si on ne peut dévier aucun ennemi, mouvement minimal
     const deltaX = desiredPos.x - playerPos.x;
     const deltaY = desiredPos.y - playerPos.y;
-    const minimalMovement = 0.1; // 10% de mouvement minimum
+    const minimalMovement = 0.2; // 20% de mouvement minimum
     
     finalPlayerPos = {
       x: playerPos.x + deltaX * minimalMovement,

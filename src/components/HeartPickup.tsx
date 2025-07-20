@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HeartPickup as HeartPickupType } from '../types';
+import { HEART_SPRITE_SHEET_URL } from '../constants';
 
 interface HeartPickupProps {
   heart: HeartPickupType;
@@ -11,14 +12,16 @@ const HeartPickup: React.FC<HeartPickupProps> = ({ heart }) => {
   // Animation de pulsation du coeur
   useEffect(() => {
     const interval = setInterval(() => {
-      setAnimationFrame(prev => (prev + 1) % 30); // 30 frames pour un cycle complet
-    }, 100); // 100ms par frame
+      setAnimationFrame(prev => (prev + 1) % 40); // 40 frames pour un cycle complet
+    }, 80); // 80ms par frame pour une animation plus fluide
 
     return () => clearInterval(interval);
   }, []);
 
   // Calculer l'échelle basée sur l'animation (pulsation)
-  const scale = 1 + Math.sin(animationFrame * 0.2) * 0.2; // Varie entre 0.8 et 1.2
+  const basePulse = 1 + Math.sin(animationFrame * 0.15) * 0.3; // Varie entre 0.7 et 1.3
+  const heartSize = 32;
+  const heartScale = Math.max(1.5, Math.min(3.75, 2.25 * (window.innerWidth / 1920))) * basePulse;
 
   return (
     <div
@@ -26,16 +29,23 @@ const HeartPickup: React.FC<HeartPickupProps> = ({ heart }) => {
         position: 'absolute',
         left: `${heart.x}%`,
         top: `${heart.y}%`,
-        transform: `translate(-50%, -50%) scale(${scale})`,
-        zIndex: 10,
-        fontSize: '24px',
-        color: '#ff4757',
-        textShadow: '0 0 10px rgba(255, 71, 87, 0.8)',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 15,
         pointerEvents: 'none',
-        userSelect: 'none'
+        userSelect: 'none',
+        filter: 'drop-shadow(0 0 8px rgba(255, 0, 0, 0.8)) brightness(1.2)'
       }}
     >
-      ❤️
+      <div
+        style={{
+          width: `${heartSize * heartScale}px`,
+          height: `${heartSize * heartScale}px`,
+          backgroundImage: `url(${HEART_SPRITE_SHEET_URL})`,
+          backgroundPosition: `0px 0px`, // Utiliser le coeur plein (première frame)
+          backgroundSize: `${heartSize * 3 * heartScale}px ${heartSize * heartScale}px`,
+          imageRendering: 'pixelated'
+        }}
+      />
     </div>
   );
 };

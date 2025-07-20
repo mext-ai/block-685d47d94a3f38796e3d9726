@@ -13,8 +13,9 @@ import {
 import Player from './Player';
 import Enemy from './Enemy';
 import Projectile from './Projectile';
+import HeartPickup from './HeartPickup';
 import GameUI from './GameUI';
-import { Position, Enemy as EnemyType, Projectile as ProjectileType } from '../types';
+import { Position, Enemy as EnemyType, Projectile as ProjectileType, HeartPickup as HeartPickupType } from '../types';
 
 interface GameAreaProps {
   level: number;
@@ -29,6 +30,7 @@ interface GameAreaProps {
   playerHealth: number;
   enemies: EnemyType[];
   projectiles: ProjectileType[];
+  hearts: HeartPickupType[];
   remainingEnemies: number;
   spriteScale: number;
   treantSpriteScale: number;
@@ -53,6 +55,7 @@ const GameArea: React.FC<GameAreaProps> = ({
   playerHealth,
   enemies,
   projectiles,
+  hearts,
   remainingEnemies,
   spriteScale,
   treantSpriteScale,
@@ -87,6 +90,14 @@ const GameArea: React.FC<GameAreaProps> = ({
       backgroundPosition: 'center',
       overflow: 'hidden'
     }}>
+      {/* Coeurs à collecter */}
+      {hearts.map(heart => (
+        <HeartPickup
+          key={heart.id}
+          heart={heart}
+        />
+      ))}
+
       {/* Joueur */}
       <Player
         position={playerPosition}
@@ -133,4 +144,4 @@ const GameArea: React.FC<GameAreaProps> = ({
   );
 };
 
-export default GameArea; 
+export default GameArea;

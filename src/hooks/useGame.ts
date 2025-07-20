@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Position, GameState } from '../types';
+import { Position, GameState, HeartPickup } from '../types';
 import { usePlayerMovement } from './usePlayerMovement';
 import { useEnemySystem } from './useEnemySystem';
 import { useBulletSystem } from './useBulletSystem';
@@ -30,11 +30,53 @@ export const useGame = () => {
   const [playerDirection, setPlayerDirection] = useState(0);
   const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1]); // Seul le niveau 1 est débloqué au démarrage
   
+  // État des coeurs
+  const [hearts, setHearts] = useState<HeartPickup[]>([]);
+  const heartsRef = useRef<HeartPickup[]>([]);
+  const lastHeartSpawnTime = useRef(0);
+  const nextHeartId = useRef(1);
+  
   // Position initiale du joueur (centre de l'écran en pourcentages)
   const initialPlayerPos: Position = { 
     x: 50, // 50% de la largeur
     y: 50  // 50% de la hauteur
   };
+
+  // Fonction pour générer un coeur à une position aléatoire
+  const spawnHeart = useCallback(() => {
+    const now = Date.now();
+    
+    // Générer une position aléatoire dans le périmètre accessible au joueur
+    const x = Math.random() * (98 - 2) + 2; // Entre 2% et 98% de la largeur
+    const y = Math.random() * (95 - 30) + 30; // Entre 30% et 95% de la hauteur
+    
+    const newHeart: HeartPickup = {
+      id: nextHeartId.current++,
+      x,
+      y,
+      spawnTime: now
+    };
+    
+    setHearts(prev => {
+      const updated = [...prev, newHeart];
+      heartsRef.current = updated;
+      return updated;
+    });
+    
+    lastHeartSpawnTime.current = now;
+  }, []);
+
+  // Fonction pour collecter un coeur
+  const collectHeart = useCallback((heartId: number) => {
+    setHearts(prev => {
+      const updated = prev.filter(heart => heart.id !== heartId);
+      heartsRef.current = updated;
+      return updated;
+    });
+    
+    // Soigner le joueur de 2 HP
+    setPlayerHealth(prev => Math.min(10, prev + 2)); // Maximum 10 HP
+  }, []);
 
   // Terminer le jeu
   const endGame = useCallback(() => {
@@ -137,6 +179,33 @@ export const useGame = () => {
     setEnemySystemEnemies
   );
 
+  // Logique de spawn des coeurs toutes les 20 secondes
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      if (now - lastHeartSpawnTime.current >= 20000) { // 20 secondes
+        spawnHeart();
+      }
+    }, 1000); // Vérifier chaque seconde
+
+    return () => clearInterval(interval);
+  }, [gameState, spawnHeart]);
+
+  // Vérifier les collisions entre le joueur et les coeurs
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const playerCollisionRadius = 3; // Rayon de collision du joueur
+
+    heartsRef.current.forEach(heart => {
+      if (checkCollision(playerPosition, heart, playerCollisionRadius)) {
+        collectHeart(heart.id);
+      }
+    });
+  }, [playerPosition, gameState, collectHeart]);
+
   // Démarrer le jeu
   const startGame = useCallback((levelNumber: number = 1) => {
     console.log(`Starting game - Level: ${levelNumber}`); // Debug log
@@ -146,9 +215,13 @@ export const useGame = () => {
     setPlayerHealth(10);
     setGameTime(0);
     resetPlayer();
-    // Nettoyer les ennemis avant de démarrer le nouveau niveau
+    // Nettoyer les ennemis et coeurs avant de démarrer le nouveau niveau
     setEnemySystemEnemies([]);
     enemySystemRef.current = [];
+    setHearts([]);
+    heartsRef.current = [];
+    lastHeartSpawnTime.current = Date.now(); // Réinitialiser le timer des coeurs
+    nextHeartId.current = 1;
   }, [resetPlayer, setEnemySystemEnemies, enemySystemRef]);
 
   // CORRECTION: Supprimer la fonction startNextLevel qui causait le problème
@@ -261,6 +334,7 @@ export const useGame = () => {
     enemies: enemySystemEnemies,
     projectiles: enemyProjectiles,
     bullets,
+    hearts, // Nouveau: coeurs à collecter
     
     // Configuration
     mapWidth: mapDimensions.width,

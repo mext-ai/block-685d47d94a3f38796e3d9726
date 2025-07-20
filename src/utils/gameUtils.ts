@@ -22,14 +22,11 @@ export const handlePlayerPushEnemies = (
   let hasCollisionWithSolidEnemy = false;
   let hasPushableCollision = false;
 
-  // Types d'ennemis solides (comme des murs)
+  // Types d'ennemis solides (comme des murs) - SEULEMENT golems et tréants
   const solidEnemyTypes: Array<Enemy['type']> = ['golem', 'treant'];
-  
-  // Types d'ennemis qui ne sont pas poussés mais peuvent attaquer en corps à corps
-  const nonPushableButAttackingTypes: Array<Enemy['type']> = ['mushroom'];
 
   // Première passe : identifier tous les ennemis en collision
-  const collidingEnemies: { index: number; enemy: Enemy; distance: number; isSolid: boolean; isNonPushableAttacker: boolean }[] = [];
+  const collidingEnemies: { index: number; enemy: Enemy; distance: number; isSolid: boolean }[] = [];
   
   for (let i = 0; i < updatedEnemies.length; i++) {
     const enemy = updatedEnemies[i];
@@ -46,19 +43,15 @@ export const handlePlayerPushEnemies = (
     // Si collision détectée
     if (distance < collisionDistance && distance > 0) {
       const isSolid = solidEnemyTypes.includes(enemy.type);
-      const isNonPushableAttacker = nonPushableButAttackingTypes.includes(enemy.type);
       
       if (isSolid) {
         hasCollisionWithSolidEnemy = true;
-      } else if (isNonPushableAttacker) {
-        // Les champignons ne sont pas poussés mais peuvent attaquer
-        // On ne bloque pas le mouvement mais on ne les pousse pas non plus
       } else if (!enemy.isAttacking) {
-        // Les autres ennemis peuvent être poussés seulement s'ils n'attaquent pas
+        // Tous les autres ennemis (y compris champignons) peuvent être poussés s'ils n'attaquent pas
         hasPushableCollision = true;
       }
       
-      collidingEnemies.push({ index: i, enemy, distance, isSolid, isNonPushableAttacker });
+      collidingEnemies.push({ index: i, enemy, distance, isSolid });
     }
   }
 
@@ -85,8 +78,8 @@ export const handlePlayerPushEnemies = (
     const normalizedMoveX = playerMoveX / playerMoveLength;
     const normalizedMoveY = playerMoveY / playerMoveLength;
     
-    // Traiter chaque ennemi poussable en collision avec une direction unique
-    const pushableEnemies = collidingEnemies.filter(ce => !ce.isSolid && !ce.isNonPushableAttacker);
+    // Traiter chaque ennemi poussable en collision (maintenant inclut les champignons)
+    const pushableEnemies = collidingEnemies.filter(ce => !ce.isSolid);
     
     for (let i = 0; i < pushableEnemies.length; i++) {
       const { index, enemy } = pushableEnemies[i];

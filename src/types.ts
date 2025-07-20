@@ -31,6 +31,13 @@ export interface Projectile {
   sourceType?: 'devil' | 'observer';
 }
 
+export interface HeartPickup {
+  id: number;
+  x: number;
+  y: number;
+  spawnTime: number;
+}
+
 export interface Position {
   x: number;
   y: number;
@@ -76,4 +83,4 @@ export interface CarouselState {
   currentThemeIndex: number;
   isTransitioning: boolean;
   direction: 'left' | 'right' | null;
-} 
+}

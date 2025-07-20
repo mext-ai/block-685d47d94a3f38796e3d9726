@@ -267,11 +267,11 @@ export const useEnemySystem = (
           
           // Tréants ont une plus longue portée d'attaque
           const attackDistance = enemy.type === 'treant' ? 12 : 4;
-          const collisionDistance = 5;
+          // MODIFICATION CRITIQUE : Pour les champignons, réduire la distance de collision pour qu'ils puissent s'approcher plus près
+          const collisionDistance = enemy.type === 'mushroom' ? 2 : 5; // Les champignons peuvent aller plus près
           const currentTime = Date.now();
           
-          // MODIFICATION CRITIQUE : Les ennemis attaquent même s'ils sont déjà en train d'attaquer
-          // L'important est de vérifier le cooldown d'attaque, pas si l'ennemi bouge
+          // Vérifier si l'ennemi peut attaquer
           if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 2000) {
             shouldAttack = true;
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
@@ -280,6 +280,7 @@ export const useEnemySystem = (
               newDirection = deltaY > 0 ? 0 : 1;
             }
           } else if (distance > collisionDistance && !shouldAttack) {
+            // Se déplacer vers le joueur seulement si on est au-delà de la distance de collision
             const moveX = (deltaX / distance) * speed;
             const moveY = (deltaY / distance) * speed;
             
@@ -292,15 +293,22 @@ export const useEnemySystem = (
             const potentialX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
             const potentialY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
             
-            if (!checkCollision({x: potentialX, y: potentialY}, currentPlayerPos, collisionDistance)) {
+            // Pour les champignons, ne pas vérifier la collision avec le joueur car ils doivent pouvoir s'approcher
+            if (enemy.type === 'mushroom') {
               newX = potentialX;
               newY = potentialY;
-              
-              if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                newDirection = deltaX > 0 ? 3 : 2;
-              } else {
-                newDirection = deltaY > 0 ? 0 : 1;
+            } else {
+              // Pour les tréants, garder la vérification de collision
+              if (!checkCollision({x: potentialX, y: potentialY}, currentPlayerPos, collisionDistance)) {
+                newX = potentialX;
+                newY = potentialY;
               }
+            }
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
             }
           }
         } else if (enemy.type === 'goblin') {

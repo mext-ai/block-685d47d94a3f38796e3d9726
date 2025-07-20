@@ -148,6 +148,7 @@ const Block: React.FC<BlockProps> = () => {
         playerHealth={game.playerHealth}
         enemies={game.enemies}
         projectiles={game.projectiles}
+        hearts={game.hearts}
         remainingEnemies={game.enemies.filter(e => e.isAlive).length}
         spriteScale={spriteScale}
         treantSpriteScale={treantSpriteScale}
@@ -178,6 +179,7 @@ const Block: React.FC<BlockProps> = () => {
         playerHealth={game.playerHealth}
         enemies={game.enemies}
         projectiles={game.projectiles}
+        hearts={game.hearts}
         remainingEnemies={game.enemies.filter(e => e.isAlive).length}
         spriteScale={spriteScale}
         treantSpriteScale={treantSpriteScale}
@@ -212,4 +214,4 @@ const Block: React.FC<BlockProps> = () => {
   return null;
 };
 
-export default Block; 
+export default Block;

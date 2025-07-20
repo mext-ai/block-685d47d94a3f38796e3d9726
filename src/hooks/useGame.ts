@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Position, GameState, HeartPickup } from '../types';
+import { TOP_LIMIT, BOTTOM_LIMIT, LEFT_LIMIT, RIGHT_LIMIT } from '../constants';
 import { usePlayerMovement } from './usePlayerMovement';
 import { useEnemySystem } from './useEnemySystem';
 import { useBulletSystem } from './useBulletSystem';
@@ -46,9 +47,18 @@ export const useGame = () => {
   const spawnHeart = useCallback(() => {
     const now = Date.now();
     
-    // Générer une position aléatoire dans le périmètre accessible au joueur
-    const x = Math.random() * (98 - 2) + 2; // Entre 2% et 98% de la largeur
-    const y = Math.random() * (95 - 30) + 30; // Entre 30% et 95% de la hauteur
+    // Utiliser les limites exactes définies dans les constantes
+    // Ajouter une marge de sécurité pour éviter les bords
+    const marginX = 3; // Marge supplémentaire horizontale
+    const marginY = 3; // Marge supplémentaire verticale
+    
+    const minX = LEFT_LIMIT + marginX;
+    const maxX = RIGHT_LIMIT - marginX;
+    const minY = TOP_LIMIT + marginY;
+    const maxY = BOTTOM_LIMIT - marginY;
+    
+    const x = Math.random() * (maxX - minX) + minX;
+    const y = Math.random() * (maxY - minY) + minY;
     
     const newHeart: HeartPickup = {
       id: nextHeartId.current++,

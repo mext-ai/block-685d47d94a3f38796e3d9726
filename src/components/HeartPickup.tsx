@@ -19,9 +19,10 @@ const HeartPickup: React.FC<HeartPickupProps> = ({ heart }) => {
   }, []);
 
   // Calculer l'échelle basée sur l'animation (pulsation)
-  const basePulse = 1 + Math.sin(animationFrame * 0.15) * 0.3; // Varie entre 0.7 et 1.3
+  const basePulse = 1 + Math.sin(animationFrame * 0.15) * 0.2; // Varie entre 0.8 et 1.2
   const heartSize = 32;
-  const heartScale = Math.max(1.5, Math.min(3.75, 2.25 * (window.innerWidth / 1920))) * basePulse;
+  // Réduction de la taille : diviser par 2 le scale de base
+  const heartScale = Math.max(0.8, Math.min(2.0, 1.2 * (window.innerWidth / 1920))) * basePulse;
 
   return (
     <div

@@ -24,9 +24,12 @@ export const handlePlayerPushEnemies = (
 
   // Types d'ennemis solides (comme des murs)
   const solidEnemyTypes: Array<Enemy['type']> = ['golem', 'treant'];
+  
+  // Types d'ennemis qui ne sont pas poussés mais peuvent attaquer en corps à corps
+  const nonPushableButAttackingTypes: Array<Enemy['type']> = ['mushroom'];
 
   // Première passe : identifier tous les ennemis en collision
-  const collidingEnemies: { index: number; enemy: Enemy; distance: number; isSolid: boolean }[] = [];
+  const collidingEnemies: { index: number; enemy: Enemy; distance: number; isSolid: boolean; isNonPushableAttacker: boolean }[] = [];
   
   for (let i = 0; i < updatedEnemies.length; i++) {
     const enemy = updatedEnemies[i];
@@ -43,15 +46,19 @@ export const handlePlayerPushEnemies = (
     // Si collision détectée
     if (distance < collisionDistance && distance > 0) {
       const isSolid = solidEnemyTypes.includes(enemy.type);
+      const isNonPushableAttacker = nonPushableButAttackingTypes.includes(enemy.type);
       
       if (isSolid) {
         hasCollisionWithSolidEnemy = true;
+      } else if (isNonPushableAttacker) {
+        // Les champignons ne sont pas poussés mais peuvent attaquer
+        // On ne bloque pas le mouvement mais on ne les pousse pas non plus
       } else if (!enemy.isAttacking) {
         // Les autres ennemis peuvent être poussés seulement s'ils n'attaquent pas
         hasPushableCollision = true;
       }
       
-      collidingEnemies.push({ index: i, enemy, distance, isSolid });
+      collidingEnemies.push({ index: i, enemy, distance, isSolid, isNonPushableAttacker });
     }
   }
 
@@ -60,7 +67,7 @@ export const handlePlayerPushEnemies = (
     return { newPlayerPos: playerPos, updatedEnemies };
   }
 
-  // Si pas de collision du tout, permettre le mouvement complet
+  // Si pas de collision avec des ennemis poussables, permettre le mouvement complet
   if (!hasPushableCollision) {
     return { newPlayerPos: desiredPos, updatedEnemies };
   }
@@ -79,7 +86,7 @@ export const handlePlayerPushEnemies = (
     const normalizedMoveY = playerMoveY / playerMoveLength;
     
     // Traiter chaque ennemi poussable en collision avec une direction unique
-    const pushableEnemies = collidingEnemies.filter(ce => !ce.isSolid);
+    const pushableEnemies = collidingEnemies.filter(ce => !ce.isSolid && !ce.isNonPushableAttacker);
     
     for (let i = 0; i < pushableEnemies.length; i++) {
       const { index, enemy } = pushableEnemies[i];

@@ -72,7 +72,7 @@ export const usePlayerMovement = ({
             prev, // Position actuelle du joueur
             potentialPos, // Position désirée du joueur
             enemiesRef.current, 
-            0.6 // Force de poussée augmentée pour être plus efficace
+            0.8 // Force de poussée augmentée pour être plus efficace
           );
           
           // Mettre à jour les positions des ennemis si nécessaire

@@ -179,13 +179,13 @@ export const useGame = () => {
     setEnemySystemEnemies
   );
 
-  // Logique de spawn des coeurs toutes les 20 secondes
+  // Logique de spawn des coeurs toutes les 15 secondes
   useEffect(() => {
     if (gameState !== 'playing') return;
 
     const interval = setInterval(() => {
       const now = Date.now();
-      if (now - lastHeartSpawnTime.current >= 20000) { // 20 secondes
+      if (now - lastHeartSpawnTime.current >= 15000) { // 15 secondes
         spawnHeart();
       }
     }, 1000); // Vérifier chaque seconde

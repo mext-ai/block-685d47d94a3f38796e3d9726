@@ -267,8 +267,8 @@ export const useEnemySystem = (
           
           // Tréants ont une plus longue portée d'attaque
           const attackDistance = enemy.type === 'treant' ? 12 : 4;
-          // MODIFICATION CRITIQUE : Pour les champignons, réduire la distance de collision pour qu'ils puissent s'approcher plus près
-          const collisionDistance = enemy.type === 'mushroom' ? 2 : 5; // Les champignons peuvent aller plus près
+          // Distance de collision ajustée : 3 pour les champignons, 5 pour les tréants
+          const collisionDistance = enemy.type === 'mushroom' ? 3 : 5;
           const currentTime = Date.now();
           
           // Vérifier si l'ennemi peut attaquer

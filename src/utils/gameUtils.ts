@@ -9,7 +9,7 @@ export const checkCollision = (pos1: Position, pos2: Position, minDistance: numb
   return distance < minDistance;
 };
 
-// Fonction pour gérer la déviation des ennemis par le joueur
+// Fonction pour gérer la collision et la poussée des ennemis par le joueur
 export const handlePlayerPushEnemies = (
   playerPos: Position,
   desiredPos: Position,
@@ -19,16 +19,20 @@ export const handlePlayerPushEnemies = (
   const collisionDistance = 4; // Distance de détection de collision
   const pushDistance = pushForce;
   const updatedEnemies = [...enemies];
-  let hasCollision = false;
+  let hasCollisionWithSolidEnemy = false;
+  let hasPushableCollision = false;
+
+  // Types d'ennemis solides (comme des murs)
+  const solidEnemyTypes: Array<Enemy['type']> = ['golem', 'treant'];
 
   // Première passe : identifier tous les ennemis en collision
-  const collidingEnemies: { index: number; enemy: Enemy; distance: number }[] = [];
+  const collidingEnemies: { index: number; enemy: Enemy; distance: number; isSolid: boolean }[] = [];
   
   for (let i = 0; i < updatedEnemies.length; i++) {
     const enemy = updatedEnemies[i];
     
-    // Vérifier si l'ennemi est vivant et peut être poussé
-    if (!enemy.isAlive || enemy.isDying || !enemy.hasSpawned || enemy.isAttacking) {
+    // Vérifier si l'ennemi est vivant et a spawné
+    if (!enemy.isAlive || enemy.isDying || !enemy.hasSpawned) {
       continue;
     }
 
@@ -38,17 +42,30 @@ export const handlePlayerPushEnemies = (
 
     // Si collision détectée
     if (distance < collisionDistance && distance > 0) {
-      hasCollision = true;
-      collidingEnemies.push({ index: i, enemy, distance });
+      const isSolid = solidEnemyTypes.includes(enemy.type);
+      
+      if (isSolid) {
+        hasCollisionWithSolidEnemy = true;
+      } else if (!enemy.isAttacking) {
+        // Les autres ennemis peuvent être poussés seulement s'ils n'attaquent pas
+        hasPushableCollision = true;
+      }
+      
+      collidingEnemies.push({ index: i, enemy, distance, isSolid });
     }
   }
 
-  // Si pas de collision, permettre le mouvement complet
-  if (!hasCollision) {
+  // Si collision avec un ennemi solide, bloquer complètement le mouvement
+  if (hasCollisionWithSolidEnemy) {
+    return { newPlayerPos: playerPos, updatedEnemies };
+  }
+
+  // Si pas de collision du tout, permettre le mouvement complet
+  if (!hasPushableCollision) {
     return { newPlayerPos: desiredPos, updatedEnemies };
   }
 
-  // Deuxième passe : traiter les ennemis en collision avec des directions variées
+  // Deuxième passe : traiter les ennemis poussables en collision
   let pushedEnemies = 0;
   
   // Calculer la direction du mouvement du joueur
@@ -61,15 +78,17 @@ export const handlePlayerPushEnemies = (
     const normalizedMoveX = playerMoveX / playerMoveLength;
     const normalizedMoveY = playerMoveY / playerMoveLength;
     
-    // Traiter chaque ennemi en collision avec une direction unique
-    for (let i = 0; i < collidingEnemies.length; i++) {
-      const { index, enemy } = collidingEnemies[i];
+    // Traiter chaque ennemi poussable en collision avec une direction unique
+    const pushableEnemies = collidingEnemies.filter(ce => !ce.isSolid);
+    
+    for (let i = 0; i < pushableEnemies.length; i++) {
+      const { index, enemy } = pushableEnemies[i];
       
       // Calculer une direction de poussée unique pour chaque ennemi
       let pushDirectionX: number;
       let pushDirectionY: number;
       
-      if (collidingEnemies.length === 1) {
+      if (pushableEnemies.length === 1) {
         // Un seul ennemi : poussée perpendiculaire classique
         pushDirectionX = -normalizedMoveY;
         pushDirectionY = normalizedMoveX;
@@ -87,7 +106,7 @@ export const handlePlayerPushEnemies = (
         pushDirectionY *= deviationDirection;
       } else {
         // Plusieurs ennemis : utiliser des directions radiales variées
-        const angleStep = (2 * Math.PI) / collidingEnemies.length;
+        const angleStep = (2 * Math.PI) / pushableEnemies.length;
         const baseAngle = Math.atan2(normalizedMoveY, normalizedMoveX);
         const pushAngle = baseAngle + (i * angleStep) + (Math.PI / 2); // Commencer perpendiculairement
         
@@ -216,4 +235,4 @@ export const limitPosition = (position: Position): Position => {
     x: Math.max(LEFT_LIMIT, Math.min(RIGHT_LIMIT, position.x)),
     y: Math.max(TOP_LIMIT, Math.min(BOTTOM_LIMIT, position.y))
   };
-}; 
+};

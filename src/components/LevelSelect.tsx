@@ -113,26 +113,6 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
         alignItems: 'center'
       }}
     >
-      {/* Indicateur de progression en haut */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: 'rgba(0, 0, 0, 0.7)',
-        padding: '10px 20px',
-        borderRadius: '20px',
-        border: '2px solid #FFD700',
-        color: '#FFD700',
-        fontSize: '16px',
-        fontWeight: 'bold',
-        textAlign: 'center',
-        boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)',
-        zIndex: 100
-      }}>
-        Niveaux débloqués: {unlockedLevels.length}/9
-      </div>
-
       {/* Carrousel principal avec cadre de menu */}
       <div
         style={{
@@ -243,41 +223,17 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
               {currentTheme.levels.map((level) => {
                 const isUnlocked = isLevelUnlocked(level);
                 return (
-                  <div key={level} style={{ position: 'relative' }}>
-                    <LevelButton
-                      level={level}
-                      isUnlocked={isUnlocked}
-                      isHovered={hoveredLevels[level] || false}
-                      buttonSize={buttonSize}
-                      onClick={() => handleLevelClick(level)}
-                      onMouseEnter={() => handleLevelHover(level, true)}
-                      onMouseLeave={() => handleLevelHover(level, false)}
-                      getButtonUrl={getButtonUrl}
-                    />
-                    {/* Indicateur de niveau complété */}
-                    {isUnlocked && unlockedLevels.includes(level) && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '-10px',
-                        right: '-10px',
-                        width: '25px',
-                        height: '25px',
-                        borderRadius: '50%',
-                        backgroundColor: '#00ff00',
-                        border: '2px solid #ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        color: '#ffffff',
-                        boxShadow: '0 2px 8px rgba(0, 255, 0, 0.5)',
-                        zIndex: 10
-                      }}>
-                        ✓
-                      </div>
-                    )}
-                  </div>
+                  <LevelButton
+                    key={level}
+                    level={level}
+                    isUnlocked={isUnlocked}
+                    isHovered={hoveredLevels[level] || false}
+                    buttonSize={buttonSize}
+                    onClick={() => handleLevelClick(level)}
+                    onMouseEnter={() => handleLevelHover(level, true)}
+                    onMouseLeave={() => handleLevelHover(level, false)}
+                    getButtonUrl={getButtonUrl}
+                  />
                 );
               })}
             </div>
@@ -389,4 +345,4 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
   );
 };
 
-export default LevelSelect; 
+export default LevelSelect;

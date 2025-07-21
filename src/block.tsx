@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { BlockProps } from './types';
 import { useAudio } from './hooks/useAudio';
 import { useGame } from './hooks/useGame';
-import { useGameState } from './hooks/useGameState';
 import { usePlayerControls } from './hooks/usePlayerControls';
 import { usePlayerMovement } from './hooks/usePlayerMovement';
 import { usePlayerAnimation } from './hooks/usePlayerAnimation';
@@ -25,8 +24,7 @@ const Block: React.FC<BlockProps> = () => {
 
   // Hooks personnalisés
   const audio = useAudio();
-  const game = useGame();
-  const gameState = useGameState(); // Hook pour la persistence localStorage
+  const game = useGame(); // Ce hook contient maintenant toute la logique localStorage
   const { spriteScale, enemySpriteScale, treantSpriteScale, devilSpriteScale, observerSpriteScale, goblinSpriteScale, golemSpriteScale } = useResponsiveScales();
   
   // Utiliser le système d'attaque du hook useGame
@@ -75,56 +73,23 @@ const Block: React.FC<BlockProps> = () => {
     setPlayerDirection(direction);
   }, [direction, setPlayerDirection]);
 
-  // Synchroniser les niveaux débloqués entre les deux systèmes
-  useEffect(() => {
-    if (game.gameState === 'victory') {
-      // Marquer le niveau comme complété dans le système localStorage
-      if (!gameState.completedLevels.includes(game.level)) {
-        // Cette logique sera gérée automatiquement par useGameState lors de la victoire
-      }
-    }
-  }, [game.gameState, game.level, gameState.completedLevels]);
-
   // Gestionnaires d'événements pour les boutons
   const handlePlayButtonClick = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
-    // Utiliser la fonction de gameState pour aller à la sélection de niveau
-    gameState.goToLevelSelect();
-    // Synchroniser avec le système de jeu
     game.goToLevelSelect();
   };
 
   const handleContinueButtonClick = () => {
-    gameState.continueGame();
-    // Synchroniser avec le système de jeu
-    game.startGame(gameState.currentLevel);
+    game.continueGame();
   };
 
   const handleLevelClick = (level: number) => {
-    // Utiliser gameState pour démarrer le niveau
-    gameState.startGame(level);
-    // Synchroniser avec le système de jeu
     game.startGame(level);
   };
 
-  const handleReturnToMenu = () => {
-    gameState.returnToMenu();
-    game.backToMenu();
-  };
-
-  const handleReturnToLevelSelect = () => {
-    gameState.returnToLevelSelect();
-    game.goToLevelSelect();
-  };
-
-  // Calculer le niveau maximum débloqué en utilisant gameState
+  // Calculer le niveau maximum débloqué
   const getMaxUnlockedLevel = () => {
-    return gameState.highestLevel;
-  };
-
-  // Fonction pour vérifier si un niveau est débloqué
-  const isLevelUnlocked = (level: number) => {
-    return gameState.isLevelUnlocked(level);
+    return Math.max(...game.unlockedLevels);
   };
 
   // Afficher l'écran de chargement si les assets ne sont pas encore chargés
@@ -139,44 +104,41 @@ const Block: React.FC<BlockProps> = () => {
     );
   }
 
-  // Utiliser l'état du gameState localStorage comme état principal
-  const currentGameState = gameState.gameState;
-
   // Rendu conditionnel selon l'état du jeu
-  if (currentGameState === 'menu') {
+  if (game.gameState === 'menu') {
     return (
       <MainMenu
         isPlayButtonHovered={isPlayButtonHovered}
         isSoundEnabled={audio.isSoundEnabled}
-        hasGameProgress={gameState.hasGameProgress()}
-        progressPercentage={gameState.getProgressPercentage()}
+        hasGameProgress={game.hasGameProgress()}
+        progressPercentage={game.getProgressPercentage()}
         onPlayButtonClick={handlePlayButtonClick}
         onPlayButtonMouseEnter={() => setIsPlayButtonHovered(true)}
         onPlayButtonMouseLeave={() => setIsPlayButtonHovered(false)}
         onContinueButtonClick={handleContinueButtonClick}
-        onResetProgressClick={gameState.resetGameProgress}
+        onResetProgressClick={game.resetGameProgress}
         onToggleSound={audio.toggleSound}
         onForceStartMusic={() => {}}
       />
     );
   }
 
-  if (currentGameState === 'levelSelect') {
+  if (game.gameState === 'levelSelect') {
     return (
       <LevelSelect
-        windowSize={gameState.windowSize}
+        windowSize={{ width: window.innerWidth, height: window.innerHeight }}
         isSoundEnabled={audio.isSoundEnabled}
         maxUnlockedLevel={getMaxUnlockedLevel()}
-        completedLevels={gameState.completedLevels}
-        isLevelUnlocked={isLevelUnlocked}
+        unlockedLevels={game.unlockedLevels}
+        isLevelUnlocked={game.isLevelUnlocked}
         onLevelClick={handleLevelClick}
-        onReturnToMenu={handleReturnToMenu}
+        onReturnToMenu={game.backToMenu}
         onToggleSound={audio.toggleSound}
       />
     );
   }
 
-  if (currentGameState === 'playing') {
+  if (game.gameState === 'playing') {
     return (
       <GameArea
         level={game.level}
@@ -235,20 +197,20 @@ const Block: React.FC<BlockProps> = () => {
       />
       
       {/* Menu de défaite superposé */}
-      {currentGameState === 'gameover' && (
+      {game.gameState === 'gameover' && (
         <DefeatMenu
-          onBackToLevels={handleReturnToLevelSelect}
-          onRestart={() => handleLevelClick(gameState.currentLevel)}
+          onBackToLevels={game.goToLevelSelect}
+          onRestart={() => game.startGame(game.level)}
         />
       )}
       
       {/* Menu de victoire superposé */}
-      {currentGameState === 'victory' && (
+      {game.gameState === 'victory' && (
         <VictoryMenu
-          onNextLevel={() => handleLevelClick(gameState.currentLevel + 1)}
-          onBackToLevels={handleReturnToLevelSelect}
+          onNextLevel={() => game.startGame(game.level + 1)}
+          onBackToLevels={game.goToLevelSelect}
           score={game.score}
-          isLastLevel={gameState.currentLevel >= gameState.getMaxLevel()}
+          isLastLevel={game.level >= 9}
         />
       )}
     </>

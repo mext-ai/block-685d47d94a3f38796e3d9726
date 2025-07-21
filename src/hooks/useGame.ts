@@ -6,6 +6,41 @@ import { useEnemySystem } from './useEnemySystem';
 import { useBulletSystem } from './useBulletSystem';
 import { useAttackSystem } from './useAttackSystem';
 
+// Clés pour le localStorage
+const STORAGE_KEYS = {
+  UNLOCKED_LEVELS: 'game_unlocked_levels',
+  CURRENT_LEVEL: 'game_current_level'
+};
+
+// Fonction pour charger la progression depuis le localStorage
+const loadGameProgress = () => {
+  try {
+    const savedUnlockedLevels = localStorage.getItem(STORAGE_KEYS.UNLOCKED_LEVELS);
+    const savedCurrentLevel = localStorage.getItem(STORAGE_KEYS.CURRENT_LEVEL);
+    
+    return {
+      unlockedLevels: savedUnlockedLevels ? JSON.parse(savedUnlockedLevels) : [1],
+      currentLevel: savedCurrentLevel ? parseInt(savedCurrentLevel, 10) : 1
+    };
+  } catch (error) {
+    console.warn('Erreur lors du chargement de la progression:', error);
+    return {
+      unlockedLevels: [1],
+      currentLevel: 1
+    };
+  }
+};
+
+// Fonction pour sauvegarder la progression dans le localStorage
+const saveGameProgress = (unlockedLevels: number[], currentLevel: number) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.UNLOCKED_LEVELS, JSON.stringify(unlockedLevels));
+    localStorage.setItem(STORAGE_KEYS.CURRENT_LEVEL, currentLevel.toString());
+  } catch (error) {
+    console.warn('Erreur lors de la sauvegarde de la progression:', error);
+  }
+};
+
 export const useGame = () => {
     // Configuration du jeu
   const [mapDimensions, setMapDimensions] = useState({
@@ -22,14 +57,17 @@ export const useGame = () => {
     return distance < minDistance;
   };
   
+  // Charger la progression sauvegardée au démarrage
+  const initialProgress = loadGameProgress();
+  
   // États du jeu
   const [gameState, setGameState] = useState<GameState>('menu');
   const [score, setScore] = useState(0);
-  const [level, setLevel] = useState(1);
+  const [level, setLevel] = useState(initialProgress.currentLevel);
   const [playerHealth, setPlayerHealth] = useState(10);
   const [gameTime, setGameTime] = useState(0);
   const [playerDirection, setPlayerDirection] = useState(0);
-  const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1]); // Seul le niveau 1 est débloqué au démarrage
+  const [unlockedLevels, setUnlockedLevels] = useState<number[]>(initialProgress.unlockedLevels);
   
   // État des coeurs
   const [hearts, setHearts] = useState<HeartPickup[]>([]);
@@ -42,6 +80,11 @@ export const useGame = () => {
     x: 50, // 50% de la largeur
     y: 50  // 50% de la hauteur
   };
+
+  // Sauvegarder automatiquement la progression quand elle change
+  useEffect(() => {
+    saveGameProgress(unlockedLevels, level);
+  }, [unlockedLevels, level]);
 
   // Fonction pour générer un coeur à une position aléatoire
   const spawnHeart = useCallback(() => {
@@ -234,9 +277,6 @@ export const useGame = () => {
     nextHeartId.current = 1;
   }, [resetPlayer, setEnemySystemEnemies, enemySystemRef]);
 
-  // CORRECTION: Supprimer la fonction startNextLevel qui causait le problème
-  // Elle n'est plus nécessaire car startGame gère déjà tout
-
   // Retourner au menu
   const backToMenu = useCallback(() => {
     setGameState('menu');
@@ -257,11 +297,43 @@ export const useGame = () => {
     console.log(`Unlocking level: ${levelNumber}`); // Debug log
     setUnlockedLevels(prev => {
       if (!prev.includes(levelNumber)) {
-        return [...prev, levelNumber];
+        const newUnlockedLevels = [...prev, levelNumber];
+        return newUnlockedLevels;
       }
       return prev;
     });
   }, []);
+
+  // Continuer le jeu (reprendre au niveau suivant non terminé)
+  const continueGame = useCallback(() => {
+    // Trouver le niveau le plus élevé débloqué pour continuer
+    const highestUnlocked = Math.max(...unlockedLevels);
+    startGame(highestUnlocked);
+  }, [unlockedLevels, startGame]);
+
+  // Réinitialiser la progression
+  const resetGameProgress = useCallback(() => {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.UNLOCKED_LEVELS);
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_LEVEL);
+      
+      setUnlockedLevels([1]);
+      setLevel(1);
+      setGameState('menu');
+    } catch (error) {
+      console.warn('Erreur lors de la réinitialisation:', error);
+    }
+  }, []);
+
+  // Fonctions utilitaires pour la progression
+  const hasGameProgress = useCallback(() => {
+    return unlockedLevels.length > 1 || unlockedLevels[0] !== 1;
+  }, [unlockedLevels]);
+
+  const getProgressPercentage = useCallback(() => {
+    const maxLevel = 9; // Ajustez selon le nombre total de niveaux
+    return Math.round(((unlockedLevels.length - 1) / (maxLevel - 1)) * 100);
+  }, [unlockedLevels]);
 
   // Tirer vers une position
   const handleShoot = useCallback((targetPos: Position) => {
@@ -284,10 +356,31 @@ export const useGame = () => {
         console.log(`Level ${level} completed! Unlocking level ${level + 1}`); // Debug log
         setGameState('victory');
         // Débloquer le niveau suivant
-        unlockLevel(level + 1);
+        if (level < 9) { // Ajustez selon le nombre total de niveaux
+          unlockLevel(level + 1);
+        }
+        
+        // Envoyer l'événement de completion si c'est le dernier niveau
+        if (level === 9) { // Ajustez selon le dernier niveau
+          const completionEvent = {
+            type: 'BLOCK_COMPLETION',
+            blockId: 'dungeon-crawler-game',
+            completed: true,
+            score: level,
+            maxScore: 9,
+            timeSpent: gameTime,
+            data: {
+              unlockedLevels,
+              finalLevel: level
+            }
+          };
+          
+          window.postMessage(completionEvent, '*');
+          window.parent.postMessage(completionEvent, '*');
+        }
       }
     }
-  }, [enemySystemEnemies, gameState, level, unlockLevel]);
+  }, [enemySystemEnemies, gameState, level, unlockLevel, gameTime, unlockedLevels]);
 
   // Nettoyer les ennemis morts
   useEffect(() => {
@@ -329,8 +422,6 @@ export const useGame = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-
-
   return {
     // États du jeu
     gameState,
@@ -352,11 +443,15 @@ export const useGame = () => {
     
     // Actions du jeu
     startGame,
+    continueGame,
     endGame,
     backToMenu,
     goToLevelSelect,
     isLevelUnlocked,
     unlockLevel,
+    resetGameProgress,
+    hasGameProgress,
+    getProgressPercentage,
     movePlayer,
     setPlayerPosition,
     handleShoot,
@@ -367,6 +462,9 @@ export const useGame = () => {
     // États d'attaque
     isAttacking,
     attackFrame,
+    
+    // États de progression
+    unlockedLevels,
     
     // Utilitaires
     takeDamage,

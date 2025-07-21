@@ -273,42 +273,6 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
         />
       </div>
 
-      {/* Bouton Retour au Menu */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: '20px',
-          left: '20px',
-          padding: '12px 24px',
-          backgroundColor: 'rgba(128, 128, 128, 0.8)',
-          border: '2px solid #888',
-          borderRadius: '10px',
-          color: '#ffffff',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          textAlign: 'center',
-          boxShadow: '0 4px 15px rgba(128, 128, 128, 0.3)',
-          fontFamily: 'Arial, sans-serif',
-          textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
-          zIndex: 1000
-        }}
-        onClick={onReturnToMenu}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(160, 160, 160, 0.9)';
-          e.currentTarget.style.transform = 'scale(1.05)';
-          e.currentTarget.style.boxShadow = '0 6px 20px rgba(128, 128, 128, 0.5)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(128, 128, 128, 0.8)';
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.boxShadow = '0 4px 15px rgba(128, 128, 128, 0.3)';
-        }}
-      >
-        ← Menu
-      </div>
-
       {/* Bouton Son */}
       <div
         style={{

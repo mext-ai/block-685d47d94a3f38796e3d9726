@@ -32,7 +32,7 @@ interface LevelSelectProps {
   windowSize: { width: number; height: number };
   isSoundEnabled: boolean;
   maxUnlockedLevel: number;
-  completedLevels?: number[];
+  unlockedLevels?: number[];
   isLevelUnlocked?: (level: number) => boolean;
   onLevelClick: (level: number) => void;
   onReturnToMenu: () => void;
@@ -43,8 +43,8 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
   windowSize,
   isSoundEnabled,
   maxUnlockedLevel,
-  completedLevels = [],
-  isLevelUnlocked: isLevelUnlockedProp,
+  unlockedLevels = [1],
+  isLevelUnlocked: propIsLevelUnlocked,
   onLevelClick,
   onReturnToMenu,
   onToggleSound
@@ -62,18 +62,8 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
     setCarouselState
   } = useLevelCarousel(maxUnlockedLevel);
 
-  // Utiliser la fonction de vérification de niveau fournie par les props, ou celle du carrousel par défaut
-  const isLevelUnlocked = useCallback((level: number) => {
-    if (isLevelUnlockedProp) {
-      return isLevelUnlockedProp(level);
-    }
-    return carouselIsLevelUnlocked(level);
-  }, [isLevelUnlockedProp, carouselIsLevelUnlocked]);
-
-  // Fonction pour vérifier si un niveau est complété
-  const isLevelCompleted = useCallback((level: number) => {
-    return completedLevels.includes(level);
-  }, [completedLevels]);
+  // Utiliser la fonction isLevelUnlocked passée en prop si disponible, sinon utiliser celle du carousel
+  const isLevelUnlocked = propIsLevelUnlocked || carouselIsLevelUnlocked;
 
   // Fonction pour obtenir l'URL du bouton selon le niveau et son état
   const getButtonUrl = useCallback((level: number, isUnlocked: boolean): string => {
@@ -123,66 +113,25 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
         alignItems: 'center'
       }}
     >
-      {/* Bouton Retour au menu */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '20px',
-          left: '20px',
-          padding: '12px 24px',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          border: '2px solid #ffffff',
-          borderRadius: '10px',
-          color: '#ffffff',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          textAlign: 'center',
-          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
-          fontFamily: 'Arial, sans-serif',
-          textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-          zIndex: 1000
-        }}
-        onClick={onReturnToMenu}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(50, 50, 50, 0.9)';
-          e.currentTarget.style.transform = 'scale(1.05)';
-          e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 255, 255, 0.3)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
-        }}
-      >
-        ← Menu Principal
+      {/* Indicateur de progression en haut */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'rgba(0, 0, 0, 0.7)',
+        padding: '10px 20px',
+        borderRadius: '20px',
+        border: '2px solid #FFD700',
+        color: '#FFD700',
+        fontSize: '16px',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)',
+        zIndex: 100
+      }}>
+        Niveaux débloqués: {unlockedLevels.length}/9
       </div>
-
-      {/* Indicateur de progression si completedLevels est fourni */}
-      {completedLevels.length > 0 && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            padding: '10px 20px',
-            backgroundColor: 'rgba(0, 100, 0, 0.8)',
-            border: '2px solid #00ff00',
-            borderRadius: '8px',
-            color: '#ffffff',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            boxShadow: '0 4px 15px rgba(0, 255, 0, 0.3)',
-            fontFamily: 'Arial, sans-serif',
-            textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-            zIndex: 1000
-          }}
-        >
-          Progression: {completedLevels.length}/21 niveaux
-        </div>
-      )}
 
       {/* Carrousel principal avec cadre de menu */}
       <div
@@ -292,14 +241,12 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
               }}
             >
               {currentTheme.levels.map((level) => {
-                const levelUnlocked = isLevelUnlocked(level);
-                const levelCompleted = isLevelCompleted(level);
-                
+                const isUnlocked = isLevelUnlocked(level);
                 return (
                   <div key={level} style={{ position: 'relative' }}>
                     <LevelButton
                       level={level}
-                      isUnlocked={levelUnlocked}
+                      isUnlocked={isUnlocked}
                       isHovered={hoveredLevels[level] || false}
                       buttonSize={buttonSize}
                       onClick={() => handleLevelClick(level)}
@@ -307,28 +254,26 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
                       onMouseLeave={() => handleLevelHover(level, false)}
                       getButtonUrl={getButtonUrl}
                     />
-                    
                     {/* Indicateur de niveau complété */}
-                    {levelCompleted && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '-5px',
-                          right: '-5px',
-                          width: '20px',
-                          height: '20px',
-                          backgroundColor: '#00ff00',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          color: '#000000',
-                          fontWeight: 'bold',
-                          boxShadow: '0 2px 8px rgba(0, 255, 0, 0.5)',
-                          zIndex: 10
-                        }}
-                      >
+                    {isUnlocked && unlockedLevels.includes(level) && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '-10px',
+                        right: '-10px',
+                        width: '25px',
+                        height: '25px',
+                        borderRadius: '50%',
+                        backgroundColor: '#00ff00',
+                        border: '2px solid #ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        color: '#ffffff',
+                        boxShadow: '0 2px 8px rgba(0, 255, 0, 0.5)',
+                        zIndex: 10
+                      }}>
                         ✓
                       </div>
                     )}
@@ -372,6 +317,42 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
         />
       </div>
 
+      {/* Bouton Retour au Menu */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '20px',
+          padding: '12px 24px',
+          backgroundColor: 'rgba(128, 128, 128, 0.8)',
+          border: '2px solid #888',
+          borderRadius: '10px',
+          color: '#ffffff',
+          fontSize: '16px',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          textAlign: 'center',
+          boxShadow: '0 4px 15px rgba(128, 128, 128, 0.3)',
+          fontFamily: 'Arial, sans-serif',
+          textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
+          zIndex: 1000
+        }}
+        onClick={onReturnToMenu}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(160, 160, 160, 0.9)';
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.boxShadow = '0 6px 20px rgba(128, 128, 128, 0.5)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(128, 128, 128, 0.8)';
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 4px 15px rgba(128, 128, 128, 0.3)';
+        }}
+      >
+        ← Menu
+      </div>
+
       {/* Bouton Son */}
       <div
         style={{
@@ -408,4 +389,4 @@ const LevelSelect: React.FC<LevelSelectProps> = ({
   );
 };
 
-export default LevelSelect;
+export default LevelSelect; 

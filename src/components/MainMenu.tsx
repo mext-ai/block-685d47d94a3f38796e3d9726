@@ -28,17 +28,6 @@ const MainMenu: React.FC<MainMenuProps> = ({
   onToggleSound,
   onForceStartMusic
 }) => {
-  // Gestionnaire pour le bouton Play qui agit différemment selon la progression
-  const handlePlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (hasGameProgress) {
-      // Si il y a une progression, continuer le jeu
-      onContinueButtonClick();
-    } else {
-      // Sinon, aller à la sélection de niveau
-      onPlayButtonClick(e);
-    }
-  };
-
   return (
     <div 
       style={{
@@ -82,52 +71,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
               'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
             opacity: isPlayButtonHovered ? 1 : 0.95,
           }}
-          onClick={handlePlayClick}
+          onClick={onPlayButtonClick}
           onMouseEnter={onPlayButtonMouseEnter}
           onMouseLeave={onPlayButtonMouseLeave}
         />
       </div>
-
-      {/* Bouton de réinitialisation (affiché seulement si progression sauvegardée) */}
-      {hasGameProgress && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: '20px',
-            left: '20px',
-            padding: '10px 15px',
-            backgroundColor: 'rgba(150, 0, 0, 0.8)',
-            border: '2px solid #ff4444',
-            borderRadius: '8px',
-            color: '#ffffff',
-            fontSize: '12px',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            textAlign: 'center',
-            boxShadow: '0 2px 10px rgba(255, 0, 0, 0.3)',
-            fontFamily: 'Arial, sans-serif',
-            textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
-            zIndex: 1000
-          }}
-          onClick={(e) => {
-            if (window.confirm('Êtes-vous sûr de vouloir réinitialiser toute votre progression ?')) {
-              onResetProgressClick();
-            }
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(200, 0, 0, 0.9)';
-            e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 0, 0, 0.5)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(150, 0, 0, 0.8)';
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.boxShadow = '0 2px 10px rgba(255, 0, 0, 0.3)';
-          }}
-        >
-          🗑️ RESET
-        </div>
-      )}
 
       {/* Bouton Son */}
       <div

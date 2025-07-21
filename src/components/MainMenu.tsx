@@ -1,58 +1,228 @@
 import React from 'react';
-import { useGameState } from '../hooks/useGameState';
+import { MENU_BACKGROUND_URL, PLAY_BUTTON_URL, SOUND_ON_BUTTON_URL, SOUND_OFF_BUTTON_URL } from '../constants';
 
-export const MainMenu: React.FC = () => {
-  const { goToLevelSelect, resetGameProgress, hasGameProgress, getProgressPercentage } = useGameState();
+interface MainMenuProps {
+  isPlayButtonHovered: boolean;
+  isSoundEnabled: boolean;
+  hasGameProgress: boolean;
+  progressPercentage: number;
+  onPlayButtonClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onPlayButtonMouseEnter: () => void;
+  onPlayButtonMouseLeave: () => void;
+  onContinueButtonClick: () => void;
+  onResetProgressClick: () => void;
+  onToggleSound: () => void;
+  onForceStartMusic: () => void;
+}
 
+const MainMenu: React.FC<MainMenuProps> = ({
+  isPlayButtonHovered,
+  isSoundEnabled,
+  hasGameProgress,
+  progressPercentage,
+  onPlayButtonClick,
+  onPlayButtonMouseEnter,
+  onPlayButtonMouseLeave,
+  onContinueButtonClick,
+  onResetProgressClick,
+  onToggleSound,
+  onForceStartMusic
+}) => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="text-center p-8 bg-black/30 rounded-2xl backdrop-blur-sm border border-white/20">
-        <h1 className="text-6xl font-bold text-white mb-4 drop-shadow-2xl">
-          Dungeon <span className="text-yellow-400">Crawler</span>
-        </h1>
-        
-        <p className="text-xl text-gray-300 mb-8 max-w-md mx-auto">
-          Survivez aux vagues d'ennemis dans ce donjon mystérieux
-        </p>
-
-        {hasGameProgress() && (
-          <div className="mb-6 p-4 bg-green-900/30 rounded-lg border border-green-500/30">
-            <p className="text-green-300 text-sm mb-2">Progression sauvegardée</p>
-            <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-              <div 
-                className="bg-green-500 h-2 rounded-full transition-all duration-300" 
-                style={{ width: `${getProgressPercentage()}%` }}
-              />
+    <div 
+      style={{
+        height: '100vh',
+        width: '100vw',
+        margin: 0,
+        backgroundImage: `url(${MENU_BACKGROUND_URL})`,
+        backgroundSize: 'contain',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        position: 'relative',
+        overflow: 'hidden',
+        backgroundColor: '#1a1a1a'
+      }}
+    >
+      {/* Conteneur des boutons principaux */}
+      <div style={{
+        position: 'absolute',
+        left: '50%',
+        top: '55%',
+        transform: 'translate(-50%, -50%)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: hasGameProgress ? '20px' : '0px',
+        zIndex: 10
+      }}>
+        {/* Bouton Continuer (affiché seulement si progression sauvegardée) */}
+        {hasGameProgress && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <div
+              style={{
+                padding: '15px 30px',
+                backgroundColor: 'rgba(0, 100, 0, 0.8)',
+                border: '3px solid #00ff00',
+                borderRadius: '10px',
+                color: '#ffffff',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textAlign: 'center',
+                boxShadow: '0 4px 15px rgba(0, 255, 0, 0.3)',
+                fontFamily: 'Arial, sans-serif',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
+                minWidth: '200px'
+              }}
+              onClick={onContinueButtonClick}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(0, 150, 0, 0.9)';
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 255, 0, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(0, 100, 0, 0.8)';
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 255, 0, 0.3)';
+              }}
+            >
+              CONTINUER
             </div>
-            <p className="text-green-200 text-xs">{getProgressPercentage()}% complété</p>
+            
+            {/* Indicateur de progression */}
+            <div style={{
+              color: '#ffffff',
+              fontSize: '14px',
+              textAlign: 'center',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+              fontFamily: 'Arial, sans-serif'
+            }}>
+              Progression: {progressPercentage}%
+            </div>
           </div>
         )}
 
-        <div className="space-y-4">
-          <button
-            onClick={goToLevelSelect}
-            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xl font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-xl w-48"
-          >
-            Jouer
-          </button>
-
-          {hasGameProgress() && (
-            <div className="pt-4 border-t border-white/20">
-              <button
-                onClick={resetGameProgress}
-                className="px-6 py-2 bg-red-600/20 text-red-300 text-sm font-medium rounded-lg hover:bg-red-600/30 border border-red-500/30 transition-all duration-200"
-              >
-                Réinitialiser la progression
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-8 text-gray-400 text-sm">
-          <p>Utilisez WASD ou les flèches pour vous déplacer</p>
-          <p>Cliquez pour attaquer</p>
-        </div>
+        {/* Bouton Jouer */}
+        <div
+          style={{
+            transform: `scale(${isPlayButtonHovered ? 2.2 : 2})`,
+            width: '180px',
+            height: '90px',
+            backgroundImage: `url(${PLAY_BUTTON_URL})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            filter: isPlayButtonHovered ? 
+              'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6)) saturate(1.2)' : 
+              'brightness(1) drop-shadow(0 0 5px rgba(0,0,0,0.3))',
+            opacity: isPlayButtonHovered ? 1 : 0.95,
+          }}
+          onClick={(e) => {
+            onPlayButtonClick(e);
+          }}
+          onMouseEnter={onPlayButtonMouseEnter}
+          onMouseLeave={onPlayButtonMouseLeave}
+        />
+        
+        {/* Texte explicatif sous le bouton Jouer */}
+        {hasGameProgress && (
+          <div style={{
+            color: '#cccccc',
+            fontSize: '12px',
+            textAlign: 'center',
+            textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+            fontFamily: 'Arial, sans-serif',
+            maxWidth: '250px'
+          }}>
+            (Nouveau jeu / Sélection de niveau)
+          </div>
+        )}
       </div>
+
+      {/* Bouton de réinitialisation (affiché seulement si progression sauvegardée) */}
+      {hasGameProgress && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            left: '20px',
+            padding: '10px 15px',
+            backgroundColor: 'rgba(150, 0, 0, 0.8)',
+            border: '2px solid #ff4444',
+            borderRadius: '8px',
+            color: '#ffffff',
+            fontSize: '12px',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            textAlign: 'center',
+            boxShadow: '0 2px 10px rgba(255, 0, 0, 0.3)',
+            fontFamily: 'Arial, sans-serif',
+            textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
+            zIndex: 1000
+          }}
+          onClick={(e) => {
+            if (window.confirm('Êtes-vous sûr de vouloir réinitialiser toute votre progression ?')) {
+              onResetProgressClick();
+            }
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(200, 0, 0, 0.9)';
+            e.currentTarget.style.transform = 'scale(1.05)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 0, 0, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(150, 0, 0, 0.8)';
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 2px 10px rgba(255, 0, 0, 0.3)';
+          }}
+        >
+          🗑️ RESET
+        </div>
+      )}
+
+      {/* Bouton Son */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: '60px',
+          height: '60px',
+          backgroundImage: `url(${isSoundEnabled ? SOUND_ON_BUTTON_URL : SOUND_OFF_BUTTON_URL})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          cursor: 'pointer',
+          zIndex: 1000,
+          transition: 'all 0.2s ease',
+          filter: isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)',
+          transform: 'scale(1)'
+        }}
+        onClick={(e) => {
+          onForceStartMusic();
+          onToggleSound();
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1)';
+          e.currentTarget.style.filter = isSoundEnabled ? 
+            'brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 
+            'brightness(0.7) grayscale(100%) drop-shadow(0 0 10px rgba(255,255,255,0.6))';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.filter = isSoundEnabled ? 'brightness(1)' : 'brightness(0.5) grayscale(100%)';
+        }}
+      />
     </div>
   );
 };
+
+export default MainMenu;

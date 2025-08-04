@@ -13,7 +13,7 @@ import {
 import Player from './Player';
 import Enemy from './Enemy';
 import Projectile from './Projectile';
-import HeartPickup from './HeartPickup';
+import Pickup from './Pickup';
 import GameUI from './GameUI';
 import { Position, Enemy as EnemyType, Projectile as ProjectileType, HeartPickup as HeartPickupType } from '../types';
 
@@ -94,11 +94,11 @@ const GameArea: React.FC<GameAreaProps> = ({
       backgroundPosition: 'center',
       overflow: 'hidden'
     }}>
-      {/* Coeurs à collecter */}
-      {hearts.map(heart => (
-        <HeartPickup
-          key={heart.id}
-          heart={heart}
+      {/* Pickups (coeurs et boucliers) à collecter */}
+      {hearts.map(pickup => (
+        <Pickup
+          key={pickup.id}
+          pickup={pickup}
         />
       ))}
 

@@ -2,7 +2,7 @@ export interface BlockProps {}
 
 export interface Enemy {
   id: number;
-  type: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem' | 'observer' | 'gnoll';
+  type: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem' | 'observer' | 'gnoll' | 'demon';
   x: number;
   y: number;
   direction: number;
@@ -36,6 +36,7 @@ export interface HeartPickup {
   x: number;
   y: number;
   spawnTime: number;
+  type: 'heart' | 'shield';
 }
 
 export interface Position {

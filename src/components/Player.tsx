@@ -21,6 +21,7 @@ interface PlayerProps {
   isDead: boolean;
   deathFrame: number;
   spriteScale: number;
+  isInvincible?: boolean;
 }
 
 const Player: React.FC<PlayerProps> = ({
@@ -32,7 +33,8 @@ const Player: React.FC<PlayerProps> = ({
   attackFrame,
   isDead,
   deathFrame,
-  spriteScale
+  spriteScale,
+  isInvincible = false
 }) => {
   let spriteUrl, framesPerRow, frame;
   
@@ -65,9 +67,27 @@ const Player: React.FC<PlayerProps> = ({
         imageRendering: 'pixelated',
         transition: 'none',
         zIndex: 10,
+        filter: isInvincible ? 'drop-shadow(0 0 10px rgba(0, 150, 255, 0.8)) brightness(1.3)' : 'none',
+        animation: isInvincible ? 'invinciblePulse 0.5s ease-in-out infinite alternate' : 'none',
       }}
     />
   );
 };
+
+// Styles CSS pour l'animation d'invincibilité
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes invinciblePulse {
+    0% {
+      opacity: 1;
+      filter: drop-shadow(0 0 10px rgba(0, 150, 255, 0.8)) brightness(1.3);
+    }
+    100% {
+      opacity: 0.7;
+      filter: drop-shadow(0 0 15px rgba(0, 150, 255, 1)) brightness(1.5);
+    }
+  }
+`;
+document.head.appendChild(style);
 
 export default Player; 

@@ -52,8 +52,14 @@ export const GNOLL_WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?i
 export const GNOLL_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1C4i8d_ef0bxsau5orpsVZ2EIwQXiVR3h&sz=w1000';
 export const GNOLL_DEATH_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1KubuIgYPDIVCrTgA3aVv3hb0BFK5cCZ2&sz=w1000';
 
+// URLs des sprites démons (semi-boss)
+export const DEMON_WALK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=13ryxtNJho3o8sdVJpAlBcd2ZH6YGxEfI&sz=w1000';
+export const DEMON_ATTACK_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1KHINPPFtPI4_wjI-MOOzxALfMaFtHFkh&sz=w1000';
+export const DEMON_DEATH_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=19lIRQ9wkTqcJnlLyJDOwXaWMadhV13mt&sz=w1000';
+
 // URLs des sprites UI
 export const HEART_SPRITE_SHEET_URL = 'https://drive.google.com/thumbnail?id=1XF9PerIam-SHkJWl877SiIUi9ZzyWEMu&sz=w1000';
+export const SHIELD_SPRITE_URL = 'https://drive.google.com/thumbnail?id=1TFgxG2WGHubaVShRx9YC9rapldnf9Scc&sz=w1000';
 export const SKULL_IMAGE_URL = 'https://drive.google.com/thumbnail?id=1Dp4dPzMEZKN-cuMdcXU8c9WrdLpOWmjD&sz=w500';
 export const WOOD_FRAME_IMAGE_URL = 'https://drive.google.com/thumbnail?id=1ReBlJh1wSzADiby_PFaaj69P4gz2-y4a&sz=w1000';
 
@@ -145,6 +151,11 @@ export const GOLEM_DEATH_FRAMES_PER_ROW = 8;
 export const GNOLL_WALK_FRAMES_PER_ROW = 6;
 export const GNOLL_ATTACK_FRAMES_PER_ROW = 10;
 export const GNOLL_DEATH_FRAMES_PER_ROW = 6;
+
+// Configuration des démons (semi-boss)
+export const DEMON_WALK_FRAMES_PER_ROW = 6;
+export const DEMON_ATTACK_FRAMES_PER_ROW = 10;
+export const DEMON_DEATH_FRAMES_PER_ROW = 13;
 
 // Limites du jeu
 export const TOP_LIMIT = 35;

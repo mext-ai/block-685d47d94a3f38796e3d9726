@@ -75,6 +75,11 @@ export const useGame = () => {
   const lastHeartSpawnTime = useRef(0);
   const nextHeartId = useRef(1);
   
+  // État d'invincibilité
+  const [isInvincible, setIsInvincible] = useState(false);
+  const invincibilityEndTime = useRef(0);
+  const isInvincibleRef = useRef(false);
+  
   // Position initiale du joueur (centre de l'écran en pourcentages)
   const initialPlayerPos: Position = { 
     x: 50, // 50% de la largeur
@@ -86,8 +91,8 @@ export const useGame = () => {
     saveGameProgress(unlockedLevels, level);
   }, [unlockedLevels, level]);
 
-  // Fonction pour générer un coeur à une position aléatoire
-  const spawnHeart = useCallback(() => {
+  // Fonction pour générer un pickup (coeur ou bouclier) à une position aléatoire
+  const spawnPickup = useCallback(() => {
     const now = Date.now();
     
     // Utiliser les limites exactes définies dans les constantes
@@ -103,15 +108,19 @@ export const useGame = () => {
     const x = Math.random() * (maxX - minX) + minX;
     const y = Math.random() * (maxY - minY) + minY;
     
-    const newHeart: HeartPickup = {
+    // 50% de chance d'être un coeur, 50% d'être un bouclier
+    const pickupType: 'heart' | 'shield' = Math.random() < 0.5 ? 'heart' : 'shield';
+    
+    const newPickup: HeartPickup = {
       id: nextHeartId.current++,
       x,
       y,
-      spawnTime: now
+      spawnTime: now,
+      type: pickupType
     };
     
     setHearts(prev => {
-      const updated = [...prev, newHeart];
+      const updated = [...prev, newPickup];
       heartsRef.current = updated;
       return updated;
     });
@@ -119,16 +128,29 @@ export const useGame = () => {
     lastHeartSpawnTime.current = now;
   }, []);
 
-  // Fonction pour collecter un coeur
-  const collectHeart = useCallback((heartId: number) => {
+  // Fonction pour collecter un pickup (coeur ou bouclier)
+  const collectPickup = useCallback((pickupId: number) => {
     setHearts(prev => {
-      const updated = prev.filter(heart => heart.id !== heartId);
+      const pickup = prev.find(p => p.id === pickupId);
+      const updated = prev.filter(p => p.id !== pickupId);
       heartsRef.current = updated;
+      
+      // Appliquer l'effet selon le type de pickup
+      if (pickup) {
+        if (pickup.type === 'heart') {
+          // Soigner le joueur de 2 HP
+          setPlayerHealth(prev => Math.min(10, prev + 2)); // Maximum 10 HP
+        } else if (pickup.type === 'shield') {
+          // Activer l'invincibilité pendant 5 secondes
+          console.log('Bouclier collecté - invincibilité activée pour 5 secondes');
+          setIsInvincible(true);
+          isInvincibleRef.current = true;
+          invincibilityEndTime.current = Date.now() + 5000; // 5 secondes
+        }
+      }
+      
       return updated;
     });
-    
-    // Soigner le joueur de 2 HP
-    setPlayerHealth(prev => Math.min(10, prev + 2)); // Maximum 10 HP
   }, []);
 
   // Terminer le jeu
@@ -138,6 +160,13 @@ export const useGame = () => {
 
   // Gérer les dégâts au joueur
   const takeDamage = useCallback((damage: number = 1) => {
+    // Vérifier si le joueur est invincible en temps réel
+    if (isInvincibleRef.current) {
+      console.log('Joueur invincible - dégâts ignorés:', damage);
+      return; // Ne pas prendre de dégâts si invincible
+    }
+    
+    console.log('Joueur prend des dégâts:', damage, 'Invincible:', isInvincibleRef.current);
     setPlayerHealth(prev => {
       const newHealth = Math.max(0, prev - damage);
       if (newHealth <= 0) {
@@ -165,7 +194,8 @@ export const useGame = () => {
     mapDimensions.width,
     mapDimensions.height,
     level,
-    (damage: number = 1) => takeDamage(damage) // Système de dégâts unifié
+    (damage: number = 1) => takeDamage(damage), // Système de dégâts unifié
+    () => isInvincible // Passer une fonction qui vérifie l'invincibilité en temps réel
   );
 
   // Position du joueur
@@ -239,12 +269,12 @@ export const useGame = () => {
     const interval = setInterval(() => {
       const now = Date.now();
       if (now - lastHeartSpawnTime.current >= 15000) { // 15 secondes
-        spawnHeart();
+        spawnPickup();
       }
     }, 1000); // Vérifier chaque seconde
 
     return () => clearInterval(interval);
-  }, [gameState, spawnHeart]);
+  }, [gameState, spawnPickup]);
 
   // Vérifier les collisions entre le joueur et les coeurs
   useEffect(() => {
@@ -252,12 +282,31 @@ export const useGame = () => {
 
     const playerCollisionRadius = 3; // Rayon de collision du joueur
 
-    heartsRef.current.forEach(heart => {
-      if (checkCollision(playerPosition, heart, playerCollisionRadius)) {
-        collectHeart(heart.id);
+    heartsRef.current.forEach(pickup => {
+      if (checkCollision(playerPosition, pickup, playerCollisionRadius)) {
+        collectPickup(pickup.id);
       }
     });
-  }, [playerPosition, gameState, collectHeart]);
+  }, [playerPosition, gameState, collectPickup]);
+
+  // Gérer la fin de l'invincibilité
+  useEffect(() => {
+    if (!isInvincible) return;
+
+    console.log('Effet d\'invincibilité démarré, fin prévue à:', new Date(invincibilityEndTime.current));
+    
+    const checkInvincibility = () => {
+      const now = Date.now();
+      if (now >= invincibilityEndTime.current) {
+        console.log('Invincibilité terminée');
+        setIsInvincible(false);
+        isInvincibleRef.current = false;
+      }
+    };
+
+    const interval = setInterval(checkInvincibility, 100); // Vérifier toutes les 100ms
+    return () => clearInterval(interval);
+  }, [isInvincible]);
 
   // Démarrer le jeu
   const startGame = useCallback((levelNumber: number = 1) => {
@@ -275,6 +324,8 @@ export const useGame = () => {
     heartsRef.current = [];
     lastHeartSpawnTime.current = Date.now(); // Réinitialiser le timer des coeurs
     nextHeartId.current = 1;
+    setIsInvincible(false); // Réinitialiser l'invincibilité
+    isInvincibleRef.current = false;
   }, [resetPlayer, setEnemySystemEnemies, enemySystemRef]);
 
   // Retourner au menu
@@ -429,6 +480,7 @@ export const useGame = () => {
     level,
     playerHealth,
     gameTime,
+    isInvincible,
     
     // Entités du jeu
     playerPosition,

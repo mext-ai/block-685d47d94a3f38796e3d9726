@@ -586,6 +586,339 @@ export const createLevel6Enemies = (): Enemy[] => {
   return enemies;
 };
 
+// Fonction pour créer les ennemis du niveau 7 - 24 ennemis : 8 champignons, 4 goblins, 2 tréants, 2 diables, 1 golem, 5 gnolls, 2 démons
+export const createLevel7Enemies = (): Enemy[] => {
+  const enemies: Enemy[] = [];
+  
+  // Configuration avec apparitions progressives et vagues simultanées
+  const enemySpawnTimes = [
+    0,     // Ennemi 1 : goblin immédiat
+    2000,  // Ennemi 2 : champignon après 2 secondes
+    4000,  // Ennemi 3 : gnoll après 4 secondes (premier gnoll)
+    6000,  // Ennemi 4 : champignon après 6 secondes
+    8000,  // Ennemi 5 : tréant après 8 secondes (premier boss)
+    10000, // Ennemi 6 : gnoll après 10 secondes (deuxième gnoll)
+    12000, // Ennemi 7 : goblin après 12 secondes
+    14000, // Ennemi 8 : champignon après 14 secondes
+    16000, // Ennemi 9 : tréant après 16 secondes (deuxième boss)
+    18000, // Ennemi 10 : diable après 18 secondes (premier diable)
+    20000, // Ennemi 11 : goblin après 20 secondes
+    22000, // Ennemi 12 : champignon après 22 secondes
+    24000, // Ennemi 13 : gnoll après 24 secondes (troisième gnoll)
+    26000, // Ennemi 14 : champignon après 26 secondes
+    28000, // Ennemi 15 : diable après 28 secondes (deuxième diable)
+    30000, // Ennemi 16 : golem après 30 secondes (boss final)
+    32000, // Ennemi 17 : goblin après 32 secondes
+    34000, // Ennemi 18 : champignon après 34 secondes
+    36000, // Ennemi 19 : gnoll après 36 secondes (quatrième gnoll)
+    38000, // Ennemi 20 : champignon après 38 secondes
+    40000, // Ennemi 21 : gnoll après 40 secondes (cinquième gnoll)
+    42000, // Ennemi 22 : champignon après 42 secondes
+    44000, // Ennemi 23 : démon après 44 secondes (premier semi-boss)
+    46000  // Ennemi 24 : démon après 46 secondes (deuxième semi-boss)
+  ];
+
+  for (let i = 0; i < 24; i++) {
+    const fromLeft = i % 2 === 0;
+    
+    const startX = fromLeft ? 
+      5 + Math.random() * 10 :   // Gauche : 5% à 15%
+      85 + Math.random() * 10;   // Droite : 85% à 95%
+    
+    const startY = 40 + Math.random() * 45; // Entre 40% et 85% de hauteur
+    
+    const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
+
+    // Distribution des types d'ennemis :
+    // - 8 champignons (positions 1,3,7,11,13,17,19,21)
+    // - 4 goblins (positions 0,6,10,16)
+    // - 2 tréants (positions 4,8 - bosses intermédiaires)
+    // - 2 diables (positions 9,14 - ennemis à distance)
+    // - 1 golem (position 15 - boss final)
+    // - 5 gnolls (positions 2,5,12,18,20)
+    // - 2 démons (positions 22,23 - semi-boss)
+    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem' | 'observer' | 'gnoll' | 'demon';
+    let enemyHp: number;
+    
+    if (i === 15) {
+      // 1 golem : position 16 (boss final)
+      enemyType = 'golem';
+      enemyHp = 8;
+    } else if (i === 22 || i === 23) {
+      // 2 démons : positions 23, 24 (semi-boss)
+      enemyType = 'demon';
+      enemyHp = 10;
+    } else if (i === 9 || i === 14) {
+      // 2 diables : positions 10, 15
+      enemyType = 'devil';
+      enemyHp = 4;
+    } else if (i === 4 || i === 8) {
+      // 2 tréants : positions 5, 9 (bosses intermédiaires)
+      enemyType = 'treant';
+      enemyHp = 5;
+    } else if (i === 2 || i === 5 || i === 12 || i === 18 || i === 20) {
+      // 5 gnolls : positions 3, 6, 13, 19, 21
+      enemyType = 'gnoll';
+      enemyHp = 4;
+    } else if (i === 0 || i === 6 || i === 10 || i === 16) {
+      // 4 goblins : positions 1, 7, 11, 17
+      enemyType = 'goblin';
+      enemyHp = 2;
+    } else {
+      // 8 champignons (le reste)
+      enemyType = 'mushroom';
+      enemyHp = 3;
+    }
+    
+    const enemy: Enemy = {
+      id: i + 1,
+      type: enemyType,
+      x: startX,
+      y: startY,
+      direction: initialDirection,
+      currentFrame: 0,
+      isAlive: true,
+      hp: enemyHp,
+      maxHp: enemyHp,
+      isDying: false,
+      deathFrame: 0,
+      isAttacking: false,
+      attackFrame: 0,
+      lastAttackTime: 0,
+      spawnTime: enemySpawnTimes[i],
+      hasSpawned: enemySpawnTimes[i] === 0
+    };
+    
+    enemies.push(enemy);
+  }
+  
+  return enemies;
+};
+
+// Fonction pour créer les ennemis du niveau 8 - 26 ennemis : 9 champignons, 4 goblins, 2 tréants, 2 diables, 1 golem, 5 gnolls, 3 démons
+export const createLevel8Enemies = (): Enemy[] => {
+  const enemies: Enemy[] = [];
+  
+  // Configuration avec apparitions progressives et vagues simultanées
+  const enemySpawnTimes = [
+    0,     // Ennemi 1 : goblin immédiat
+    2000,  // Ennemi 2 : champignon après 2 secondes
+    4000,  // Ennemi 3 : gnoll après 4 secondes (premier gnoll)
+    6000,  // Ennemi 4 : champignon après 6 secondes
+    8000,  // Ennemi 5 : tréant après 8 secondes (premier boss)
+    10000, // Ennemi 6 : gnoll après 10 secondes (deuxième gnoll)
+    12000, // Ennemi 7 : goblin après 12 secondes
+    14000, // Ennemi 8 : champignon après 14 secondes
+    16000, // Ennemi 9 : tréant après 16 secondes (deuxième boss)
+    18000, // Ennemi 10 : diable après 18 secondes (premier diable)
+    20000, // Ennemi 11 : goblin après 20 secondes
+    22000, // Ennemi 12 : champignon après 22 secondes
+    24000, // Ennemi 13 : gnoll après 24 secondes (troisième gnoll)
+    26000, // Ennemi 14 : champignon après 26 secondes
+    28000, // Ennemi 15 : diable après 28 secondes (deuxième diable)
+    30000, // Ennemi 16 : golem après 30 secondes (boss final)
+    32000, // Ennemi 17 : goblin après 32 secondes
+    34000, // Ennemi 18 : champignon après 34 secondes
+    36000, // Ennemi 19 : gnoll après 36 secondes (quatrième gnoll)
+    38000, // Ennemi 20 : champignon après 38 secondes
+    40000, // Ennemi 21 : gnoll après 40 secondes (cinquième gnoll)
+    42000, // Ennemi 22 : champignon après 42 secondes
+    44000, // Ennemi 23 : démon après 44 secondes (premier semi-boss)
+    46000, // Ennemi 24 : démon après 46 secondes (deuxième semi-boss)
+    48000, // Ennemi 25 : champignon après 48 secondes
+    50000  // Ennemi 26 : démon après 50 secondes (troisième semi-boss)
+  ];
+
+  for (let i = 0; i < 26; i++) {
+    const fromLeft = i % 2 === 0;
+    
+    const startX = fromLeft ? 
+      5 + Math.random() * 10 :   // Gauche : 5% à 15%
+      85 + Math.random() * 10;   // Droite : 85% à 95%
+    
+    const startY = 40 + Math.random() * 45; // Entre 40% et 85% de hauteur
+    
+    const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
+
+    // Distribution des types d'ennemis :
+    // - 9 champignons (positions 1,3,7,11,13,17,19,21,24)
+    // - 4 goblins (positions 0,6,10,16)
+    // - 2 tréants (positions 4,8 - bosses intermédiaires)
+    // - 2 diables (positions 9,14 - ennemis à distance)
+    // - 1 golem (position 15 - boss final)
+    // - 5 gnolls (positions 2,5,12,18,20)
+    // - 3 démons (positions 22,23,25 - semi-boss)
+    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem' | 'observer' | 'gnoll' | 'demon';
+    let enemyHp: number;
+    
+    if (i === 15) {
+      // 1 golem : position 16 (boss final)
+      enemyType = 'golem';
+      enemyHp = 8;
+    } else if (i === 22 || i === 23 || i === 25) {
+      // 3 démons : positions 23, 24, 26 (semi-boss)
+      enemyType = 'demon';
+      enemyHp = 10;
+    } else if (i === 9 || i === 14) {
+      // 2 diables : positions 10, 15
+      enemyType = 'devil';
+      enemyHp = 4;
+    } else if (i === 4 || i === 8) {
+      // 2 tréants : positions 5, 9 (bosses intermédiaires)
+      enemyType = 'treant';
+      enemyHp = 5;
+    } else if (i === 2 || i === 5 || i === 12 || i === 18 || i === 20) {
+      // 5 gnolls : positions 3, 6, 13, 19, 21
+      enemyType = 'gnoll';
+      enemyHp = 4;
+    } else if (i === 0 || i === 6 || i === 10 || i === 16) {
+      // 4 goblins : positions 1, 7, 11, 17
+      enemyType = 'goblin';
+      enemyHp = 2;
+    } else {
+      // 9 champignons (le reste)
+      enemyType = 'mushroom';
+      enemyHp = 3;
+    }
+    
+    const enemy: Enemy = {
+      id: i + 1,
+      type: enemyType,
+      x: startX,
+      y: startY,
+      direction: initialDirection,
+      currentFrame: 0,
+      isAlive: true,
+      hp: enemyHp,
+      maxHp: enemyHp,
+      isDying: false,
+      deathFrame: 0,
+      isAttacking: false,
+      attackFrame: 0,
+      lastAttackTime: 0,
+      spawnTime: enemySpawnTimes[i],
+      hasSpawned: enemySpawnTimes[i] === 0
+    };
+    
+    enemies.push(enemy);
+  }
+  
+  return enemies;
+};
+
+// Fonction pour créer les ennemis du niveau 9 - 28 ennemis : 10 champignons, 4 goblins, 2 tréants, 2 diables, 1 golem, 5 gnolls, 4 démons
+export const createLevel9Enemies = (): Enemy[] => {
+  const enemies: Enemy[] = [];
+  
+  // Configuration avec apparitions progressives et vagues simultanées
+  const enemySpawnTimes = [
+    0,     // Ennemi 1 : goblin immédiat
+    2000,  // Ennemi 2 : champignon après 2 secondes
+    4000,  // Ennemi 3 : gnoll après 4 secondes (premier gnoll)
+    6000,  // Ennemi 4 : champignon après 6 secondes
+    8000,  // Ennemi 5 : tréant après 8 secondes (premier boss)
+    10000, // Ennemi 6 : gnoll après 10 secondes (deuxième gnoll)
+    12000, // Ennemi 7 : goblin après 12 secondes
+    14000, // Ennemi 8 : champignon après 14 secondes
+    16000, // Ennemi 9 : tréant après 16 secondes (deuxième boss)
+    18000, // Ennemi 10 : diable après 18 secondes (premier diable)
+    20000, // Ennemi 11 : goblin après 20 secondes
+    22000, // Ennemi 12 : champignon après 22 secondes
+    24000, // Ennemi 13 : gnoll après 24 secondes (troisième gnoll)
+    26000, // Ennemi 14 : champignon après 26 secondes
+    28000, // Ennemi 15 : diable après 28 secondes (deuxième diable)
+    30000, // Ennemi 16 : golem après 30 secondes (boss final)
+    32000, // Ennemi 17 : goblin après 32 secondes
+    34000, // Ennemi 18 : champignon après 34 secondes
+    36000, // Ennemi 19 : gnoll après 36 secondes (quatrième gnoll)
+    38000, // Ennemi 20 : champignon après 38 secondes
+    40000, // Ennemi 21 : gnoll après 40 secondes (cinquième gnoll)
+    42000, // Ennemi 22 : champignon après 42 secondes
+    44000, // Ennemi 23 : démon après 44 secondes (premier semi-boss)
+    46000, // Ennemi 24 : démon après 46 secondes (deuxième semi-boss)
+    48000, // Ennemi 25 : champignon après 48 secondes
+    50000, // Ennemi 26 : démon après 50 secondes (troisième semi-boss)
+    52000, // Ennemi 27 : champignon après 52 secondes
+    54000  // Ennemi 28 : démon après 54 secondes (quatrième semi-boss)
+  ];
+
+  for (let i = 0; i < 28; i++) {
+    const fromLeft = i % 2 === 0;
+    
+    const startX = fromLeft ? 
+      5 + Math.random() * 10 :   // Gauche : 5% à 15%
+      85 + Math.random() * 10;   // Droite : 85% à 95%
+    
+    const startY = 40 + Math.random() * 45; // Entre 40% et 85% de hauteur
+    
+    const initialDirection = fromLeft ? 3 : 2; // 3 = droite, 2 = gauche
+
+    // Distribution des types d'ennemis :
+    // - 10 champignons (positions 1,3,7,11,13,17,19,21,24,26)
+    // - 4 goblins (positions 0,6,10,16)
+    // - 2 tréants (positions 4,8 - bosses intermédiaires)
+    // - 2 diables (positions 9,14 - ennemis à distance)
+    // - 1 golem (position 15 - boss final)
+    // - 5 gnolls (positions 2,5,12,18,20)
+    // - 4 démons (positions 22,23,25,27 - semi-boss)
+    let enemyType: 'mushroom' | 'treant' | 'devil' | 'goblin' | 'golem' | 'observer' | 'gnoll' | 'demon';
+    let enemyHp: number;
+    
+    if (i === 15) {
+      // 1 golem : position 16 (boss final)
+      enemyType = 'golem';
+      enemyHp = 8;
+    } else if (i === 22 || i === 23 || i === 25 || i === 27) {
+      // 4 démons : positions 23, 24, 26, 28 (semi-boss)
+      enemyType = 'demon';
+      enemyHp = 10;
+    } else if (i === 9 || i === 14) {
+      // 2 diables : positions 10, 15
+      enemyType = 'devil';
+      enemyHp = 4;
+    } else if (i === 4 || i === 8) {
+      // 2 tréants : positions 5, 9 (bosses intermédiaires)
+      enemyType = 'treant';
+      enemyHp = 5;
+    } else if (i === 2 || i === 5 || i === 12 || i === 18 || i === 20) {
+      // 5 gnolls : positions 3, 6, 13, 19, 21
+      enemyType = 'gnoll';
+      enemyHp = 4;
+    } else if (i === 0 || i === 6 || i === 10 || i === 16) {
+      // 4 goblins : positions 1, 7, 11, 17
+      enemyType = 'goblin';
+      enemyHp = 2;
+    } else {
+      // 10 champignons (le reste)
+      enemyType = 'mushroom';
+      enemyHp = 3;
+    }
+    
+    const enemy: Enemy = {
+      id: i + 1,
+      type: enemyType,
+      x: startX,
+      y: startY,
+      direction: initialDirection,
+      currentFrame: 0,
+      isAlive: true,
+      hp: enemyHp,
+      maxHp: enemyHp,
+      isDying: false,
+      deathFrame: 0,
+      isAttacking: false,
+      attackFrame: 0,
+      lastAttackTime: 0,
+      spawnTime: enemySpawnTimes[i],
+      hasSpawned: enemySpawnTimes[i] === 0
+    };
+    
+    enemies.push(enemy);
+  }
+  
+  return enemies;
+};
+
 // Fonction pour créer les ennemis selon le niveau
 export const createEnemiesForLevel = (level: number): Enemy[] => {
   switch (level) {
@@ -601,6 +934,12 @@ export const createEnemiesForLevel = (level: number): Enemy[] => {
       return createLevel5Enemies();
     case 6:
       return createLevel6Enemies();
+    case 7:
+      return createLevel7Enemies();
+    case 8:
+      return createLevel8Enemies();
+    case 9:
+      return createLevel9Enemies();
     default:
       return createDefaultEnemies();
   }

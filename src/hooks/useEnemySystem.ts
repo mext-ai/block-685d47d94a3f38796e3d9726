@@ -9,7 +9,8 @@ export const useEnemySystem = (
   mapWidth: number,
   mapHeight: number,
   level: number,
-  onPlayerDamage: (damage?: number) => void
+  onPlayerDamage: (damage?: number) => void,
+  checkPlayerInvincible: () => boolean = () => false
 ) => {
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const [projectiles, setProjectiles] = useState<Projectile[]>([]);
@@ -70,7 +71,7 @@ export const useEnemySystem = (
       setEnemies(prev => prev.map(enemy => {
         if (enemy.isDying || !enemy.isAlive || enemy.isAttacking || !enemy.hasSpawned) return enemy;
         
-        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' || enemy.type === 'goblin' || enemy.type === 'observer' || enemy.type === 'gnoll' ? 6 : 3; // 6 frames de marche pour tréants, diables, goblins, observateurs et gnolls
+        const maxFrames = enemy.type === 'treant' || enemy.type === 'devil' || enemy.type === 'goblin' || enemy.type === 'observer' || enemy.type === 'gnoll' || enemy.type === 'demon' ? 6 : 3; // 6 frames de marche pour tréants, diables, goblins, observateurs, gnolls et démons
         return {
           ...enemy,
           currentFrame: (enemy.currentFrame + 1) % maxFrames
@@ -145,6 +146,8 @@ export const useEnemySystem = (
           maxAttackFrames = 9;
         } else if (enemy.type === 'gnoll') {
           maxAttackFrames = 10; // 10 frames pour les gnolls (attaque plus rapide)
+        } else if (enemy.type === 'demon') {
+          maxAttackFrames = 10; // 10 frames pour les démons (semi-boss)
         } else {
           maxAttackFrames = 4;
         }
@@ -211,6 +214,8 @@ export const useEnemySystem = (
           maxDeathFrames = 9; // 9 frames pour l'observateur
         } else if (enemy.type === 'gnoll') {
           maxDeathFrames = 6; // 6 frames pour les gnolls
+        } else if (enemy.type === 'demon') {
+          maxDeathFrames = 13; // 13 frames pour les démons (semi-boss)
         } else {
           maxDeathFrames = 9; // 9 frames pour le champignon
         }
@@ -256,6 +261,8 @@ export const useEnemySystem = (
           speed = 0.2; // Les golems sont lents mais puissants
         } else if (enemy.type === 'gnoll') {
           speed = 0.3; // Les gnolls ont une vitesse entre champignon et goblin
+        } else if (enemy.type === 'demon') {
+          speed = 0.25; // Les démons sont lents mais puissants (semi-boss)
         }
         
         if (enemy.type === 'mushroom' || enemy.type === 'treant') {
@@ -515,6 +522,48 @@ export const useEnemySystem = (
               newDirection = deltaY > 0 ? 0 : 1;
             }
           }
+        } else if (enemy.type === 'demon') {
+          const currentPlayerPos = playerPositionRef.current;
+          
+          const deltaX = currentPlayerPos.x - enemy.x;
+          const deltaY = currentPlayerPos.y - enemy.y;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          
+          // Démons ont une portée d'attaque directionnelle et s'arrêtent pour attaquer
+          const attackDistance = 8; // Portée d'attaque directionnelle
+          const stopDistance = 8; // Distance à laquelle ils s'arrêtent pour attaquer
+          const currentTime = Date.now();
+          
+          // Cooldown d'attaque pour les démons (2000ms - semi-boss)
+          if (distance <= attackDistance && currentTime - enemy.lastAttackTime > 2000) {
+            shouldAttack = true;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          } else if (distance > stopDistance && !shouldAttack) {
+            const moveX = (deltaX / distance) * speed;
+            const moveY = (deltaY / distance) * speed;
+            
+            // Limites de mouvement en pourcentages
+            const topLimit = 35;
+            const bottomLimit = 90;
+            const leftLimit = 5;
+            const rightLimit = 95;
+            
+            const potentialX = Math.max(leftLimit, Math.min(rightLimit, enemy.x + moveX));
+            const potentialY = Math.max(topLimit, Math.min(bottomLimit, enemy.y + moveY));
+            
+            newX = potentialX;
+            newY = potentialY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newDirection = deltaX > 0 ? 3 : 2;
+            } else {
+              newDirection = deltaY > 0 ? 0 : 1;
+            }
+          }
         }
         
         if (shouldAttack) {
@@ -545,6 +594,11 @@ export const useEnemySystem = (
     // Vérifier que l'ennemi est vivant et pas en train de mourir
     if (!enemy.isAlive || enemy.isDying || !enemy.hasSpawned) {
       return; // Ne pas infliger de dégâts si l'ennemi est mort ou en train de mourir
+    }
+    
+    // Vérifier si le joueur est invincible
+    if (checkPlayerInvincible()) {
+      return; // Ne pas infliger de dégâts si le joueur est invincible
     }
     
     const currentTime = Date.now();
@@ -622,6 +676,61 @@ export const useEnemySystem = (
         onPlayerDamage(damage);
         enemyDamageCooldowns.current[enemy.id] = currentTime;
       }
+    } else if (enemy.type === 'demon') {
+      // Logique pour les démons : attaque directionnelle (comme les tréants)
+      const maxAttackRange = 8; // Portée maximale de l'attaque
+      const attackWidth = 3; // Largeur de la zone d'attaque (angle)
+      
+      // Vérifier d'abord si le joueur est dans la portée
+      if (distance > maxAttackRange) return;
+      
+      // Calculer la direction de l'attaque basée sur la direction du démon
+      let attackDirectionX = 0;
+      let attackDirectionY = 0;
+      
+      switch (enemy.direction) {
+        case 0: // Vers le bas
+          attackDirectionX = 0;
+          attackDirectionY = 1;
+          break;
+        case 1: // Vers le haut
+          attackDirectionX = 0;
+          attackDirectionY = -1;
+          break;
+        case 2: // Vers la gauche
+          attackDirectionX = -1;
+          attackDirectionY = 0;
+          break;
+        case 3: // Vers la droite
+          attackDirectionX = 1;
+          attackDirectionY = 0;
+          break;
+      }
+      
+      // Normaliser la direction vers le joueur
+      const directionToPlayer = {
+        x: deltaX / distance,
+        y: deltaY / distance
+      };
+      
+      // Calculer le produit scalaire pour vérifier l'alignement
+      const dotProduct = attackDirectionX * directionToPlayer.x + attackDirectionY * directionToPlayer.y;
+      
+      // Le joueur doit être devant le démon (produit scalaire > 0.5 pour un cône de ~60°)
+      const minAlignment = 0.5;
+      
+      if (dotProduct > minAlignment) {
+        // Vérifier aussi la distance perpendiculaire pour la largeur de l'attaque
+        const perpendicularDistance = Math.abs(
+          -attackDirectionY * deltaX + attackDirectionX * deltaY
+        );
+        
+        if (perpendicularDistance <= attackWidth) {
+          // Le joueur est dans la zone d'attaque directionnelle
+          onPlayerDamage(3); // Dégâts du démon (semi-boss)
+          enemyDamageCooldowns.current[enemy.id] = currentTime;
+        }
+      }
     } else {
       // Logique originale pour les champignons et autres ennemis
       const attackRange = 6;
@@ -653,7 +762,9 @@ export const useEnemySystem = (
           
           if (distance < 3) {
             // Projectile touche le joueur
-            onPlayerDamage(projectile.damage); // Utiliser les dégâts du projectile
+            if (!checkPlayerInvincible()) {
+              onPlayerDamage(projectile.damage); // Utiliser les dégâts du projectile
+            }
             return null; // Supprimer le projectile
           }
           

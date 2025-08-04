@@ -28,6 +28,7 @@ interface GameAreaProps {
   playerIsDead: boolean;
   playerDeathFrame: number;
   playerHealth: number;
+  playerIsInvincible: boolean;
   enemies: EnemyType[];
   projectiles: ProjectileType[];
   hearts: HeartPickupType[];
@@ -38,6 +39,7 @@ interface GameAreaProps {
   observerSpriteScale: number;
   goblinSpriteScale: number;
   golemSpriteScale: number;
+  demonSpriteScale: number;
   isSoundEnabled: boolean;
   onToggleSound: () => void;
 }
@@ -53,6 +55,7 @@ const GameArea: React.FC<GameAreaProps> = ({
   playerIsDead,
   playerDeathFrame,
   playerHealth,
+  playerIsInvincible,
   enemies,
   projectiles,
   hearts,
@@ -63,6 +66,7 @@ const GameArea: React.FC<GameAreaProps> = ({
   observerSpriteScale,
   goblinSpriteScale,
   golemSpriteScale,
+  demonSpriteScale,
   isSoundEnabled,
   onToggleSound
 }) => {
@@ -122,6 +126,7 @@ const GameArea: React.FC<GameAreaProps> = ({
           observerSpriteScale={observerSpriteScale}
           goblinSpriteScale={goblinSpriteScale}
           golemSpriteScale={golemSpriteScale}
+          demonSpriteScale={demonSpriteScale}
         />
       ))}
 

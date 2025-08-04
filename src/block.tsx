@@ -25,7 +25,7 @@ const Block: React.FC<BlockProps> = () => {
   // Hooks personnalisés
   const audio = useAudio();
   const game = useGame(); // Ce hook contient maintenant toute la logique localStorage
-  const { spriteScale, enemySpriteScale, treantSpriteScale, devilSpriteScale, observerSpriteScale, goblinSpriteScale, golemSpriteScale } = useResponsiveScales();
+  const { spriteScale, enemySpriteScale, treantSpriteScale, devilSpriteScale, observerSpriteScale, goblinSpriteScale, golemSpriteScale, demonSpriteScale } = useResponsiveScales();
   
   // Utiliser le système d'attaque du hook useGame
   const { isAttacking, attackFrame, triggerAttack, setPlayerDirection } = game;
@@ -151,6 +151,7 @@ const Block: React.FC<BlockProps> = () => {
         playerIsDead={game.playerHealth <= 0}
         playerDeathFrame={deathFrame}
         playerHealth={game.playerHealth}
+        playerIsInvincible={game.isInvincible}
         enemies={game.enemies}
         projectiles={game.projectiles}
         hearts={game.hearts}
@@ -161,6 +162,7 @@ const Block: React.FC<BlockProps> = () => {
         observerSpriteScale={observerSpriteScale}
         goblinSpriteScale={goblinSpriteScale}
         golemSpriteScale={golemSpriteScale}
+        demonSpriteScale={demonSpriteScale}
         isSoundEnabled={audio.isSoundEnabled}
         onToggleSound={audio.toggleSound}
       />
@@ -182,6 +184,7 @@ const Block: React.FC<BlockProps> = () => {
         playerIsDead={game.playerHealth <= 0}
         playerDeathFrame={deathFrame}
         playerHealth={game.playerHealth}
+        playerIsInvincible={game.isInvincible}
         enemies={game.enemies}
         projectiles={game.projectiles}
         hearts={game.hearts}
@@ -192,6 +195,7 @@ const Block: React.FC<BlockProps> = () => {
         observerSpriteScale={observerSpriteScale}
         goblinSpriteScale={goblinSpriteScale}
         golemSpriteScale={golemSpriteScale}
+        demonSpriteScale={demonSpriteScale}
         isSoundEnabled={audio.isSoundEnabled}
         onToggleSound={audio.toggleSound}
       />

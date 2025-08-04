@@ -22,6 +22,9 @@ import {
   GNOLL_WALK_SPRITE_SHEET_URL,
   GNOLL_ATTACK_SPRITE_SHEET_URL,
   GNOLL_DEATH_SPRITE_SHEET_URL,
+  DEMON_WALK_SPRITE_SHEET_URL,
+  DEMON_ATTACK_SPRITE_SHEET_URL,
+  DEMON_DEATH_SPRITE_SHEET_URL,
   SPRITE_WIDTH,
   SPRITE_HEIGHT,
   WALK_FRAMES_PER_ROW,
@@ -44,7 +47,10 @@ import {
   GOLEM_DEATH_FRAMES_PER_ROW,
   GNOLL_WALK_FRAMES_PER_ROW,
   GNOLL_ATTACK_FRAMES_PER_ROW,
-  GNOLL_DEATH_FRAMES_PER_ROW
+  GNOLL_DEATH_FRAMES_PER_ROW,
+  DEMON_WALK_FRAMES_PER_ROW,
+  DEMON_ATTACK_FRAMES_PER_ROW,
+  DEMON_DEATH_FRAMES_PER_ROW
 } from '../constants';
 
 interface EnemyProps {
@@ -55,6 +61,7 @@ interface EnemyProps {
   observerSpriteScale: number;
   goblinSpriteScale: number;
   golemSpriteScale: number;
+  demonSpriteScale: number;
 }
 
 const Enemy: React.FC<EnemyProps> = ({
@@ -64,7 +71,8 @@ const Enemy: React.FC<EnemyProps> = ({
   devilSpriteScale,
   observerSpriteScale,
   goblinSpriteScale,
-  golemSpriteScale
+  golemSpriteScale,
+  demonSpriteScale
 }) => {
   if (!enemy.hasSpawned) return null;
 
@@ -74,6 +82,7 @@ const Enemy: React.FC<EnemyProps> = ({
   const isGoblin = enemy.type === 'goblin';
   const isGolem = enemy.type === 'golem';
   const isGnoll = enemy.type === 'gnoll';
+  const isDemon = enemy.type === 'demon';
   let spriteUrl, framesPerRow, currentFrame;
   
   if (enemy.isDying) {
@@ -95,6 +104,9 @@ const Enemy: React.FC<EnemyProps> = ({
     } else if (isGnoll) {
       spriteUrl = GNOLL_DEATH_SPRITE_SHEET_URL;
       framesPerRow = GNOLL_DEATH_FRAMES_PER_ROW;
+    } else if (isDemon) {
+      spriteUrl = DEMON_DEATH_SPRITE_SHEET_URL;
+      framesPerRow = DEMON_DEATH_FRAMES_PER_ROW;
     } else {
       spriteUrl = MUSHROOM_DEATH_SPRITE_SHEET_URL;
       framesPerRow = DEATH_FRAMES_PER_ROW;
@@ -119,6 +131,9 @@ const Enemy: React.FC<EnemyProps> = ({
     } else if (isGnoll) {
       spriteUrl = GNOLL_ATTACK_SPRITE_SHEET_URL;
       framesPerRow = GNOLL_ATTACK_FRAMES_PER_ROW;
+    } else if (isDemon) {
+      spriteUrl = DEMON_ATTACK_SPRITE_SHEET_URL;
+      framesPerRow = DEMON_ATTACK_FRAMES_PER_ROW;
     } else {
       spriteUrl = MUSHROOM_ATTACK_SPRITE_SHEET_URL;
       framesPerRow = ATTACK_FRAMES_PER_ROW;
@@ -143,6 +158,9 @@ const Enemy: React.FC<EnemyProps> = ({
     } else if (isGnoll) {
       spriteUrl = GNOLL_WALK_SPRITE_SHEET_URL;
       framesPerRow = GNOLL_WALK_FRAMES_PER_ROW;
+    } else if (isDemon) {
+      spriteUrl = DEMON_WALK_SPRITE_SHEET_URL;
+      framesPerRow = DEMON_WALK_FRAMES_PER_ROW;
     } else {
       spriteUrl = MUSHROOM_SPRITE_SHEET_URL;
       framesPerRow = WALK_FRAMES_PER_ROW;
@@ -150,7 +168,7 @@ const Enemy: React.FC<EnemyProps> = ({
     currentFrame = enemy.currentFrame;
   }
   
-  const currentSpriteScale = isTreant ? treantSpriteScale : isDevil ? devilSpriteScale : isObserver ? observerSpriteScale : isGoblin ? goblinSpriteScale : isGolem ? golemSpriteScale : spriteScale;
+  const currentSpriteScale = isTreant ? treantSpriteScale : isDevil ? devilSpriteScale : isObserver ? observerSpriteScale : isGoblin ? goblinSpriteScale : isGolem ? golemSpriteScale : isDemon ? demonSpriteScale : spriteScale;
 
   return (
     <div key={enemy.id}>
@@ -186,10 +204,11 @@ const Enemy: React.FC<EnemyProps> = ({
               isGoblin ? Math.max(5, 3 + (goblinSpriteScale / 2)) :
               isGolem ? Math.max(8, 5 + (golemSpriteScale / 2)) :
               isGnoll ? Math.max(5, 3 + (spriteScale / 2)) :
+              isDemon ? Math.max(8, 5 + (demonSpriteScale / 2)) :
               Math.max(5, 3 + (spriteScale / 2)))}%`,
             transform: 'translateX(-50%)',
-            width: `${(isTreant ? 40 : isDevil ? 50 : isObserver ? 50 : isGoblin ? 45 : isGolem ? 55 : 60) * ((isTreant ? treantSpriteScale : isDevil ? devilSpriteScale : isObserver ? observerSpriteScale : isGoblin ? goblinSpriteScale : isGolem ? golemSpriteScale : spriteScale) / 3)}px`,
-            height: `${Math.max(8, (isTreant ? 10 : isDevil ? 11 : isObserver ? 11 : isGoblin ? 10 : isGolem ? 13 : 12) * ((isTreant ? treantSpriteScale : isDevil ? devilSpriteScale : isObserver ? observerSpriteScale : isGoblin ? goblinSpriteScale : isGolem ? golemSpriteScale : spriteScale) / 5))}px`,
+            width: `${(isTreant ? 40 : isDevil ? 50 : isObserver ? 50 : isGoblin ? 45 : isGolem ? 55 : isDemon ? 60 : 60) * ((isTreant ? treantSpriteScale : isDevil ? devilSpriteScale : isObserver ? observerSpriteScale : isGoblin ? goblinSpriteScale : isGolem ? golemSpriteScale : isDemon ? demonSpriteScale : spriteScale) / 3)}px`,
+            height: `${Math.max(8, (isTreant ? 10 : isDevil ? 11 : isObserver ? 11 : isGoblin ? 10 : isGolem ? 13 : isDemon ? 14 : 12) * ((isTreant ? treantSpriteScale : isDevil ? devilSpriteScale : isObserver ? observerSpriteScale : isGoblin ? goblinSpriteScale : isGolem ? golemSpriteScale : isDemon ? demonSpriteScale : spriteScale) / 5))}px`,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             border: '1px solid #333',
             borderRadius: '3px',
